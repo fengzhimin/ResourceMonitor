@@ -10,10 +10,9 @@
 #include "common/fileOper.h"
 #include "common/strOper.h"
 #include "log/logOper.h"
-#include <errno.h>
 #include "config.h"
 
-struct file *KOpenFile(const char* fileName, int mode);
+struct file *KOpenFile(const char* fileName, int mode)
 {
 	struct file *fd = NULL;
 	mode |= O_CREAT;   //默认添加创建属性
@@ -24,7 +23,7 @@ struct file *KOpenFile(const char* fileName, int mode);
 	return fd;
 }
 
-int KWriteFile(struct file *fd, char *data);
+int KWriteFile(struct file *fd, char *data)
 {
 	int _ret_value;
 	mm_segment_t fs;
@@ -42,7 +41,7 @@ int KReadFile(struct file *fd, char *data, size_t size)
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
-	_ret_value = vfs_read(fd, data, size, &fd->pos);
+	_ret_value = vfs_read(fd, data, size, &fd->f_pos);
 	set_fs(fs);
 
 	return _ret_value;
@@ -52,7 +51,7 @@ int KReadLine(struct file *fd, char *data)
 {
 	char *_ch;
 	int n = 0;
-	while(getc(fd, _ch, 1) == 1)
+	while(KReadFile(fd, _ch, 1) == 1)
 	{
 		if(n >= LINE_CHAR_MAX_NUM)
 		{
@@ -67,36 +66,36 @@ int KReadLine(struct file *fd, char *data)
 	return 0;
 }
 
-int KCloseFile(FILE *fd)
+int KCloseFile(struct file *fd)
 {
 	return filp_close(fd, NULL);
 }
 
 void RemoveNote(char *fileName, char *fileNameCopy)
 {
-	struct file *fd = KOpenFile(fileName, "r");
+	struct file *fd = KOpenFile(fileName, O_RDONLY);
 	if(fd == NULL)
 	{
 		char error_info[200];
-		sprintf(error_info, "%s%s%s%s%s", "文件: ", fileName, " 打开失败！ 错误信息： ", strerror(errno), "\n");
+		sprintf(error_info, "%s%s%s%s%s", "文件: ", fileName, " 打开失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return ;
 	}
-	struct file *fdCopy = KOpenFile(fileNameCopy, "w+");
+	struct file *fdCopy = KOpenFile(fileNameCopy, O_APPEND | O_RDWR);
 	if(fd == NULL)
 	{
 		char error_info[200];
-		sprintf(error_info, "%s%s%s%s%s", "创建文件: ", fileNameCopy, " 失败！ 错误信息： ", strerror(errno), "\n");
+		sprintf(error_info, "%s%s%s%s%s", "创建文件: ", fileNameCopy, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return ;
 	}
 	char lineInfo[LINE_CHAR_MAX_NUM];
-	while(!feof(fd))
+	memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
+	while(KReadLine(fd, lineInfo) == -1)
 	{
-		memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
-		ReadLine(fd, lineInfo);
 		if(!JudgeNote(lineInfo))
-			WriteFile(fdCopy, lineInfo);	
+			KWriteFile(fdCopy, lineInfo);	
+		memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
 	}
 
 	KCloseFile(fd);

@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-11 09:02
-* Last modified: 2017-03-17 18:13
+* Last modified: 2017-03-17 21:32
 * Email        : 374648064@qq.com
 * Filename     : strOper.c
 * Description  : 
@@ -97,7 +97,7 @@ bool GetConfigInfo(char *_str, char _type[][CONFIG_KEY_MAX_NUM], int _type_num, 
 	int i;
 	for(i = 0; i < _type_num; i++)
 	{
-		if(strcasestr(_first_word, _type[i]) != NULL)
+		if(strstr(_first_word, _type[i]) != NULL)
 		{
 			int _temp_index = 0;
 			bool temp_point = false;
@@ -136,20 +136,20 @@ int GetConfigInfoFromConfigFile(ConfigInfo _configInfo[], char _type[][CONFIG_KE
 		if(fd == NULL)
 		{
 			char error_info[200];
-			sprintf(error_info, "%s%s%s%s%s", "文件: ", _configfilepath[i], " 打开失败！ 错误信息： ", strerror(errno), "\n");
+			sprintf(error_info, "%s%s%s%s%s", "文件: ", _configfilepath[i], " 打开失败！ 错误信息： ", "    ", "\n");
 			RecordLog(error_info);
 			return -1;
 		}
 		char lineInfo[LINE_CHAR_MAX_NUM];
-		while(!feof(fd))
+		memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
+		while(KReadLine(fd, lineInfo) == -1)
 		{
-			memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
-			KReadLine(fd, lineInfo);
 			if(!JudgeNote(lineInfo))   //判断是否为注释行
 			{
 				if(GetConfigInfo(lineInfo, _type, _type_num, &_configInfo[_real_configInfoNum]))
 					_real_configInfoNum++;
 			}
+			memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
 		}
 
 		KCloseFile(fd);
@@ -279,7 +279,7 @@ int GetSubStrNum(char *str, char *substr)
 	char *temp = str;
 	while(temp != NULL)
 	{
-		temp = strcasestr(temp, substr);
+		temp = strstr(temp, substr);
 		if(temp != NULL)
 		{
 			++ret_num;   //查找到一个匹配的字符串

@@ -12,6 +12,7 @@
 
 #include <linux/string.h>
 #include <linux/fs.h>
+#include <asm/uaccess.h>
 
 /**********************************
  * function: 内核态打开文件操作

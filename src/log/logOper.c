@@ -41,9 +41,9 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 
 int WriteLog(const char* logName, const char* logInfo, const char *file, const char* function, const int line)
 {
-	printf("%s", logInfo);   //终端及时显示信息
+	printk("%s", logInfo);   //终端及时显示信息
 #if OPENLOG
-	struct file * _fd = KOpenFile(logName, "a");
+	struct file * _fd = KOpenFile(logName, O_APPEND | O_WRONLY);
 	if(NULL == _fd)
 		return -1;
 	

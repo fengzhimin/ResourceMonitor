@@ -71,7 +71,7 @@ typedef struct TotalCpuTime
 ****************************/
 typedef struct ProcessCpuTime
 {
-	pid_t pid;
+	int pid;
 	unsigned int utime;
 	unsigned int stime;
 	unsigned int cutime;
