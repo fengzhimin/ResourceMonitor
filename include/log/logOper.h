@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-04 08:52
-* Last modified: 2016-11-05 14:31
+* Last modified: 2017-03-17 18:01
 * Email        : 374648064@qq.com
 * Filename     : logOper.h
 * Description  : 日志的记录函数头文件，包含所有的日志操作
@@ -10,6 +10,8 @@
 #ifndef __LOGRECORD_H__
 #define __LOGRECORD_H__
 
+#include <linux/string.h>
+#include <linux/slab.h>
 
 /**********************************
  * function: 宏定义实现默认参数函数

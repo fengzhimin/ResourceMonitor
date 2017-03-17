@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-04 12:49
-* Last modified: 2016-11-05 01:21
+* Last modified: 2017-03-17 17:58
 * Email        : 374648064@qq.com
 * Filename     : dateOper.c
 * Description  : 
@@ -13,11 +13,11 @@ int GetLocalTime(char *buf, int fmt)
 {
 	if(fmt < 0 || fmt > 2)
 		return -1;
-    time_t t;
-	struct tm *tp;
-	t = time(NULL);
-	 
-	tp = localtime(&t);
+	
+	struct timex txc;
+	struct rtc_time *tp;
+	do_gettimeofday(&(txc.time));
+	rtc_time_to_tm(txc.time.tv_sec, tp);
 	switch(fmt)
 	{
 	case 0:

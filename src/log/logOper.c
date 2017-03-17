@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-04 12:47
-* Last modified: 2016-11-30 11:28
+* Last modified: 2017-03-17 18:14
 * Email        : 374648064@qq.com
 * Filename     : logOper.c
 * Description  : 
@@ -11,7 +11,7 @@
 #include "common/fileOper.h"
 #include "common/dateOper.h"
 #include "config.h"
-#include <stdlib.h>
+
 
 char *CreateLogInfo(const char *logInfo, const char *file, const char* function, const int line)
 {
@@ -25,7 +25,7 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 	sprintf(_line, "%s%4d%s", "[行数:", line, "] ");          //获取正在执行的行数
 	
 	int _size = strlen(logInfo) + strlen(_date) + strlen(_function) + strlen(_file) + strlen(_line) + 20;
-	char *mergeInfo = malloc(_size);
+	char *mergeInfo = kmalloc(_size, GFP_ATOMIC);
 	memset(mergeInfo, 0, _size);
 	strcat(mergeInfo, "[");
 	strcat(mergeInfo, _date);
@@ -43,16 +43,16 @@ int WriteLog(const char* logName, const char* logInfo, const char *file, const c
 {
 	printf("%s", logInfo);   //终端及时显示信息
 #if OPENLOG
-	FILE * _fd = OpenFile(logName, "a");
+	struct file * _fd = KOpenFile(logName, "a");
 	if(NULL == _fd)
 		return -1;
 	
 	char *_mergeInfo = CreateLogInfo(logInfo, file, function, line);
 
-	int _ret_write = WriteFile(_fd, _mergeInfo);
+	int _ret_write = KWriteFile(_fd, _mergeInfo);
 
-	free(_mergeInfo);
-	CloseFile(_fd);
+	kfree(_mergeInfo);
+	KCloseFile(_fd);
 
 	if(_ret_write != -1)
 		return 0;

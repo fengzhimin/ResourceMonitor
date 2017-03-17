@@ -5,7 +5,7 @@ obj-y := src/
 obj-m := KCode.o
 
 KCode-objs := main.o src/built-in.o
-EXTRA_LDFLAGS := --start-group # solving circular references in archives
+EXTRA_LDFLAGS := --start-group
 
 else
 

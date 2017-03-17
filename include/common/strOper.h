@@ -11,6 +11,7 @@
 #define __STROPER_H__
 
 #include <linux/string.h>
+#include <linux/slab.h>
 #include "config.h"
 
 /**************************

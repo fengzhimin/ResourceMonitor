@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-04 12:35
-* Last modified: 2016-11-12 12:23
+* Last modified: 2017-03-17 16:52
 * Email        : 374648064@qq.com
 * Filename     : fileOper.c
 * Description  : 
@@ -13,65 +13,68 @@
 #include <errno.h>
 #include "config.h"
 
-FILE *OpenFile(const char* fileName, const char* mode)
+struct file *KOpenFile(const char* fileName, int mode);
 {
-	FILE *fd;
-	fd = fopen(fileName, mode);
+	struct file *fd = NULL;
+	mode |= O_CREAT;   //默认添加创建属性
+	fd = filp_open(fileName, mode, 0644);
+	if(IS_ERR(fd))
+		fd = NULL;
 
 	return fd;
 }
 
-int WriteFile(FILE *fd, char *data)
+int KWriteFile(struct file *fd, char *data);
 {
 	int _ret_value;
-	size_t _data_size;
-	_data_size = strlen(data);
-	_ret_value = fwrite(data, sizeof(char), _data_size, fd);
-	fflush(fd);
-	if(_ret_value != _data_size)
-		return errno;
-	else
-		return -1;
+	mm_segment_t fs;
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	_ret_value = vfs_write(fd, data, sizeof(data), &fd->f_pos);
+	set_fs(fs);
+
+	return _ret_value;
 }
 
-int ReadFile(FILE *fd, char *data, size_t size)
+int KReadFile(struct file *fd, char *data, size_t size)
 {
 	int _ret_value;
-	_ret_value = fread(data, sizeof(char), size, fd);
-	printf("%d\n", _ret_value);
-	if(_ret_value < 1)
-		return errno;
-	else
-		return -1;
+	mm_segment_t fs;
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	_ret_value = vfs_read(fd, data, size, &fd->pos);
+	set_fs(fs);
+
+	return _ret_value;
 }
 
-int ReadLine(FILE *fd, char *data)
+int KReadLine(struct file *fd, char *data)
 {
-	char _ch;
+	char *_ch;
 	int n = 0;
-	while((_ch = getc(fd)) != EOF)
+	while(getc(fd, _ch, 1) == 1)
 	{
 		if(n >= LINE_CHAR_MAX_NUM)
 		{
 			RecordLog("配置文件的一行数据大小超过预设大小!\n");
 			return -1;
 		}
-		if(_ch == '\n')
+		if(_ch[0] == '\n')
 			return -1;
-		data[n++] = _ch;
+		data[n++] = _ch[0];
 	}
 
 	return 0;
 }
 
-int CloseFile(FILE *fd)
+int KCloseFile(FILE *fd)
 {
-	return fclose(fd);
+	return filp_close(fd, NULL);
 }
 
 void RemoveNote(char *fileName, char *fileNameCopy)
 {
-	FILE *fd = OpenFile(fileName, "r");
+	struct file *fd = KOpenFile(fileName, "r");
 	if(fd == NULL)
 	{
 		char error_info[200];
@@ -79,7 +82,7 @@ void RemoveNote(char *fileName, char *fileNameCopy)
 		RecordLog(error_info);
 		return ;
 	}
-	FILE *fdCopy = OpenFile(fileNameCopy, "w+");
+	struct file *fdCopy = KOpenFile(fileNameCopy, "w+");
 	if(fd == NULL)
 	{
 		char error_info[200];
@@ -96,8 +99,8 @@ void RemoveNote(char *fileName, char *fileNameCopy)
 			WriteFile(fdCopy, lineInfo);	
 	}
 
-	CloseFile(fd);
-	CloseFile(fdCopy);
+	KCloseFile(fd);
+	KCloseFile(fdCopy);
 
 }
 

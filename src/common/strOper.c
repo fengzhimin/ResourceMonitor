@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-11 09:02
-* Last modified: 2017-02-12 21:37
+* Last modified: 2017-03-17 18:13
 * Email        : 374648064@qq.com
 * Filename     : strOper.c
 * Description  : 
@@ -16,7 +16,8 @@
 bool isNum(char *_ch)
 {
 	int _length = strlen(_ch);
-	for(int i = 0; i < _length; i++)
+	int i;
+	for(i = 0; i < _length; i++)
 	{
 		if(_ch[i] < '0' || _ch[i] > '9')
 			return false;
@@ -29,7 +30,8 @@ int GetFirstCharIndex(char *_str)
 {
 	int _first_char_index = 0;
 	int _str_length = strlen(_str);
-	for(int i = 0; i < _str_length; i++)
+	int i;
+	for(i = 0; i < _str_length; i++)
 		if(_str[i] == ' ' || _str[i] == '\t')    //空白字符和制表符
 			_first_char_index++;
 		else
@@ -43,7 +45,8 @@ bool JudgeNote(char *_str)
 	int _first_char_index = GetFirstCharIndex(_str);
 
 	int _note_num = GetNote_SymbolNum();
-	for(int i = 0; i < _note_num; i++)
+	int i;
+	for(i = 0; i < _note_num; i++)
 	{
 		int note_size = strlen(note_symbol[i]);
 		char temp[20];
@@ -90,14 +93,17 @@ bool GetConfigInfo(char *_str, char _type[][CONFIG_KEY_MAX_NUM], int _type_num, 
 	int _str_length = strlen(_str);
 	if(_next_char_begin_index == -1)
 		return false;
-	for(int i = 0; i < _type_num; i++)
+
+	int i;
+	for(i = 0; i < _type_num; i++)
 	{
 		if(strcasestr(_first_word, _type[i]) != NULL)
 		{
 			int _temp_index = 0;
 			bool temp_point = false;
 			strcpy(_configInfo->key, _first_word);
-			for(int j = _next_char_begin_index; j < _str_length; j++)
+			int j;
+			for(j = _next_char_begin_index; j < _str_length; j++)
 			{
 				//跳过key与value中间的字符
 				if(_str[j] == ' ' || _str[j] == '\t' || _str[j] == '=' || _str[j] == '\n')
@@ -123,9 +129,10 @@ bool GetConfigInfo(char *_str, char _type[][CONFIG_KEY_MAX_NUM], int _type_num, 
 int GetConfigInfoFromConfigFile(ConfigInfo _configInfo[], char _type[][CONFIG_KEY_MAX_NUM], int _type_num, char _configfilepath[][FILE_PATH_MAX_LENGTH], int _configfilepathNum)
 {
 	int _real_configInfoNum = 0;
-	for(int i = 0; i < _configfilepathNum; i++)
+	int i;
+	for(i = 0; i < _configfilepathNum; i++)
 	{
-		FILE *fd = OpenFile(_configfilepath[i], "r");	
+		struct file *fd = KOpenFile(_configfilepath[i], O_RDONLY);	
 		if(fd == NULL)
 		{
 			char error_info[200];
@@ -137,7 +144,7 @@ int GetConfigInfoFromConfigFile(ConfigInfo _configInfo[], char _type[][CONFIG_KE
 		while(!feof(fd))
 		{
 			memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
-			ReadLine(fd, lineInfo);
+			KReadLine(fd, lineInfo);
 			if(!JudgeNote(lineInfo))   //判断是否为注释行
 			{
 				if(GetConfigInfo(lineInfo, _type, _type_num, &_configInfo[_real_configInfoNum]))
@@ -145,7 +152,7 @@ int GetConfigInfoFromConfigFile(ConfigInfo _configInfo[], char _type[][CONFIG_KE
 			}
 		}
 
-		CloseFile(fd);
+		KCloseFile(fd);
 	}
 
 	return _real_configInfoNum;
@@ -156,7 +163,8 @@ int ExtractNumFromStr(char *_str)
 {
 	int _str_length = strlen(_str);
 	int _ret = 0;
-	for(int i = 0; i < _str_length; i++)
+	int i;
+	for(i = 0; i < _str_length; i++)
 		if(_str[i] >= '0' && _str[i] <= '9')
 			_ret = _ret*10 + _str[i] - '0';
 
@@ -169,14 +177,15 @@ int ExtractNumFromStr(char *_str)
 int cutStrByLabel(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLength)
 {
 	//将subStr清空
-	for(int i = 0; i < subStrLength; i++)
+	int i;
+	for(i = 0; i < subStrLength; i++)
 		memset(subStr[i], 0, MAX_SUBSTR);
 
 	int _strLength = strlen(str);
 	char *pstr = &str[0];
 	int _ret_subNum = 0;
 	int j = 0;   //为上一个子字符串的最后一个字符的index+1
-	for(int i = 0; i < _strLength; i++)
+	for(i = 0; i < _strLength; i++)
 	{
 		if(str[i] == ch)
 		{
@@ -224,12 +233,13 @@ int cutStrByLabel(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLengt
 void removeBeginSpace(char *str)
 {
 	int _length = strlen(str);
-	char *temp = malloc(sizeof(char)*(_length+1));
+	char *temp = kmalloc(sizeof(char)*(_length+1), GFP_ATOMIC);
 	memset(temp, 0, _length);
 	strcpy(temp, str);
 	memset(str, 0, _length);
 	char *pstr = &temp[0];
-	for(int i = 0; i < _length; i++)
+	int i;
+	for(i = 0; i < _length; i++)
 	{
 		if(temp[i] == ' ' || temp[i] == '\t')
 		{
@@ -240,18 +250,19 @@ void removeBeginSpace(char *str)
 			break;
 	}
 	strcpy(str, pstr);
-	free(temp);
+	kfree(temp);
 }
 
 void removeChar(char *str, char ch)
 {
 	int _length = strlen(str);
-	char *temp = malloc(sizeof(char)*(_length+1));
+	char *temp = kmalloc(sizeof(char)*(_length+1), GFP_ATOMIC);
 	memset(temp, 0, _length);
 	strcpy(temp, str);
 	memset(str, 0, _length);
 	int j = 0;
-	for(int i = 0; i < _length; i++)
+	int i;
+	for(i = 0; i < _length; i++)
 	{
 		if(temp[i] == ch)
 			continue;
@@ -259,7 +270,7 @@ void removeChar(char *str, char ch)
 			str[j++] = temp[i];
 	}
 
-	free(temp);
+	kfree(temp);
 }
 
 int GetSubStrNum(char *str, char *substr)
