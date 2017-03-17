@@ -1,5 +1,5 @@
-obj-y := running.o
+obj-y := log.o
 
-running-objs := resource.o
+log-objs := logOper.o
 
 EXTRA_CFLAGS := -DMMAN -I$(src)/../../include
