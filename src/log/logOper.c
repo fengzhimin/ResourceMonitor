@@ -49,6 +49,7 @@ int WriteLog(const char* logName, const char* logInfo, const char *file, const c
 	
 	char *_mergeInfo = CreateLogInfo(logInfo, file, function, line);
 
+	printk(_mergeInfo);
 	int _ret_write = KWriteFile(_fd, _mergeInfo);
 
 	kfree(_mergeInfo);

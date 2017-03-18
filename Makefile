@@ -6,7 +6,8 @@ obj-m := KCode.o
 
 KCode-objs := main.o src/built-in.o
 EXTRA_LDFLAGS := --start-group
-KBUILD_CFLAGS := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration
+KBUILD_CFLAGS +=-Wno-declaration-after-statement -Wno-strict-prototypes
+EXTRA_CFLAGS := -DMMAN -I$(src)/include
 
 else
 

@@ -12,6 +12,9 @@
 #include "log/logOper.h"
 #include "config.h"
 
+static char error_info[200];
+static char lineInfo[LINE_CHAR_MAX_NUM];
+
 struct file *KOpenFile(const char* fileName, int mode)
 {
 	struct file *fd = NULL;
@@ -29,7 +32,7 @@ int KWriteFile(struct file *fd, char *data)
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
-	_ret_value = vfs_write(fd, data, sizeof(data), &fd->f_pos);
+	_ret_value = vfs_write(fd, data, strlen(data), &fd->f_pos);
 	set_fs(fs);
 
 	return _ret_value;
@@ -49,18 +52,18 @@ int KReadFile(struct file *fd, char *data, size_t size)
 
 int KReadLine(struct file *fd, char *data)
 {
-	char *_ch;
+	char _ch;
 	int n = 0;
-	while(KReadFile(fd, _ch, 1) == 1)
+	while(KReadFile(fd, &_ch, 1) == 1)
 	{
 		if(n >= LINE_CHAR_MAX_NUM)
 		{
 			RecordLog("配置文件的一行数据大小超过预设大小!\n");
 			return -1;
 		}
-		if(_ch[0] == '\n')
+		if(_ch == '\n')
 			return -1;
-		data[n++] = _ch[0];
+		data[n++] = _ch;
 	}
 
 	return 0;
@@ -76,7 +79,6 @@ void RemoveNote(char *fileName, char *fileNameCopy)
 	struct file *fd = KOpenFile(fileName, O_RDONLY);
 	if(fd == NULL)
 	{
-		char error_info[200];
 		sprintf(error_info, "%s%s%s%s%s", "文件: ", fileName, " 打开失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return ;
@@ -84,12 +86,10 @@ void RemoveNote(char *fileName, char *fileNameCopy)
 	struct file *fdCopy = KOpenFile(fileNameCopy, O_APPEND | O_RDWR);
 	if(fd == NULL)
 	{
-		char error_info[200];
 		sprintf(error_info, "%s%s%s%s%s", "创建文件: ", fileNameCopy, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return ;
 	}
-	char lineInfo[LINE_CHAR_MAX_NUM];
 	memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
 	while(KReadLine(fd, lineInfo) == -1)
 	{

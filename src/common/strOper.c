@@ -13,6 +13,9 @@
 #include "common/fileOper.h"
 #include "log/logOper.h"
 
+static char error_info[200];
+static char lineInfo[LINE_CHAR_MAX_NUM];
+
 bool isNum(char *_ch)
 {
 	int _length = strlen(_ch);
@@ -135,12 +138,10 @@ int GetConfigInfoFromConfigFile(ConfigInfo _configInfo[], char _type[][CONFIG_KE
 		struct file *fd = KOpenFile(_configfilepath[i], O_RDONLY);	
 		if(fd == NULL)
 		{
-			char error_info[200];
 			sprintf(error_info, "%s%s%s%s%s", "文件: ", _configfilepath[i], " 打开失败！ 错误信息： ", "    ", "\n");
 			RecordLog(error_info);
 			return -1;
 		}
-		char lineInfo[LINE_CHAR_MAX_NUM];
 		memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
 		while(KReadLine(fd, lineInfo) == -1)
 		{
