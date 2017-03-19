@@ -292,3 +292,38 @@ int GetSubStrNum(char *str, char *substr)
 
 	return ret_num;
 }
+
+void IntToStr(char *str, int num)
+{
+	int point = 0;
+	int mod = 1000000;
+	if(num < 0)    //判断是否小于零
+		return ;
+	if(num == 0)   //处理等于零的情况
+	{
+		str[0] = '0';
+		return ;
+	}
+	while(1)
+	{
+		if(num < mod)
+		{
+			mod /= 10;
+			continue;
+		}
+		else
+		{
+			while(1)
+			{
+				if(mod == 1)
+				{
+					str[point] = num + '0';
+					return ;
+				}
+				str[point++] = num/mod + '0';
+				num %= mod;
+				mod /= 10;
+			}
+		}
+	}
+}

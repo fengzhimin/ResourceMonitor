@@ -4,20 +4,29 @@
 #include "log/logOper.h"
 #include "common/fileOper.h"
 #include "common/dirOper.h"
+#include "common/strOper.h"
+#include "running/resource.h"
+
 
 int Code_init(void)
 {
-	int ret = Is_Dir("/etc");
+	char *path = "/proc/2398";
+	
+	char info[8][MAX_INFOLENGTH];
+	int i;
+	for(i = 0; i < 8; i++)
+		memset(info[i], 0, MAX_INFOLENGTH);
+	int ret = getProgressInfo(path, info);
 	if(ret == -1)
-		printk("是文件夹\n");
-	else if(ret == -2)
-		printk("是文件\n");
-/*
-	struct file *fd = KOpenFile("/etc", O_RDONLY);
-	struct dir_context dir;
-	iterate_dir(fd, &dir);
-	printk("data = %s\n", dir);
-*/
+		printk("getProgressInfo ret = %d\n", ret);
+	for(i = 0; i < 8; i++)
+	{
+		printk("%10s\t", info[i]);
+	}
+	printk("\n");
+	
+	printk("success\n");
+	
     return 0;
 }
 

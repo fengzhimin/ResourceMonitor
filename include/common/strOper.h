@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-09 11:40
-* Last modified: 2017-02-12 19:58
+* Last modified: 2017-03-19 20:50
 * Email        : 374648064@qq.com
 * Filename     : strOper.h
 * Description  : 字符串处理函数
@@ -114,5 +114,15 @@ void removeChar(char *str, char ch);
  * example: str = "str123str23" substr = "str"  -----> return = 2
 ***********************************/
 int GetSubStrNum(char *str, char *substr);
+
+/**********************************
+ * func: 将浮点数转化为字符串
+ * return: void
+ * @para str: 存放转化后的字符串
+ * @para _float: float类型数字
+ * @para num: 保留小数点后几位
+ * example: _float = 12.12  num = 1 -------> str = "12.1"
+***********************************/
+void IntToStr(char *str, int num);
 
 #endif
