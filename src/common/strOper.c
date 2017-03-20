@@ -169,7 +169,7 @@ int ExtractNumFromStr(char *_str)
 		if(_str[i] >= '0' && _str[i] <= '9')
 			_ret = _ret*10 + _str[i] - '0';
 
-	if(_ret > 0)
+	if(_ret >= 0)
 		return _ret;
 	else
 		return -1;

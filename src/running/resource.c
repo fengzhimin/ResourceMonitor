@@ -139,25 +139,26 @@ int getProgressInfo(char path[], char info[][MAX_INFOLENGTH])
 		unsigned int totalMemNum = ExtractNumFromStr(totalMem);
 		unsigned int vmrssNum = ExtractNumFromStr(info[6]);
 		int pmem = 100*vmrssNum/totalMemNum;
-		IntToStr(info[4], pmem);
-		//sprintf(info[4], "%d", pmem);
+		//IntToStr(info[4], pmem);
+		sprintf(info[4], "%d", pmem);
 	}
 	
 	Total_Cpu_Occupy_t total_cpu_occupy1, total_cpu_occupy2;
 	Process_Cpu_Occupy_t process_cpu_occupy1, process_cpu_occupy2;
 	getTotalCPUTime(&total_cpu_occupy1);
 	getProcessCPUTime(stat, &process_cpu_occupy1);
-	mdelay(500);
+	msleep(500);
 	getTotalCPUTime(&total_cpu_occupy2);
 	getProcessCPUTime(stat, &process_cpu_occupy2);
+	
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
 	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;
 	int process_cpu1 = process_cpu_occupy1.utime + process_cpu_occupy1.stime + process_cpu_occupy1.cutime + process_cpu_occupy1.cstime;
 	int process_cpu2 = process_cpu_occupy2.utime + process_cpu_occupy2.stime + process_cpu_occupy2.cutime + process_cpu_occupy2.cstime;
 	int pcpu = 100*(process_cpu2-process_cpu1)/(total_cpu2-total_cpu1);
-	IntToStr(info[3], pcpu);
-	//sprintf(info[3], "%d", pcpu);
-
+	//IntToStr(info[3], pcpu);
+	sprintf(info[3], "%d", pcpu);
+	
 	return 1;
 }
 
@@ -200,8 +201,11 @@ int getProcessCPUTime(char *stat, Process_Cpu_Occupy_t *processCpuTime)
 	}
 
 	memset(stat_data, 0, 1000);
-	if(KReadLine(fp, stat_data) == -1)
+	//if(KReadLine(fp, stat_data) == -1)
+	int size = KReadFile(fp, stat_data, 1000);
+	if(size > 0)
 	{
+		printk("size = %d\n", size);
 		cutStrByLabel(stat_data, ' ', subStr18, 18);
 		processCpuTime->pid = ExtractNumFromStr(subStr18[12]);
 		processCpuTime->utime = ExtractNumFromStr(subStr18[13]);
