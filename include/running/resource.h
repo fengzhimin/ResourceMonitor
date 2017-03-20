@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-12-27 15:19
-* Last modified: 2017-02-23 18:51
+* Last modified: 2017-03-20 20:10
 * Email        : 374648064@qq.com
 * Filename     : resource.h
 * Description  : 获取软件占用系统资源
@@ -39,6 +39,8 @@ int getStatusPathByName(char name[], char path[]);
  *		 info[5] = 程序使用虚拟内存大小
  *		 info[6] = 程序使用物理内存大小
  *		 info[7] = 程序状态
+ *		 info[8] = 总CPU使用情况
+ *		 info[9] = 总内存使用情况
 ************************************************/
 int getProgressInfo(char path[], char info[][MAX_INFOLENGTH]);
 
@@ -46,9 +48,10 @@ int getProgressInfo(char path[], char info[][MAX_INFOLENGTH]);
 /**********************************************
  * func: 获取物理内存大小
  * return: -1 = 失败   1 = 成功
- * @para totalMem: 存放物理内存大小
+ * @para totalMem[0]: 存放物理内存总大小
+ * @para totalMem[1]: 存放物理内存可用大小
 **********************************************/
-int getTotalPM(char totalMem[]);
+int getTotalPM(char totalMem[][MAX_INFOLENGTH]);
 
 /**********************************************
  * func: 获取CPU使用时间

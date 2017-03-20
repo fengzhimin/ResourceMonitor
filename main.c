@@ -11,9 +11,7 @@
 #include "common/strOper.h"
 #include "running/resource.h"
 
-static char stat_data[1000];
-static char error_info[200];
-static char subStr18[18][MAX_SUBSTR];
+char info[10][MAX_INFOLENGTH];
 static struct task_struct *monitorTask = NULL;
 
 /**********************************
@@ -25,22 +23,6 @@ int monitorResource(void *data);
 
 int Code_init(void)
 {
-	/*
-	char *path = "/proc/2398";
-	
-	char info[8][MAX_INFOLENGTH];
-	int i;
-	for(i = 0; i < 8; i++)
-		memset(info[i], 0, MAX_INFOLENGTH);
-	int ret = getProgressInfo(path, info);
-	if(ret == -1)
-		printk("getProgressInfo ret = %d\n", ret);
-	for(i = 0; i < 8; i++)
-	{
-		printk("%10s\t", info[i]);
-	}
-	printk("\n");
-	*/
 	printk("success\n");
 	
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
@@ -76,7 +58,6 @@ int monitorResource(void *data)
 	struct task_struct *task, *p;
 	struct list_head *ps;
 	int count = 0;
-	char info[8][MAX_INFOLENGTH];
 	char path[30];
 	while(!kthread_should_stop())
 	{
@@ -87,47 +68,50 @@ int monitorResource(void *data)
 			count++;
 			//printk("%d\t%s\n", p->pid, p->comm);
 			
-			if(strcmp(p->comm, "monitorKthread") == 0)
+			if(p->pid > 1000)
 			{
-				memset(stat_data, 0, 1000);
-				memset(path, 0, 30);
-				sprintf(path, "%s/%d/stat", "/proc", p->pid);
-				//if(KReadLine(fp, stat_data) == -1)
-				struct file* fp = KOpenFile(path, O_RDONLY);
-				int size = KReadFile(fp, stat_data, 1000);
-				if(size > 0)
-				{
-					printk("size = %d\n", size);
-					cutStrByLabel(stat_data, ' ', subStr18, 18);
-					printk("pid = %d\n", ExtractNumFromStr(subStr18[12]));
-					printk("utime = %d\n", ExtractNumFromStr(subStr18[13]));
-					printk("stime = %d\n", ExtractNumFromStr(subStr18[14]));
-					printk("cutime = %d\n", ExtractNumFromStr(subStr18[15]));
-					printk("cstime = %d\n", ExtractNumFromStr(subStr18[16]));
-					KCloseFile(fp);
-				}
-				else
-				{
-					sprintf(error_info, "%s%s%s%s%s", "读取文件: ", path, " 失败！ 错误信息： ", "    ", "\n");
-					printk("error = %s\n", error_info);
-					KCloseFile(fp);
-				}
-				/*
 				int i;
 				memset(path, 0, 30);
 				sprintf(path, "%s/%d", "/proc", p->pid);
-				for(i = 0; i < 8; i++)
+				for(i = 0; i < 10; i++)
 					memset(info[i], 0, MAX_INFOLENGTH);
 				int ret = getProgressInfo(path, info);
 				if(ret == -1)
 					printk("getProgressInfo ret = %d\n", ret);
-				
+			/*	
 				for(i = 0; i < 8; i++)
 				{
-					printk("%10s\t", info[i]);
+					switch(i)
+					{
+					case 0:
+						printk("0" "%30s", info[i]);
+						break;
+					case 1:
+						printk("0" "%10s", info[i]);
+						break;
+					case 2:
+						printk("0" "%10s", info[i]);
+					break;
+					case 3:
+						printk("0" "%5s", info[i]);
+						break;
+					case 4:
+						printk("0" "%5s", info[i]);
+						break;
+					case 5:
+						printk("0" "%15s", info[i]);
+						break;
+					case 6:
+						printk("0" "%15s", info[i]);
+						break;
+					case 7:
+						printk("0" "%10s", info[i]);
+						break;
+					}
 				}
-				printk("\n");
 				*/
+				printk("CPU: %s\t MEM: %s", info[8], info[9]);
+				printk("\n");
 			}
 		}
 		//printk("Process counts: %d\n", count);

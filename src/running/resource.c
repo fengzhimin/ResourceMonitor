@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-12-29 16:32
-* Last modified: 2016-12-29 16:32
+* Last modified: 2017-03-20 20:25
 * Email        : 374648064@qq.com
 * Filename     : resource.c
 * Description  : 
@@ -11,6 +11,7 @@
 static char error_info[200];
 static char stat_data[1000];
 static char subStr18[18][MAX_SUBSTR];
+static char totalMem[2][MAX_INFOLENGTH];
 static char status[FILE_PATH_MAX_LENGTH], stat[FILE_PATH_MAX_LENGTH], lineData[LINE_CHAR_MAX_NUM];
 
 
@@ -132,25 +133,26 @@ int getProgressInfo(char path[], char info[][MAX_INFOLENGTH])
 	}
 	KCloseFile(fp);
 
-	char totalMem[30] = {0};
 	if(getTotalPM(totalMem) == 1)
 	{
 		//计算内存使用率
-		unsigned int totalMemNum = ExtractNumFromStr(totalMem);
+		unsigned int totalMemNum = ExtractNumFromStr(totalMem[0]);
+		unsigned int totalFreeMem = ExtractNumFromStr(totalMem[1]);
 		unsigned int vmrssNum = ExtractNumFromStr(info[6]);
 		int pmem = 100*vmrssNum/totalMemNum;
+		int totalpmem = 100*(totalMemNum-totalFreeMem)/totalMemNum;
 		//IntToStr(info[4], pmem);
 		sprintf(info[4], "%d", pmem);
+		sprintf(info[9], "%d", totalpmem);
 	}
 	
 	Total_Cpu_Occupy_t total_cpu_occupy1, total_cpu_occupy2;
 	Process_Cpu_Occupy_t process_cpu_occupy1, process_cpu_occupy2;
 	getTotalCPUTime(&total_cpu_occupy1);
 	getProcessCPUTime(stat, &process_cpu_occupy1);
-	msleep(500);
+	msleep(100);
 	getTotalCPUTime(&total_cpu_occupy2);
-	getProcessCPUTime(stat, &process_cpu_occupy2);
-	
+	getProcessCPUTime(stat, &process_cpu_occupy2);	
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
 	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;
 	int process_cpu1 = process_cpu_occupy1.utime + process_cpu_occupy1.stime + process_cpu_occupy1.cutime + process_cpu_occupy1.cstime;
@@ -158,36 +160,54 @@ int getProgressInfo(char path[], char info[][MAX_INFOLENGTH])
 	int pcpu = 100*(process_cpu2-process_cpu1)/(total_cpu2-total_cpu1);
 	//IntToStr(info[3], pcpu);
 	sprintf(info[3], "%d", pcpu);
-	
+	int totalcpu = total_cpu2 - total_cpu1;
+	int totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
+	int totalpcpu = 100*(totalcpu-totalidle)/totalcpu;
+	sprintf(info[8], "%d", totalpcpu);
 	return 1;
 }
 
-int getTotalPM(char totalMem[])
+int getTotalPM(char totalMem[][MAX_INFOLENGTH])
 {
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	int lineNum = 1;
 	struct file *fp = KOpenFile("/proc/meminfo", O_RDONLY);
+	char subStr[2][MAX_SUBSTR];
 	if(fp == NULL)
 	{
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "   ", "\n");
 		RecordLog(error_info);
 		return -1;
 	}
-	if(KReadLine(fp, lineData) == -1)
+	while(KReadLine(fp, lineData) == -1)
 	{
-		char subStr[2][MAX_SUBSTR];
-		cutStrByLabel(lineData, ':', subStr, 2);
-		removeChar(subStr[1], '\t');
-		strcpy(totalMem, subStr[1]);
-		KCloseFile(fp);
-		return 1;
+		if(lineNum == 1)
+		{
+			//提取/proc/meminfo 中的第一行数据(MemTotal)
+			cutStrByLabel(lineData, ':', subStr, 2);
+			removeChar(subStr[1], '\t');
+			strcpy(totalMem[0], subStr[1]);
+		}
+		else if(lineNum == 3)
+		{
+			//提取/proc/meminfo 中的第三行数据(MemAvailable)
+			cutStrByLabel(lineData, ':', subStr, 2);
+			removeChar(subStr[1], '\t');
+			strcpy(totalMem[1], subStr[1]);
+			break;
+		}
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		lineNum++;
 	}
-	else
+	if(lineNum == 1)
 	{
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
 		return -1;
 	}
+	KCloseFile(fp);
+	return 1;
 }
 
 int getProcessCPUTime(char *stat, Process_Cpu_Occupy_t *processCpuTime)
@@ -205,7 +225,7 @@ int getProcessCPUTime(char *stat, Process_Cpu_Occupy_t *processCpuTime)
 	int size = KReadFile(fp, stat_data, 1000);
 	if(size > 0)
 	{
-		printk("size = %d\n", size);
+		//printk("size = %d\n", size);
 		cutStrByLabel(stat_data, ' ', subStr18, 18);
 		processCpuTime->pid = ExtractNumFromStr(subStr18[12]);
 		processCpuTime->utime = ExtractNumFromStr(subStr18[13]);
