@@ -78,6 +78,24 @@ int monitorResource(void *data)
 				int ret = getProgressInfo(path, info);
 				if(ret == -1)
 					printk("getProgressInfo ret = %d\n", ret);
+				else
+				{
+					int CPU = ExtractNumFromStr(info[8]);
+					int MEM = ExtractNumFromStr(info[9]);
+					//printk("CPU = %d\t MEM = %d\n", CPU, MEM);
+					if(CPU > 80)
+					{
+						int pCPU = ExtractNumFromStr(info[3]);
+						if(pCPU > 30)
+							printk("进程 %s：占用CPU资源为:%d\n", info[0], pCPU);
+					}
+					if(MEM > 80)
+					{
+						int pMEM = ExtractNumFromStr(info[4]);
+						if(pMEM > 30)
+							printk("进程 %s: 占用MEM资源为:%d\n", info[0], pMEM);
+					}
+				}
 			/*	
 				for(i = 0; i < 8; i++)
 				{
@@ -109,14 +127,15 @@ int monitorResource(void *data)
 						break;
 					}
 				}
-				*/
+				
 				printk("CPU: %s\t MEM: %s", info[8], info[9]);
 				printk("\n");
+				*/
 			}
 		}
 		//printk("Process counts: %d\n", count);
 		//printk("data = %s\n", (char *)data);
-		msleep(500);
+		msleep(100);
 	}
 
 	return 0;

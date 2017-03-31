@@ -150,7 +150,7 @@ int getProgressInfo(char path[], char info[][MAX_INFOLENGTH])
 	Process_Cpu_Occupy_t process_cpu_occupy1, process_cpu_occupy2;
 	getTotalCPUTime(&total_cpu_occupy1);
 	getProcessCPUTime(stat, &process_cpu_occupy1);
-	msleep(100);
+	msleep(50);
 	getTotalCPUTime(&total_cpu_occupy2);
 	getProcessCPUTime(stat, &process_cpu_occupy2);	
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
