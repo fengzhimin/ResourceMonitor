@@ -1,0 +1,58 @@
+/******************************************************
+* Author       : fengzhimin
+* Create       : 2017-04-02 19:08
+* Last modified: 2017-04-02 19:08
+* Email        : 374648064@qq.com
+* Filename     : memResource.c
+* Description  : 
+******************************************************/
+
+#include "resource/memeory/memResource.h"
+
+static char lineData[LINE_CHAR_MAX_NUM];
+
+static char error_info[200];
+
+int getTotalPM(char totalMem[][MAX_INFOLENGTH])
+{
+	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	int lineNum = 1;
+	struct file *fp = KOpenFile("/proc/meminfo", O_RDONLY);
+	char subStr[2][MAX_SUBSTR];
+	if(fp == NULL)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "   ", "\n");
+		RecordLog(error_info);
+		return -1;
+	}
+	while(KReadLine(fp, lineData) == -1)
+	{
+		if(lineNum == 1)
+		{
+			//提取/proc/meminfo 中的第一行数据(MemTotal)
+			cutStrByLabel(lineData, ':', subStr, 2);
+			removeChar(subStr[1], '\t');
+			strcpy(totalMem[0], subStr[1]);
+		}
+		else if(lineNum == 3)
+		{
+			//提取/proc/meminfo 中的第三行数据(MemAvailable)
+			cutStrByLabel(lineData, ':', subStr, 2);
+			removeChar(subStr[1], '\t');
+			strcpy(totalMem[1], subStr[1]);
+			break;
+		}
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		lineNum++;
+	}
+	if(lineNum == 1)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "    ", "\n");
+		RecordLog(error_info);
+		KCloseFile(fp);
+		return -1;
+	}
+	KCloseFile(fp);
+	return 1;
+}
+

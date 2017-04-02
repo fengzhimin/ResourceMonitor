@@ -15,6 +15,8 @@
 #include "common/dirOper.h"
 #include "common/strOper.h"
 #include "log/logOper.h"
+#include "resource/memeory/memResource.h"
+#include "resource/CPU/CPUResource.h"
 #include <linux/delay.h>
 
 /***********************************************
@@ -43,29 +45,5 @@ int getStatusPathByName(char name[], char path[]);
  *		 info[9] = 总内存使用情况
 ************************************************/
 int getProgressInfo(char path[], char info[][MAX_INFOLENGTH]);
-
-
-/**********************************************
- * func: 获取物理内存大小
- * return: -1 = 失败   1 = 成功
- * @para totalMem[0]: 存放物理内存总大小
- * @para totalMem[1]: 存放物理内存可用大小
-**********************************************/
-int getTotalPM(char totalMem[][MAX_INFOLENGTH]);
-
-/**********************************************
- * func: 获取CPU使用时间
- * return: -1 = 失败   1 = 成功
- * @para totalCpuTime: 存放CPU使用时间
-**********************************************/
-int getTotalCPUTime(Total_Cpu_Occupy_t *totalCpuTime);
-
-/*********************************************
- * func: 获取程序CPU使用时间
- * return: -1 = 失败   1 = 成功
- * @para stat: 程序的stat路径
- * @para processCpuTime: 存放程序使用CPU时间
-*********************************************/
-int getProcessCPUTime(char *stat, Process_Cpu_Occupy_t *processCpuTime);
 
 #endif

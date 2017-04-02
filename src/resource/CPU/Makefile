@@ -1,5 +1,5 @@
-obj-y := memeory.o
+obj-y := CPU.o
 
-memeory-objs := memResource.o
+CPU-objs := CPUResource.o
 
 EXTRA_CFLAGS := -DMMAN -I$(src)/../../../include
