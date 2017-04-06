@@ -8,6 +8,7 @@
 ******************************************************/
 
 #include "resource/CPU/CPUResource.h"
+
 static char stat_data[1000];
 static char subStr18[18][MAX_SUBSTR];
 static char lineData[LINE_CHAR_MAX_NUM];

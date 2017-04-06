@@ -1,7 +1,4 @@
 #include <linux/module.h>
-#include <linux/init.h>
-#include <linux/kernel.h>
-#include <linux/sched.h>
 #include <linux/kthread.h>
 #include <linux/err.h>
 #include "common/dateOper.h"
@@ -55,86 +52,33 @@ module_exit(Code_exit);
 
 int monitorResource(void *data)
 {
-	struct task_struct *task, *p;
-	struct list_head *ps;
-	int count = 0;
-	char path[30];
 	while(!kthread_should_stop())
 	{
-		task = &init_task;
-		list_for_each(ps, &task->tasks)
+		char ***info;
+		char totalResouce[2][MAX_INFOLENGTH];
+		int ret = getProgressInfo(info, totalResouce);
+		printk("ret = %d\n", ret);
+		/*
+		if(ret == -1)
+			printk("getProgressInfo ret = %d\n", ret);
+		else
 		{
-			p = list_entry(ps, struct task_struct, tasks);
-			count++;
-			//printk("%d\t%s\n", p->pid, p->comm);
-			
-			if(p->pid > 1000)
+			int CPU = ExtractNumFromStr(info[8]);
+			int MEM = ExtractNumFromStr(info[9]);
+			//printk("CPU = %d\t MEM = %d\n", CPU, MEM);
+			if(CPU > 80)
 			{
-				int i;
-				memset(path, 0, 30);
-				sprintf(path, "%s/%d", "/proc", p->pid);
-				for(i = 0; i < 10; i++)
-					memset(info[i], 0, MAX_INFOLENGTH);
-				int ret = getProgressInfo(path, info);
-				if(ret == -1)
-					printk("getProgressInfo ret = %d\n", ret);
-				else
-				{
-					int CPU = ExtractNumFromStr(info[8]);
-					int MEM = ExtractNumFromStr(info[9]);
-					//printk("CPU = %d\t MEM = %d\n", CPU, MEM);
-					if(CPU > 80)
-					{
-						int pCPU = ExtractNumFromStr(info[3]);
-						if(pCPU > 30)
-							printk("进程 %s：占用CPU资源为:%d\n", info[0], pCPU);
-					}
-					if(MEM > 80)
-					{
-						int pMEM = ExtractNumFromStr(info[4]);
-						if(pMEM > 30)
-							printk("进程 %s: 占用MEM资源为:%d\n", info[0], pMEM);
-					}
-				}
-			/*	
-				for(i = 0; i < 8; i++)
-				{
-					switch(i)
-					{
-					case 0:
-						printk("0" "%30s", info[i]);
-						break;
-					case 1:
-						printk("0" "%10s", info[i]);
-						break;
-					case 2:
-						printk("0" "%10s", info[i]);
-					break;
-					case 3:
-						printk("0" "%5s", info[i]);
-						break;
-					case 4:
-						printk("0" "%5s", info[i]);
-						break;
-					case 5:
-						printk("0" "%15s", info[i]);
-						break;
-					case 6:
-						printk("0" "%15s", info[i]);
-						break;
-					case 7:
-						printk("0" "%10s", info[i]);
-						break;
-					}
-				}
-				
-				printk("CPU: %s\t MEM: %s", info[8], info[9]);
-				printk("\n");
-				*/
+				int pCPU = ExtractNumFromStr(info[3]);
+				if(pCPU > 30)
+					printk("进程 %s：占用CPU资源为:%d\n", info[0], pCPU);
 			}
-		}
-		//printk("Process counts: %d\n", count);
-		//printk("data = %s\n", (char *)data);
+			if(MEM > 80)
+			{
+				int pMEM = ExtractNumFromStr(info[4]);
+				if(pMEM > 30)
+					printk("进程 %s: 占用MEM资源为:%d\n", info[0], pMEM);
+			}
+		}*/
 		msleep(100);
 	}
 

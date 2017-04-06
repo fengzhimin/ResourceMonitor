@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-12-29 16:32
-* Last modified: 2017-03-20 20:25
+* Last modified: 2017-04-04 14:14
 * Email        : 374648064@qq.com
 * Filename     : resource.c
 * Description  : 
@@ -78,90 +78,207 @@ int getStatusPathByName(char name[], char path[])
 }
 */
 
-int getProgressInfo(char path[], char info[][MAX_INFOLENGTH])
+int getProcAll(ProcPIDPath *path)
 {
-	memset(status, 0, FILE_PATH_MAX_LENGTH);
-	memset(stat, 0, FILE_PATH_MAX_LENGTH);
-	memset(lineData, 0, LINE_CHAR_MAX_NUM);
-	sprintf(status, "%s/%s", path, "status");
-	sprintf(stat, "%s/%s", path, "stat");
-	struct file *fp = KOpenFile(status, O_RDONLY);
-	if(fp == NULL)
+	struct task_struct *task, *p;
+	struct list_head *ps;
+	int count = 0;
+	task = &init_task;
+	ProcPIDPath *temp = path;
+	list_for_each(ps, &task->tasks)
 	{
-		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		return -1;
+		p = list_entry(ps, struct task_struct, tasks);
+		memset(temp->path, 0, MAX_PROCPATH);
+		sprintf(temp->path, "%s/%d", "/proc", p->pid);
+		temp = temp->next = vmalloc(sizeof(ProcPIDPath));
+		count++;
 	}
-	while(KReadLine(fp, lineData) == -1)
-	{
-		char subStr[2][MAX_SUBSTR];
-		cutStrByLabel(lineData, ':', subStr, 2);
-		memset(lineData, 0, LINE_CHAR_MAX_NUM);
-		removeChar(subStr[1], '\t');
-		if(strcasecmp(subStr[0], "Name") == 0)
-		{
-			strcpy(info[0], subStr[1]);
-			continue;
-		}
-		else if(strcasecmp(subStr[0], "Pid") == 0)
-		{
-			strcpy(info[1], subStr[1]);
-			continue;
-		}
-		else if(strcasecmp(subStr[0], "PPid") == 0)
-		{
-			strcpy(info[2], subStr[1]);
-			continue;
-		}
-		else if(strcasecmp(subStr[0], "VmPeak") == 0)
-		{
-			strcpy(info[5], subStr[1]);
-			continue;
-		}
-		else if(strcasecmp(subStr[0], "VmRSS") == 0)
-		{
-			strcpy(info[6], subStr[1]);
-			break;    //结束读取
-		}
-		else if(strcasecmp(subStr[0], "State") == 0)
-		{
-			strcpy(info[7], subStr[1]);
-			continue;
-		}
-	}
-	KCloseFile(fp);
 
+	return count;
+}
+
+int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
+{
+	int retValue = 0;
+	ProcPIDPath *path = vmalloc(sizeof(ProcPIDPath));
+	ProcPIDPath *path1 = path;
+	int runningProcNum = getProcAll(path);
+	//char (*infoPre)[PROCESS_INFO_NUM][MAX_INFOLENGTH] = vmalloc(sizeof(char)*runningProcNum);
+	//char (*infoNext)[MAX_INFOLENGTH] = vmalloc(sizeof(char)*runningProcNum);  //存放一段时间后的CPU时间
+	int i;
+	char ***infoPre = (char **)vmalloc(sizeof(char **)*runningProcNum);
+	for(i = 0; i < runningProcNum; i++)
+	{
+		infoPre[i] = (char *)vmalloc(sizeof(char *)*PROCESS_INFO_NUM);
+		int j;
+		for(j = 0; j < PROCESS_INFO_NUM; j++)
+		{
+			infoPre[i][j] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
+			memset(infoPre[i][j], 0, MAX_INFOLENGTH);
+		}
+	}
+	char **infoNext = (char *)vmalloc(sizeof(char *)*runningProcNum);
+	for(i = 0; i < runningProcNum; i++)
+	{
+		infoNext[i] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
+	}
+	for(i = 0; i < runningProcNum; i++, path = path->next)
+	{
+		memset(status, 0, FILE_PATH_MAX_LENGTH);
+		memset(stat, 0, FILE_PATH_MAX_LENGTH);
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		sprintf(status, "%s/%s", path->path, "status");
+		sprintf(stat, "%s/%s", path->path, "stat");
+		struct file *fp = KOpenFile(status, O_RDONLY);
+		if(fp == NULL)
+		{
+			sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
+			RecordLog(error_info);
+			strcpy(infoPre[i][0], "processExit");
+			continue;
+		}
+		while(KReadLine(fp, lineData) == -1)
+		{
+			char subStr[2][MAX_SUBSTR];
+			cutStrByLabel(lineData, ':', subStr, 2);
+			memset(lineData, 0, LINE_CHAR_MAX_NUM);
+			removeChar(subStr[1], '\t');
+			if(strcasecmp(subStr[0], "Name") == 0)
+			{
+				strcpy(infoPre[i][0], subStr[1]);
+				continue;
+			}
+			else if(strcasecmp(subStr[0], "Pid") == 0)
+			{
+				strcpy(infoPre[i][1], subStr[1]);
+				continue;
+			}
+			else if(strcasecmp(subStr[0], "PPid") == 0)
+			{
+				strcpy(infoPre[i][2], subStr[1]);
+				continue;
+			}
+			else if(strcasecmp(subStr[0], "VmPeak") == 0)
+			{
+				strcpy(infoPre[i][5], subStr[1]);
+				continue;
+			}
+			else if(strcasecmp(subStr[0], "VmRSS") == 0)
+			{
+				strcpy(infoPre[i][6], subStr[1]);
+				break;    //结束读取
+			}
+			else if(strcasecmp(subStr[0], "State") == 0)
+			{
+				strcpy(infoPre[i][7], subStr[1]);
+				continue;
+			}
+		}
+		KCloseFile(fp);
+		Process_Cpu_Occupy_t process_cpu_occupy;
+		getProcessCPUTime(stat, &process_cpu_occupy);
+		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
+		sprintf(infoPre[i][3], "%d", process_cpu);
+	}
+	Total_Cpu_Occupy_t total_cpu_occupy1;
+	getTotalCPUTime(&total_cpu_occupy1);
+	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
+	msleep(50);
+	for(i = 0; i < runningProcNum; i++)
+	{
+		memset(status, 0, FILE_PATH_MAX_LENGTH);
+		memset(stat, 0, FILE_PATH_MAX_LENGTH);
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		sprintf(status, "%s/%s", path1->path, "status");
+		sprintf(stat, "%s/%s", path1->path, "stat");
+		struct file *fp = KOpenFile(status, O_RDONLY);
+		if(fp == NULL)
+		{
+			sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
+			RecordLog(error_info);
+			strcpy(infoNext[i], "processExit");
+			continue;
+		}
+		KCloseFile(fp);
+		Process_Cpu_Occupy_t process_cpu_occupy;
+		getProcessCPUTime(stat, &process_cpu_occupy);
+		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
+		sprintf(infoNext[i], "%d", process_cpu);
+		ProcPIDPath *temp = path1->next;
+		vfree(path1);
+		path1 = temp;
+	}
+	Total_Cpu_Occupy_t total_cpu_occupy2;
+	getTotalCPUTime(&total_cpu_occupy2);
+	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;	
+	//计算总CPU使用率
+	int totalcpu = total_cpu2 - total_cpu1;
+	int totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
+	int totalpcpu = 100*(totalcpu-totalidle)/totalcpu;
+	sprintf(totalResouce[0], "%d", totalpcpu);
 	if(getTotalPM(totalMem) == 1)
 	{
 		//计算内存使用率
 		unsigned int totalMemNum = ExtractNumFromStr(totalMem[0]);
 		unsigned int totalFreeMem = ExtractNumFromStr(totalMem[1]);
-		unsigned int vmrssNum = ExtractNumFromStr(info[6]);
-		int pmem = 100*vmrssNum/totalMemNum;
 		int totalpmem = 100*(totalMemNum-totalFreeMem)/totalMemNum;
-		//IntToStr(info[4], pmem);
-		sprintf(info[4], "%d", pmem);
-		sprintf(info[9], "%d", totalpmem);
+		sprintf(totalResouce[1], "%d", totalpmem);
+		unsigned int vmrssNum;
+		int pmem;
+		int process_cpu1, process_cpu2;
+		int pcpu;
+		for(i = 0; i < runningProcNum; i++)
+		{
+			if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i], "processExit") == 0)
+				continue;	
+			vmrssNum = ExtractNumFromStr(infoPre[i][6]);
+			pmem = 100*vmrssNum/totalMemNum;
+			sprintf(infoPre[i][4], "%d", pmem);    //计算内存使用率
+			process_cpu2 = ExtractNumFromStr(infoNext[i]);
+			process_cpu1 = ExtractNumFromStr(infoPre[i][3]);
+			pcpu = 100*(process_cpu2-process_cpu1)/(total_cpu2-total_cpu1);
+			sprintf(infoPre[i][3], "%d", pcpu);
+			retValue++;
+		}
 	}
+
+	info = (char **)vmalloc(sizeof(char **)*retValue);
+	for(i = 0; i < retValue; i++)
+	{
+		info[i] = (char *)vmalloc(sizeof(char *)*PROCESS_INFO_NUM);
+		int j;
+		for(j = 0; j < PROCESS_INFO_NUM; j++)
+		{
+			info[i][j] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
+			memset(info[i][j], 0, MAX_INFOLENGTH);
+		}
+	}
+	int temp = 0;
+	for(i = 0; i < runningProcNum; i++)
+	{
+		if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i], "processExit") == 0)
+			continue;
+		int j;
+		for(j = 0; j < PROCESS_INFO_NUM; j++)
+		{
+			strcpy(info[temp][j], infoPre[i][j]);
+		}
+		temp++;
+	}
+
+	for(i = 0; i < runningProcNum; i++)
+	{
+		int j;
+		for(j = 0; j < PROCESS_INFO_NUM; j++)
+			vfree(infoPre[i][j]);
+		vfree(infoPre[i]);
+	}
+	for(i = 0; i < runningProcNum; i++)
+		vfree(infoNext[i]);
+	vfree(infoPre);
+	vfree(infoNext);
+	vfree(path1);
 	
-	Total_Cpu_Occupy_t total_cpu_occupy1, total_cpu_occupy2;
-	Process_Cpu_Occupy_t process_cpu_occupy1, process_cpu_occupy2;
-	getTotalCPUTime(&total_cpu_occupy1);
-	getProcessCPUTime(stat, &process_cpu_occupy1);
-	msleep(50);
-	getTotalCPUTime(&total_cpu_occupy2);
-	getProcessCPUTime(stat, &process_cpu_occupy2);	
-	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
-	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;
-	int process_cpu1 = process_cpu_occupy1.utime + process_cpu_occupy1.stime + process_cpu_occupy1.cutime + process_cpu_occupy1.cstime;
-	int process_cpu2 = process_cpu_occupy2.utime + process_cpu_occupy2.stime + process_cpu_occupy2.cutime + process_cpu_occupy2.cstime;
-	int pcpu = 100*(process_cpu2-process_cpu1)/(total_cpu2-total_cpu1);
-	//IntToStr(info[3], pcpu);
-	sprintf(info[3], "%d", pcpu);
-	int totalcpu = total_cpu2 - total_cpu1;
-	int totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
-	int totalpcpu = 100*(totalcpu-totalidle)/totalcpu;
-	sprintf(info[8], "%d", totalpcpu);
-	return 1;
+	return retValue;
 }
 

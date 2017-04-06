@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-06 00:44
-* Last modified: 2017-02-14 13:16
+* Last modified: 2017-04-04 13:28
 * Email        : 374648064@qq.com
 * Filename     : config.h
 * Descrip:q
@@ -21,6 +21,10 @@
 #define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
 
 #define MAX_FUNCNAME          50    //函数名称的最大字符个数
+
+#define MAX_PROCPATH          30    //proc目录下进程的最大路径  例如/proc/1024
+
+#define PROCESS_INFO_NUM       8    //定义进程信息的个数
 
 extern char config_type[][20];    //配置文件的类型
 
@@ -43,6 +47,15 @@ int GetNote_SymbolNum(void);
 
 #define MAX_SUBSTR               256   //拆分后子字符串的最大长度
 #define MAX_INFOLENGTH           50    //获取应用程序占用系统每个资源数据的最大长度
+
+/**************************
+ * function: 定义/proc文件系统下的进程路径
+**************************/
+typedef struct ProcPID
+{
+	char path[MAX_PROCPATH];
+	struct ProcPID *next;
+} ProcPIDPath;
 
 /***************************
  * function: 定义配置项结构体
