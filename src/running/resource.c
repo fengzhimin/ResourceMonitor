@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-12-29 16:32
-* Last modified: 2017-04-04 14:14
+* Last modified: 2017-04-10 21:33
 * Email        : 374648064@qq.com
 * Filename     : resource.c
 * Description  : 
@@ -97,7 +97,58 @@ int getProcAll(ProcPIDPath *path)
 	return count;
 }
 
-int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
+char*** mallocResource(int procNum)
+{
+	char ***info = (char **)vmalloc(sizeof(char **)*procNum);
+	int i, j;
+	for(i = 0; i < procNum; i++)
+	{
+		info[i] = (char *)vmalloc(sizeof(char *)*PROCESS_INFO_NUM);
+		for(j = 0; j < PROCESS_INFO_NUM; j++)
+		{
+			info[i][j] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
+			memset(info[i][j], 0, MAX_INFOLENGTH);
+		}
+	}
+
+	return info;
+}
+
+void freeResource(char ***info, int procNum)
+{
+	int i, j;
+	for(i = 0; i < procNum; i++)
+	{
+		for(j = 0; j < PROCESS_INFO_NUM; j++)
+			vfree(info[i][j]);
+		vfree(info[i]);
+	}
+	vfree(info);
+}
+
+bool getInfoByID(char *id, char info[][MAX_INFOLENGTH], char ***allInfo, int allProcNum)
+{
+	int i;
+	for(i = 0; i < allProcNum; i++)
+	{
+		//匹配当对应进程
+		if(strcasecmp(allInfo[i][1], id) == 0)
+		{
+			int j;
+			for(j = 0; j < PROCESS_INFO_NUM; j++)
+			{
+				memset(info[j], 0, MAX_INFOLENGTH);
+				strcpy(info[j], allInfo[i][j]);
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 {
 	int retValue = 0;
 	ProcPIDPath *path = vmalloc(sizeof(ProcPIDPath));
@@ -106,17 +157,8 @@ int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
 	//char (*infoPre)[PROCESS_INFO_NUM][MAX_INFOLENGTH] = vmalloc(sizeof(char)*runningProcNum);
 	//char (*infoNext)[MAX_INFOLENGTH] = vmalloc(sizeof(char)*runningProcNum);  //存放一段时间后的CPU时间
 	int i;
-	char ***infoPre = (char **)vmalloc(sizeof(char **)*runningProcNum);
-	for(i = 0; i < runningProcNum; i++)
-	{
-		infoPre[i] = (char *)vmalloc(sizeof(char *)*PROCESS_INFO_NUM);
-		int j;
-		for(j = 0; j < PROCESS_INFO_NUM; j++)
-		{
-			infoPre[i][j] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
-			memset(infoPre[i][j], 0, MAX_INFOLENGTH);
-		}
-	}
+	char ***infoPre = mallocResource(runningProcNum);
+	
 	char **infoNext = (char *)vmalloc(sizeof(char *)*runningProcNum);
 	for(i = 0; i < runningProcNum; i++)
 	{
@@ -183,7 +225,7 @@ int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
-	msleep(50);
+	msleep(CALC_CPU_TIME);
 	for(i = 0; i < runningProcNum; i++)
 	{
 		memset(status, 0, FILE_PATH_MAX_LENGTH);
@@ -241,7 +283,9 @@ int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
 			retValue++;
 		}
 	}
-
+	
+	(*info) = mallocResource(retValue);
+	/*
 	info = (char **)vmalloc(sizeof(char **)*retValue);
 	for(i = 0; i < retValue; i++)
 	{
@@ -253,6 +297,7 @@ int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
 			memset(info[i][j], 0, MAX_INFOLENGTH);
 		}
 	}
+	*/
 	int temp = 0;
 	for(i = 0; i < runningProcNum; i++)
 	{
@@ -261,11 +306,13 @@ int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
 		int j;
 		for(j = 0; j < PROCESS_INFO_NUM; j++)
 		{
-			strcpy(info[temp][j], infoPre[i][j]);
+			strcpy((*info)[temp][j], infoPre[i][j]);
 		}
 		temp++;
 	}
-
+	
+	freeResource(infoPre, runningProcNum);
+	/*
 	for(i = 0; i < runningProcNum; i++)
 	{
 		int j;
@@ -273,9 +320,10 @@ int getProgressInfo(char ***info, char totalResouce[][MAX_INFOLENGTH])
 			vfree(infoPre[i][j]);
 		vfree(infoPre[i]);
 	}
+	*/
 	for(i = 0; i < runningProcNum; i++)
 		vfree(infoNext[i]);
-	vfree(infoPre);
+	//vfree(infoPre);
 	vfree(infoNext);
 	vfree(path1);
 	

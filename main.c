@@ -7,6 +7,7 @@
 #include "common/dirOper.h"
 #include "common/strOper.h"
 #include "running/resource.h"
+#include "running/conflictCheck.h"
 
 char info[10][MAX_INFOLENGTH];
 static struct task_struct *monitorTask = NULL;
@@ -55,9 +56,34 @@ int monitorResource(void *data)
 	while(!kthread_should_stop())
 	{
 		char ***info;
-		char totalResouce[2][MAX_INFOLENGTH];
-		int ret = getProgressInfo(info, totalResouce);
-		printk("ret = %d\n", ret);
+		char totalResource[2][MAX_INFOLENGTH];
+		int ret = getProgressInfo(&info, totalResource);
+		int i;
+		printk("总CPU使用率为: %s\t总内存使用率为: %s\n", totalResource[0], totalResource[1]);
+		for(i = ret/2; i < ret; i++)
+		{
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s\n", info[i][0], info[i][1], info[i][2], \
+					info[i][3], info[i][4]);
+		}
+
+		char parentInfo[PROCESS_INFO_NUM][MAX_INFOLENGTH];
+		bool pret = getInfoByID(info[ret-1][1], parentInfo, info, ret);
+		if(pret)	
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s\n", parentInfo[0], parentInfo[1], parentInfo[2], \
+					parentInfo[3], parentInfo[4]);
+		else
+			printk("获取进程ID: %s 信息失败\n", info[ret-1][1]);
+
+		printk("解决进程之间冲突问题\n");
+		printk("解决进程之间冲突问题\n");
+		printk("解决进程之间冲突问题\n");
+		solveProcessRelate(info, ret);	
+		for(i = ret/2; i < ret; i++)
+		{
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s\n", info[i][0], info[i][1], info[i][2], \
+					info[i][3], info[i][4]);
+		}
+		freeResource(info, ret);
 		/*
 		if(ret == -1)
 			printk("getProgressInfo ret = %d\n", ret);
@@ -79,7 +105,7 @@ int monitorResource(void *data)
 					printk("进程 %s: 占用MEM资源为:%d\n", info[0], pMEM);
 			}
 		}*/
-		msleep(100);
+		msleep(10000);
 	}
 
 	return 0;

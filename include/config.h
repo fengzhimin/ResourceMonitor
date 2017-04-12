@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-06 00:44
-* Last modified: 2017-04-04 13:28
+* Last modified: 2017-04-10 18:47
 * Email        : 374648064@qq.com
 * Filename     : config.h
 * Descrip:q
@@ -24,7 +24,17 @@
 
 #define MAX_PROCPATH          30    //proc目录下进程的最大路径  例如/proc/1024
 
-#define PROCESS_INFO_NUM       8    //定义进程信息的个数
+#define PROCESS_INFO_NUM       8    //定义进程信息的个
+
+#define CALC_CPU_TIME         50    //计算CPU时间的间隔, 单位为ms
+
+//当进程的CPU使用率大于PROCESSRELATECPUDOWN小于PROCESSRELATECPUUP时,计算父进程和父父进程的资源使用情况
+#define PROCESSRELATECPUDOWN      10   
+#define PROCESSRELATECPUUP        20
+
+//当进程的MEM使用率大于PROCESSRELATEMEMDOWN小于PROCESSRELATEMEMUP时,计算父进程和父父进程的资源使用情况
+#define PROCESSRELATEMEMDOWN      20   
+#define PROCESSRELATEMEMUP        30
 
 extern char config_type[][20];    //配置文件的类型
 
