@@ -1,1 +1,1 @@
-obj-y := network/ CPU/ memeory/
+obj-y := network/ CPU/ memeory/ device/

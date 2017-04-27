@@ -11,6 +11,7 @@
 static char error_info[200];
 static char totalMem[2][MAX_INFOLENGTH];
 static char status[FILE_PATH_MAX_LENGTH], stat[FILE_PATH_MAX_LENGTH], lineData[LINE_CHAR_MAX_NUM];
+static char io[FILE_PATH_MAX_LENGTH];
 
 
 /*
@@ -97,29 +98,29 @@ int getProcAll(ProcPIDPath *path)
 	return count;
 }
 
-char*** mallocResource(int procNum)
+char*** mallocResource(int oneSize, int secondSize, int thirdSize)
 {
-	char ***info = (char **)vmalloc(sizeof(char **)*procNum);
+	char ***info = (char **)vmalloc(sizeof(char **)*oneSize);
 	int i, j;
-	for(i = 0; i < procNum; i++)
+	for(i = 0; i < oneSize; i++)
 	{
-		info[i] = (char *)vmalloc(sizeof(char *)*PROCESS_INFO_NUM);
-		for(j = 0; j < PROCESS_INFO_NUM; j++)
+		info[i] = (char *)vmalloc(sizeof(char *)*secondSize);
+		for(j = 0; j < secondSize; j++)
 		{
-			info[i][j] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
-			memset(info[i][j], 0, MAX_INFOLENGTH);
+			info[i][j] = vmalloc(sizeof(char)*thirdSize);
+			memset(info[i][j], 0, thirdSize);
 		}
 	}
 
 	return info;
 }
 
-void freeResource(char ***info, int procNum)
+void freeResource(char ***info, int oneSize, int secondSize)
 {
 	int i, j;
-	for(i = 0; i < procNum; i++)
+	for(i = 0; i < oneSize; i++)
 	{
-		for(j = 0; j < PROCESS_INFO_NUM; j++)
+		for(j = 0; j < secondSize; j++)
 			vfree(info[i][j]);
 		vfree(info[i]);
 	}
@@ -154,23 +155,20 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 	ProcPIDPath *path = vmalloc(sizeof(ProcPIDPath));
 	ProcPIDPath *path1 = path;
 	int runningProcNum = getProcAll(path);
-	//char (*infoPre)[PROCESS_INFO_NUM][MAX_INFOLENGTH] = vmalloc(sizeof(char)*runningProcNum);
-	//char (*infoNext)[MAX_INFOLENGTH] = vmalloc(sizeof(char)*runningProcNum);  //存放一段时间后的CPU时间
 	int i;
-	char ***infoPre = mallocResource(runningProcNum);
-	
-	char **infoNext = (char *)vmalloc(sizeof(char *)*runningProcNum);
-	for(i = 0; i < runningProcNum; i++)
-	{
-		infoNext[i] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
-	}
+	char ***infoPre = mallocResource(runningProcNum, PROCESS_INFO_NUM, MAX_INFOLENGTH);
+	//infoNext[i][0] = CPU数据
+	//infoNext[i][1] = IO数据
+	char ***infoNext = mallocResource(runningProcNum, 2, MAX_INFOLENGTH);
 	for(i = 0; i < runningProcNum; i++, path = path->next)
 	{
 		memset(status, 0, FILE_PATH_MAX_LENGTH);
 		memset(stat, 0, FILE_PATH_MAX_LENGTH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		memset(io, 0, FILE_PATH_MAX_LENGTH);
 		sprintf(status, "%s/%s", path->path, "status");
 		sprintf(stat, "%s/%s", path->path, "stat");
+		sprintf(io, "%s/%s", path->path, "io");
 		struct file *fp = KOpenFile(status, O_RDONLY);
 		if(fp == NULL)
 		{
@@ -221,6 +219,10 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		getProcessCPUTime(stat, &process_cpu_occupy);
 		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
 		sprintf(infoPre[i][3], "%d", process_cpu);
+		Process_IO_Data processIOData;
+		getProcessIOData(io, &processIOData);
+		int syscIO = processIOData.syscr + processIOData.syscw;
+		sprintf(infoPre[i][8], "%d", syscIO);
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
@@ -231,21 +233,28 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		memset(status, 0, FILE_PATH_MAX_LENGTH);
 		memset(stat, 0, FILE_PATH_MAX_LENGTH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		memset(io, 0, FILE_PATH_MAX_LENGTH);
 		sprintf(status, "%s/%s", path1->path, "status");
 		sprintf(stat, "%s/%s", path1->path, "stat");
+		sprintf(io, "%s/%s", path1->path, "io");
 		struct file *fp = KOpenFile(status, O_RDONLY);
+		//测试文件是否存在
 		if(fp == NULL)
 		{
 			sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
 			RecordLog(error_info);
-			strcpy(infoNext[i], "processExit");
+			strcpy(infoNext[i][0], "processExit");
 			continue;
 		}
 		KCloseFile(fp);
 		Process_Cpu_Occupy_t process_cpu_occupy;
 		getProcessCPUTime(stat, &process_cpu_occupy);
 		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
-		sprintf(infoNext[i], "%d", process_cpu);
+		sprintf(infoNext[i][0], "%d", process_cpu);
+		Process_IO_Data processIOData;
+		getProcessIOData(io, &processIOData);
+		int syscIO = processIOData.syscr + processIOData.syscw;
+		sprintf(infoNext[i][1], "%d", syscIO);
 		ProcPIDPath *temp = path1->next;
 		vfree(path1);
 		path1 = temp;
@@ -268,40 +277,31 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		unsigned int vmrssNum;
 		int pmem;
 		int process_cpu1, process_cpu2;
+		int process_io1, process_io2;
 		int pcpu;
 		for(i = 0; i < runningProcNum; i++)
 		{
-			if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i], "processExit") == 0)
+			if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i][0], "processExit") == 0)
 				continue;	
 			vmrssNum = ExtractNumFromStr(infoPre[i][6]);
 			pmem = 100*vmrssNum/totalMemNum;
 			sprintf(infoPre[i][4], "%d", pmem);    //计算内存使用率
-			process_cpu2 = ExtractNumFromStr(infoNext[i]);
+			process_cpu2 = ExtractNumFromStr(infoNext[i][0]);
 			process_cpu1 = ExtractNumFromStr(infoPre[i][3]);
 			pcpu = 100*(process_cpu2-process_cpu1)/(total_cpu2-total_cpu1);
 			sprintf(infoPre[i][3], "%d", pcpu);
+			process_io1 = ExtractNumFromStr(infoNext[i][1]);
+			process_io2 = ExtractNumFromStr(infoPre[i][8]);
+			sprintf(infoPre[i][8], "%d", process_io1-process_io2);
 			retValue++;
 		}
 	}
 	
-	(*info) = mallocResource(retValue);
-	/*
-	info = (char **)vmalloc(sizeof(char **)*retValue);
-	for(i = 0; i < retValue; i++)
-	{
-		info[i] = (char *)vmalloc(sizeof(char *)*PROCESS_INFO_NUM);
-		int j;
-		for(j = 0; j < PROCESS_INFO_NUM; j++)
-		{
-			info[i][j] = vmalloc(sizeof(char)*MAX_INFOLENGTH);
-			memset(info[i][j], 0, MAX_INFOLENGTH);
-		}
-	}
-	*/
+	(*info) = mallocResource(retValue, PROCESS_INFO_NUM, MAX_INFOLENGTH);
 	int temp = 0;
 	for(i = 0; i < runningProcNum; i++)
 	{
-		if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i], "processExit") == 0)
+		if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i][0], "processExit") == 0)
 			continue;
 		int j;
 		for(j = 0; j < PROCESS_INFO_NUM; j++)
@@ -311,20 +311,8 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		temp++;
 	}
 	
-	freeResource(infoPre, runningProcNum);
-	/*
-	for(i = 0; i < runningProcNum; i++)
-	{
-		int j;
-		for(j = 0; j < PROCESS_INFO_NUM; j++)
-			vfree(infoPre[i][j]);
-		vfree(infoPre[i]);
-	}
-	*/
-	for(i = 0; i < runningProcNum; i++)
-		vfree(infoNext[i]);
-	//vfree(infoPre);
-	vfree(infoNext);
+	freeResource(infoPre, runningProcNum, PROCESS_INFO_NUM);
+	freeResource(infoNext, runningProcNum, 2);
 	vfree(path1);
 	
 	return retValue;

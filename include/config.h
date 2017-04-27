@@ -24,9 +24,9 @@
 
 #define MAX_PROCPATH          30    //proc目录下进程的最大路径  例如/proc/1024
 
-#define PROCESS_INFO_NUM       8    //定义进程信息的个
+#define PROCESS_INFO_NUM       9    //定义进程信息的个
 
-#define CALC_CPU_TIME         50    //计算CPU时间的间隔, 单位为ms
+#define CALC_CPU_TIME         500    //计算CPU时间的间隔, 单位为ms
 
 //当进程的CPU使用率大于PROCESSRELATECPUDOWN小于PROCESSRELATECPUUP时,计算父进程和父父进程的资源使用情况
 #define PROCESSRELATECPUDOWN      10   
@@ -100,6 +100,21 @@ typedef struct ProcessCpuTime
 	unsigned int cutime;
 	unsigned int cstime;
 } Process_Cpu_Occupy_t;
+
+/**************************
+ * function: 定义进程IO数据
+ * 详细信息查看 man proc
+**************************/
+typedef struct ProcessIOData
+{
+	unsigned long long rchar;
+	unsigned long long wchar;
+	unsigned int syscr;
+	unsigned int syscw;
+	unsigned long long read_bytes;
+	unsigned long long write_bytes;
+	unsigned int cancelled_write_bytes;
+} Process_IO_Data;
 
 #endif
 

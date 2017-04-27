@@ -17,6 +17,7 @@
 #include "log/logOper.h"
 #include "resource/memeory/memResource.h"
 #include "resource/CPU/CPUResource.h"
+#include "resource/device/DevResource.h"
 #include <linux/delay.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -34,17 +35,20 @@ int getProcAll(ProcPIDPath *path);
 /**********************************************
  * func: 申请三维数组存放进程的信息
  * return: 用于存放数据的指针名(char ***)
- * @para procNum: 申请进程的个数
+ * @para oneSize: 三维数组的面数
+ * @para secondSize: 三维数组的行数
+ * @para thirdSize: 三维数组的列数
 **********************************************/
-char*** mallocResource(int procNum);
+char*** mallocResource(int oneSize, int secondSize, int thirdSize);
 
 /**********************************************
  * func: 释放三维数组存放进程的信息
  * return: void
  * @para info: 用于存放数据的指针名(char ***)
- * @para procNum: 申请进程的个数
+ * @para oneSize: 三维数组的面数
+ * @para secondSize: 三维数组的行数
 **********************************************/
-void freeResource(char ***info, int procNum);
+void freeResource(char ***info, int oneSize, int secondSize);
 
 /**********************************************
  * func: 根据进程ID来查找该进程资源使用情况
@@ -77,6 +81,7 @@ int getStatusPathByName(char name[], char path[]);
  *		 info[i][5] = 程序使用虚拟内存大小
  *		 info[i][6] = 程序使用物理内存大小
  *		 info[i][7] = 程序状态
+ *		 info[i][8] = read/pread+write/pwrite系统调用次数
  * @para totalResource:
  *		 totalResource[0] = 总CPU使用情况
  *		 totalResource[1] = 总内存使用情况

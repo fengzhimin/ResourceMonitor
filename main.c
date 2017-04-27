@@ -8,6 +8,7 @@
 #include "common/strOper.h"
 #include "running/resource.h"
 #include "running/conflictCheck.h"
+#include "resource/device/DevResource.h"
 
 char info[10][MAX_INFOLENGTH];
 static struct task_struct *monitorTask = NULL;
@@ -22,7 +23,7 @@ int monitorResource(void *data);
 int Code_init(void)
 {
 	printk("success\n");
-	
+
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
 	if(IS_ERR(monitorTask))
 	{
@@ -32,8 +33,8 @@ int Code_init(void)
 		return err;
 	}
 	wake_up_process(monitorTask);
-	
-    return 0;
+
+	return 0;
 }
 
 void Code_exit(void)
@@ -62,17 +63,9 @@ int monitorResource(void *data)
 		printk("总CPU使用率为: %s\t总内存使用率为: %s\n", totalResource[0], totalResource[1]);
 		for(i = ret/2; i < ret; i++)
 		{
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s\n", info[i][0], info[i][1], info[i][2], \
-					info[i][3], info[i][4]);
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s\n", info[i][0], info[i][1], info[i][2], \
+					info[i][3], info[i][4], info[i][8]);
 		}
-
-		char parentInfo[PROCESS_INFO_NUM][MAX_INFOLENGTH];
-		bool pret = getInfoByID(info[ret-1][1], parentInfo, info, ret);
-		if(pret)	
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s\n", parentInfo[0], parentInfo[1], parentInfo[2], \
-					parentInfo[3], parentInfo[4]);
-		else
-			printk("获取进程ID: %s 信息失败\n", info[ret-1][1]);
 
 		printk("解决进程之间冲突问题\n");
 		printk("解决进程之间冲突问题\n");
@@ -80,31 +73,10 @@ int monitorResource(void *data)
 		solveProcessRelate(info, ret);	
 		for(i = ret/2; i < ret; i++)
 		{
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s\n", info[i][0], info[i][1], info[i][2], \
-					info[i][3], info[i][4]);
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s IO次数: %s\n", info[i][0], info[i][1], info[i][2], \
+					info[i][3], info[i][4], info[i][8]);
 		}
-		freeResource(info, ret);
-		/*
-		if(ret == -1)
-			printk("getProgressInfo ret = %d\n", ret);
-		else
-		{
-			int CPU = ExtractNumFromStr(info[8]);
-			int MEM = ExtractNumFromStr(info[9]);
-			//printk("CPU = %d\t MEM = %d\n", CPU, MEM);
-			if(CPU > 80)
-			{
-				int pCPU = ExtractNumFromStr(info[3]);
-				if(pCPU > 30)
-					printk("进程 %s：占用CPU资源为:%d\n", info[0], pCPU);
-			}
-			if(MEM > 80)
-			{
-				int pMEM = ExtractNumFromStr(info[4]);
-				if(pMEM > 30)
-					printk("进程 %s: 占用MEM资源为:%d\n", info[0], pMEM);
-			}
-		}*/
+		freeResource(info, ret, PROCESS_INFO_NUM);
 		msleep(10000);
 	}
 
