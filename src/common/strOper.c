@@ -160,10 +160,10 @@ int GetConfigInfoFromConfigFile(ConfigInfo _configInfo[], char _type[][CONFIG_KE
 }
 
 
-int ExtractNumFromStr(char *_str)
+unsigned long long ExtractNumFromStr(char *_str)
 {
 	int _str_length = strlen(_str);
-	int _ret = 0;
+	unsigned long long _ret = 0;
 	int i;
 	for(i = 0; i < _str_length; i++)
 		if(_str[i] >= '0' && _str[i] <= '9')

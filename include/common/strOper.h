@@ -74,7 +74,7 @@ int GetConfigInfoFromConfigFile(ConfigInfo _configInfo[], char _type[][CONFIG_KE
  * return: -1 = 没有数字  >=0 = 返回提取的数字
  * @para _str: 要被提取的字符串
 ***********************************/
-int ExtractNumFromStr(char *_str);
+unsigned long long ExtractNumFromStr(char *_str);
 
 
 /**********************************

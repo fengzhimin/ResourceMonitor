@@ -63,8 +63,8 @@ int monitorResource(void *data)
 		printk("总CPU使用率为: %s\t总内存使用率为: %s\n", totalResource[0], totalResource[1]);
 		for(i = ret/2; i < ret; i++)
 		{
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s\n", info[i][0], info[i][1], info[i][2], \
-					info[i][3], info[i][4], info[i][8]);
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s 读写磁盘数据: %s\n", info[i][0], info[i][1], info[i][2], \
+					info[i][3], info[i][4], info[i][8], info[i][9]);
 		}
 
 		printk("解决进程之间冲突问题\n");
@@ -73,8 +73,8 @@ int monitorResource(void *data)
 		solveProcessRelate(info, ret);	
 		for(i = ret/2; i < ret; i++)
 		{
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s IO次数: %s\n", info[i][0], info[i][1], info[i][2], \
-					info[i][3], info[i][4], info[i][8]);
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s 读写磁盘数据: %s\n", info[i][0], info[i][1], info[i][2], \
+					info[i][3], info[i][4], info[i][8], info[i][9]);
 		}
 		freeResource(info, ret, PROCESS_INFO_NUM);
 		msleep(10000);

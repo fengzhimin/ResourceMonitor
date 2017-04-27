@@ -158,8 +158,9 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 	int i;
 	char ***infoPre = mallocResource(runningProcNum, PROCESS_INFO_NUM, MAX_INFOLENGTH);
 	//infoNext[i][0] = CPU数据
-	//infoNext[i][1] = IO数据
-	char ***infoNext = mallocResource(runningProcNum, 2, MAX_INFOLENGTH);
+	//infoNext[i][1] = read、write系统调用次数数据
+	//infoNext[i][2] = 读写磁盘的数据
+	char ***infoNext = mallocResource(runningProcNum, 3, MAX_INFOLENGTH);
 	for(i = 0; i < runningProcNum; i++, path = path->next)
 	{
 		memset(status, 0, FILE_PATH_MAX_LENGTH);
@@ -215,14 +216,18 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 			}
 		}
 		KCloseFile(fp);
+		//获取进程使用CPU信息
 		Process_Cpu_Occupy_t process_cpu_occupy;
 		getProcessCPUTime(stat, &process_cpu_occupy);
 		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
 		sprintf(infoPre[i][3], "%d", process_cpu);
+		//获取进程read、write系统调用信息
 		Process_IO_Data processIOData;
 		getProcessIOData(io, &processIOData);
-		int syscIO = processIOData.syscr + processIOData.syscw;
-		sprintf(infoPre[i][8], "%d", syscIO);
+		unsigned long long syscIO = processIOData.syscr + processIOData.syscw;
+		unsigned long long read_write_bytes = processIOData.read_bytes + processIOData.write_bytes;
+		sprintf(infoPre[i][8], "%lld", syscIO);
+		sprintf(infoPre[i][9], "%lld", read_write_bytes);
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
@@ -247,14 +252,18 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 			continue;
 		}
 		KCloseFile(fp);
+		//获取进程使用CPU信息
 		Process_Cpu_Occupy_t process_cpu_occupy;
 		getProcessCPUTime(stat, &process_cpu_occupy);
 		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
 		sprintf(infoNext[i][0], "%d", process_cpu);
+		//获取进程read、write系统调用信息
 		Process_IO_Data processIOData;
 		getProcessIOData(io, &processIOData);
-		int syscIO = processIOData.syscr + processIOData.syscw;
-		sprintf(infoNext[i][1], "%d", syscIO);
+		unsigned long long syscIO = processIOData.syscr + processIOData.syscw;
+		unsigned long long read_write_bytes = processIOData.read_bytes + processIOData.write_bytes;
+		sprintf(infoNext[i][1], "%lld", syscIO);
+		sprintf(infoNext[i][2], "%lld", read_write_bytes);
 		ProcPIDPath *temp = path1->next;
 		vfree(path1);
 		path1 = temp;
@@ -277,7 +286,8 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		unsigned int vmrssNum;
 		int pmem;
 		int process_cpu1, process_cpu2;
-		int process_io1, process_io2;
+		unsigned long long process_io1, process_io2;
+		unsigned long long process_io3, process_io4;
 		int pcpu;
 		for(i = 0; i < runningProcNum; i++)
 		{
@@ -290,9 +300,16 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 			process_cpu1 = ExtractNumFromStr(infoPre[i][3]);
 			pcpu = 100*(process_cpu2-process_cpu1)/(total_cpu2-total_cpu1);
 			sprintf(infoPre[i][3], "%d", pcpu);
+			//获取前后两次的系统调用次数
 			process_io1 = ExtractNumFromStr(infoNext[i][1]);
 			process_io2 = ExtractNumFromStr(infoPre[i][8]);
-			sprintf(infoPre[i][8], "%d", process_io1-process_io2);
+			//获取前后两次读写磁盘的数据量
+			process_io3 = ExtractNumFromStr(infoNext[i][2]);
+			process_io4 = ExtractNumFromStr(infoPre[i][9]);
+			//计算一定时间时隔内系统调用的次数，用来判断对磁盘访问次数的评价
+			sprintf(infoPre[i][8], "%lld", process_io1-process_io2);   
+			sprintf(infoPre[i][9], "%lld", process_io3-process_io4);
+			//printk("process_io3 = %lld\t process_io4 = %lld\n", process_io3, process_io4);
 			retValue++;
 		}
 	}
@@ -312,7 +329,7 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 	}
 	
 	freeResource(infoPre, runningProcNum, PROCESS_INFO_NUM);
-	freeResource(infoNext, runningProcNum, 2);
+	freeResource(infoNext, runningProcNum, 3);
 	vfree(path1);
 	
 	return retValue;
