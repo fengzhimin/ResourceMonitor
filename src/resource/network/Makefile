@@ -1,5 +1,5 @@
 obj-y := network.o
 
-network-objs := conflictCheck.o
+network-objs := netResource.o
 
 EXTRA_CFLAGS := -DMMAN -I$(src)/../../../include

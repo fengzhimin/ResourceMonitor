@@ -8,7 +8,8 @@
 #include "common/strOper.h"
 #include "running/resource.h"
 #include "running/conflictCheck.h"
-#include "resource/device/DevResource.h"
+
+#include "resource/network/netResource.h"
 
 char info[10][MAX_INFOLENGTH];
 static struct task_struct *monitorTask = NULL;
@@ -56,6 +57,7 @@ int monitorResource(void *data)
 {
 	while(!kthread_should_stop())
 	{
+		/*
 		char ***info;
 		char totalResource[2][MAX_INFOLENGTH];
 		int ret = getProgressInfo(&info, totalResource);
@@ -77,7 +79,16 @@ int monitorResource(void *data)
 					info[i][3], info[i][4], info[i][8], info[i][9]);
 		}
 		freeResource(info, ret, PROCESS_INFO_NUM);
-		msleep(10000);
+		*/
+		startHook();
+		msleep(1000);
+		stopHook();
+		while(PortPackageData != NULL)
+		{
+			printk("port = %d\t inPackageSize = %d\t outPackageSize = %d\n", PortPackageData->port, \
+					PortPackageData->inPackageSize, PortPackageData->outPackageSize);
+			PortPackageData = PortPackageData->next;
+		}
 	}
 
 	return 0;

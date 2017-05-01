@@ -11,6 +11,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include <linux/stddef.h>
+
 #define OPENLOG 0    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 #define SHOWINFO 1    //1：表示冲突信息存在result.out文件中　　２：打印冲突信息　　３：打印并且存储冲突信息
 
@@ -115,6 +117,29 @@ typedef struct ProcessIOData
 	unsigned long long write_bytes;
 	unsigned int cancelled_write_bytes;
 } Process_IO_Data;
+
+
+/***************************
+ * function: 定义端口与数据包的对应关系
+ * port: 端口
+ * protocol: 表示数据包是什么类型的协议  'T' =TCP 'U' = UDP
+ * inPackageSize: 该端口对应的下载数据包个数
+ * outPackageSize: 该端口对应的上传数据包个数
+ * next: 下一个端口数据
+****************************/
+typedef struct PortMapPackage
+{
+	int port;
+	char protocol;
+	unsigned int inPackageSize;
+	unsigned int outPackageSize;
+	struct PortMapPackage *next;
+} Port_Map_Package;
+
+extern Port_Map_Package *PortPackageData;         //存放当前时间段每个端口所发送所接受的数据包信息
+extern Port_Map_Package *beginPortPackageData;    //PortPackageData 第一个元素
+extern Port_Map_Package *endPortPackageData;      //PortPackageData 最后一个元素
+extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作的元素
 
 #endif
 

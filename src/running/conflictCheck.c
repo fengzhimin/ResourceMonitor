@@ -11,7 +11,7 @@
 
 void solveProcessRelate(char ***info, int processNum)
 {
-	int i, j, temp;
+	int i, temp;
 	bool ret;
 	char parentInfo[PROCESS_INFO_NUM][MAX_INFOLENGTH];
 	for(i = processNum-1; i >= 0; i--)

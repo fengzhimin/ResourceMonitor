@@ -24,3 +24,8 @@ int GetNote_SymbolNum(void)
 {
 	return sizeof(note_symbol)/sizeof(note_symbol[0]);
 }
+
+Port_Map_Package *PortPackageData = NULL;
+Port_Map_Package *beginPortPackageData = NULL;    //PortPackageData 第一个元素
+Port_Map_Package *endPortPackageData = NULL;      //PortPackageData 最后一个元素
+Port_Map_Package *currentPortPackageData = NULL;  //PortPackageData 当前操作的元素
