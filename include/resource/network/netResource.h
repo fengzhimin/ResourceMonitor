@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2017-04-27 06:38
-* Last modified: 2017-04-27 06:38
+* Last modified: 2017-05-02 18:37
 * Email        : 374648064@qq.com
 * Filename     : netResource.h
 * Description  : 
@@ -21,6 +21,7 @@
 #include <linux/tcp.h>
 #include <linux/udp.h>
 #include <linux/vmalloc.h>
+#include <linux/monitorResource.h>
 
 /****************************************
  * func: 截取数据包函数，对数据包进行分析
@@ -86,5 +87,44 @@ Port_Map_Package *FindPortPackageByPortProtocol(unsigned int _port, char _protoc
  * return: void
 ***************************************/
 void ClearPortPackage();
+
+/****************************************
+ * func: 从/proc/net/tcp文件或者udp文件中获取一行数据中的十六进制端口号和对应的inode
+ * return: -1 = 没有端口信息   >0 = 获取了这行数据中端口对应的inode号
+ * @para str: 一行的数据
+ * @para hexPort: 存放十六进制的端口号
+****************************************/
+int getPortFromStr(char *str, char *hexPort);
+
+/****************************************
+ * func: 从/proc/net/tcp或者udp文件中获取要查找的端口对应的inode
+ * return: -1 = 没有找到    >0 = 对应的inode
+ * @para path: 要查找的文件(/proc/net/tcp)
+ * @para hex: 要查找的十六进制端口
+****************************************/
+int getInodeByHexPort(char *path, char *hex);
+
+/****************************************
+ * func: 通过端口号查找对应的inode
+ * return: -1 = 没有找到   >0 = inode
+ * @para port: 十进制的端口号
+ * @para protocol: 网络协议  'T' = tcp协议   'U' = udp协议
+*****************************************/
+int getInodeByPort(int port, char protocol);
+
+/****************************************
+ * func: 判断/proc/pid/fd/下的符号链接是否为socket
+ * return: -1 = 不是或者错误   >0 = 返回该符号链接所指向的inode
+ * @para info: 符号链接里的数据
+****************************************/
+int judgeSocketLink(char *info);
+
+/******************************************
+ * func: 映射端口和进程的关系
+ * return: false = 该端口不属于这个进程    true = 该端口属于该进程
+ * @para ProcPath: 要判断的进程/proc目录  例如/proc/1234
+ * @para portInfo: 截取到的端口信息
+******************************************/
+bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo);
 
 #endif

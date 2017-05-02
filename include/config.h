@@ -60,6 +60,9 @@ int GetNote_SymbolNum(void);
 #define MAX_SUBSTR               256   //拆分后子字符串的最大长度
 #define MAX_INFOLENGTH           50    //获取应用程序占用系统每个资源数据的最大长度
 
+#define HEX_MAX_NUM              15    //存放十六进制的最大字符串长度
+#define LINK_MAX_NUM             256   //一个链接信息的最大长度
+
 /**************************
  * function: 定义/proc文件系统下的进程路径
 **************************/

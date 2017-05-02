@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-11 09:02
-* Last modified: 2017-03-17 21:32
+* Last modified: 2017-05-02 18:10
 * Email        : 374648064@qq.com
 * Filename     : strOper.c
 * Description  : 
@@ -319,4 +319,20 @@ int StrToInt(char *str)
 	}
 
 	return retNum;
+}
+
+char *Dec2Hex(char *ch, int num)
+{
+	if(num < 16)
+	{
+		ch[0] = num >= 10? 'A'+num-10:'0'+num;
+	}
+	else
+	{
+		ch = Dec2Hex(ch, num/16);
+		num %= 16;
+		ch[0] = num >= 10? 'A'+num-10:'0'+num;
+	}
+
+	return ++ch;
 }

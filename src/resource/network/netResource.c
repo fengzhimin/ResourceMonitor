@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2017-04-27 06:40
-* Last modified: 2017-04-27 06:40
+* Last modified: 2017-05-02 19:01
 * Email        : 374648064@qq.com
 * Filename     : netResource.c
 * Description  : 
@@ -9,7 +9,8 @@
 
 #include "resource/network/netResource.h"
 
-//static char error_info[200];
+static char error_info[200];
+char lineData[LINE_CHAR_MAX_NUM];
 
 
 //定义钩子函数
@@ -235,4 +236,170 @@ void ClearPortPackage()
 		kfree(currentPortPackageData);
 		currentPortPackageData = beginPortPackageData;
 	}
+}
+
+int getPortFromStr(char *str, char *hexPort)
+{
+	int strLength = strlen(str);
+	int i, point = 0, index = 0;
+	int ret = 0;
+	for(i = 0; i < strLength; i++)
+	{
+		//具体实现方法参考/proc/net/tcp文件格式
+		if(point == 2)
+		{
+			if(str[i] == ' ')
+			{
+				int m_point = 0;
+				bool continue_space = false;
+				for( i++; i < strLength; i++)
+				{
+					if(m_point == 7)
+					{
+						if(str[i] == ' ')
+							return ret;
+						ret = ret*10 + str[i] - '0';    //inode
+					}
+					else if((str[i] == ' ' || str[i] == '\t') && !continue_space)
+					{
+						continue_space = true;
+						m_point++;
+					}
+					else if(str[i] != ' ' && str[i] != '\t')
+						continue_space = false;
+				}
+			}
+			hexPort[index++] = str[i];
+		}
+		else if(str[i] == ':')
+		{
+			point++;
+		}
+	}
+
+	return -1;
+}
+
+int getInodeByHexPort(char *path, char *hex)
+{
+	struct file *fp = KOpenFile(path, O_RDONLY);
+	if(fp == NULL)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", path, " 失败！ 错误信息： ", "    ", "\n");
+		RecordLog(error_info);
+		return -1;
+	}
+	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	KReadLine(fp, lineData);   //读取文件的第一行   第一行中不包含端口信息
+	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	char hexPort[HEX_MAX_NUM];
+	int ret = -1;
+	while(KReadLine(fp, lineData) == -1)
+	{
+		memset(hexPort, 0, HEX_MAX_NUM);
+		ret = getPortFromStr(lineData, hexPort);
+		if(strcasecmp(hexPort, hex) == 0)
+			return ret;
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	}
+
+	return -1;
+}
+
+int getInodeByPort(int port, char protocol)
+{
+	char hexPort[HEX_MAX_NUM];
+	memset(hexPort, 0, HEX_MAX_NUM);
+	Dec2Hex(hexPort, port);
+	int ret = -1;
+	switch(protocol)
+	{
+	case 'T':
+		ret = getInodeByHexPort("/proc/net/tcp", hexPort);
+		if(ret != -1)
+			return ret;
+		else if((ret = getInodeByHexPort("/proc/net/tcp6", hexPort)) != -1)
+			return ret;
+		break;
+	case 'U':
+		ret = getInodeByHexPort("/proc/net/udp", hexPort);
+		if(ret != -1)
+			return ret;
+		else if((ret = getInodeByHexPort("/proc/net/udp6", hexPort)) != -1)
+			return ret;
+		break;
+	}
+
+	return ret;
+}
+
+/*
+int judgeSocketLink(char *info)
+{
+	int infoLength = strlen(info);
+	int i;
+	for( i = 0; i < infoLength; i++)
+	{
+
+	}
+}*/
+
+bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
+{
+	int portinode = getInodeByPort(portInfo.port, portInfo.protocol);
+	if(portinode == -1)
+	{
+		sprintf(error_info, "%s%d%s", "获取端口: ", portInfo.port, " 的inode失败\n");
+		RecordLog(error_info);
+		return false;
+	}
+	char fdPath[FILE_PATH_MAX_LENGTH];
+	memset(fdPath, 0, FILE_PATH_MAX_LENGTH);
+	sprintf(fdPath, "%s/fd", ProcPath);
+	int fdDir = vfs_opendir(fdPath);
+	if(fdDir == -1)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "打开文件夹: ", fdPath, " 失败！ 错误信息： ", "    ", "\n");
+		RecordLog(error_info);
+		return false;
+	}
+	
+	struct KCode_dirent *begin;
+	struct KCode_dirent *cur;
+	begin = cur = vfs_readdir(fdDir);
+	vfs_closedir(fdDir);
+	char buflinkInfo[LINK_MAX_NUM];
+	char path[FILE_PATH_MAX_LENGTH];
+	while(cur != NULL)
+	{
+		//只处理符号链接
+		if(cur->type == DT_LNK)
+		{
+			memset(buflinkInfo, 0, LINK_MAX_NUM);
+			memset(path, 0, FILE_PATH_MAX_LENGTH);
+			sprintf(path, "%s/%s", fdPath, cur->name);
+			int retLink = vfs_readlink(path, buflinkInfo, LINK_MAX_NUM);
+			if(retLink < 0 || retLink > LINK_MAX_NUM)
+			{
+				sprintf(error_info, "%s%s%s%s%s", "读取符号链接: ", path, " 失败！ 错误信息： ", "    ", "\n");
+				RecordLog(error_info);	
+			}
+			else
+			{
+				buflinkInfo[retLink] = '\0';
+				//获取socket对应的inode
+				//这里有待优化   没有判断一个符号链接是否为socket链接
+				int inode = ExtractNumFromStr(buflinkInfo);
+				if(portinode == inode)
+				{
+					vfs_free_readdir(begin);
+					return true;
+				}
+			}
+		}
+
+		cur = cur->next;
+	}
+
+	return false;
 }

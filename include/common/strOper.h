@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-09 11:40
-* Last modified: 2017-03-19 20:50
+* Last modified: 2017-05-02 18:06
 * Email        : 374648064@qq.com
 * Filename     : strOper.h
 * Description  : 字符串处理函数
@@ -131,5 +131,13 @@ char* IntToStr(char *str, int num);
  * example: str = "12" -------> return = 12
 ***********************************/
 int StrToInt(char *str);
+
+/**********************************
+ * func: 将十进制数转化为十六进制
+ * return: 最后一位数的下一位字符地址(用于递归函数)
+ * @para str: 存放转化后的十六进制数
+ * @para num: 需要转化的十进制数
+**********************************/
+char *Dec2Hex(char *ch, int num);
 
 #endif
