@@ -9,38 +9,30 @@
 
 #include "running/conflictCheck.h"
 
-void solveProcessRelate(char ***info, int processNum)
+void solveProcessRelate(ProcInfo info[], int processNum)
 {
 	int i, temp;
 	bool ret;
-	char parentInfo[PROCESS_INFO_NUM][MAX_INFOLENGTH];
+	//char parentInfo[PROCESS_INFO_NUM][MAX_INFOLENGTH];
+	ProcInfo parentInfo;
 	for(i = processNum-1; i >= 0; i--)
 	{
-		temp = StrToInt(info[i][3]);
+		temp = info[i].cpuUsed;
 		//当进程的CPU使用率符合需求时,查找其对应的父进程和父父进程的资源使用情况
 		if(temp >= PROCESSRELATECPUDOWN && temp <= PROCESSRELATECPUUP)
 		{
 			//获取其父进程的资源使用情况
-			int temp_cpu, temp_mem;
-			ret = getInfoByID(info[i][2], parentInfo, info, processNum);
+			ret = getInfoByID(info[i].ppid, &parentInfo, info, processNum);
 			if(ret)
 			{
-				temp_cpu = StrToInt(info[i][3]) + StrToInt(parentInfo[3]);
-				temp_mem = StrToInt(info[i][4]) + StrToInt(parentInfo[4]);
-				memset(info[i][3], 0, MAX_INFOLENGTH);
-				memset(info[i][4], 0, MAX_INFOLENGTH);
-				IntToStr(info[i][3], temp_cpu);
-				IntToStr(info[i][4], temp_mem);
+				info[i].cpuUsed += parentInfo.cpuUsed;
+				info[i].memUsed += parentInfo.memUsed;
 				//获取父父进程
-				ret = getInfoByID(parentInfo[2], parentInfo, info, processNum);
+				ret = getInfoByID(parentInfo.ppid, &parentInfo, info, processNum);
 				if(ret)
 				{
-					temp_cpu = StrToInt(info[i][3]) + StrToInt(parentInfo[3]);
-					temp_mem = StrToInt(info[i][4]) + StrToInt(parentInfo[4]);
-					memset(info[i][3], 0, MAX_INFOLENGTH);
-					memset(info[i][4], 0, MAX_INFOLENGTH);
-					IntToStr(info[i][3], temp_cpu);
-					IntToStr(info[i][4], temp_mem);
+					info[i].cpuUsed += parentInfo.cpuUsed;
+					info[i].memUsed += parentInfo.memUsed;
 				}
 			}
 		}

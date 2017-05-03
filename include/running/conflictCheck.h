@@ -18,6 +18,6 @@
  * @para info: 存放最终进程的资源数据
  * @para processNum: 进程的个数
 ***********************************************/
-void solveProcessRelate(char ***info, int processNum);
+void solveProcessRelate(ProcInfo info[], int processNum);
 
 #endif

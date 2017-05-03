@@ -13,8 +13,7 @@
 
 #include <linux/stddef.h>
 
-#define OPENLOG 0    //1: 表示打开日志功能　　　0: 表示关闭日志功能
-#define SHOWINFO 1    //1：表示冲突信息存在result.out文件中　　２：打印冲突信息　　３：打印并且存储冲突信息
+#define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
 #define CONFIG_FILE_MAX_NUM   100   //一个软件的最大配置文件个数由程序自动寻找配置文件
 
@@ -25,8 +24,6 @@
 #define MAX_FUNCNAME          50    //函数名称的最大字符个数
 
 #define MAX_PROCPATH          30    //proc目录下进程的最大路径  例如/proc/1024
-
-#define PROCESS_INFO_NUM       13    //定义进程信息的个数
 
 #define CALC_CPU_TIME         1000    //计算CPU时间的间隔, 单位为ms
 
@@ -62,6 +59,30 @@ int GetNote_SymbolNum(void);
 
 #define HEX_MAX_NUM              15    //存放十六进制的最大字符串长度
 #define LINK_MAX_NUM             256   //一个链接信息的最大长度
+
+
+typedef struct ProcessInfo
+{
+	char name[MAX_INFOLENGTH];   //进程的名称
+	int pid;
+	int ppid;
+	int cpuUsed;   //CPU使用率
+	int memUsed;   //MEM使用率
+	char VmPeak[MAX_INFOLENGTH];   //进程虚拟内存大小(单位: KB)
+	char VmRSS[MAX_INFOLENGTH];    //进程物理内存大小(单位: KB)
+	char State[MAX_INFOLENGTH];    //进程状态
+	unsigned long long ioSyscallNum;    //read/pread和write/pwrite系统调用次数
+	unsigned long long ioDataBytes;     //read_write_bytes大小
+	int uploadPackage;   //上传数据包个数
+	int downloadPackage; //下载数据包个数
+	int totalPackage;    //上传数据包+下载数据包
+} ProcInfo;
+
+typedef struct SystemResource
+{
+	int cpuUsed;    //系统的CPU使用率
+	int memUsed;    //系统的mem使用率
+} SysResource;
 
 /**************************
  * function: 定义/proc文件系统下的进程路径

@@ -58,16 +58,11 @@ int monitorResource(void *data)
 	while(!kthread_should_stop())
 	{
 		
-		char ***info;
-		char totalResource[2][MAX_INFOLENGTH];
-		int ret = getProgressInfo(&info, totalResource);
+		ProcInfo *info;
+		SysResource totalResource;
+		int ret = getProgressInfo(&info, &totalResource);
 		int i;
-		printk("总CPU使用率为: %s\t总内存使用率为: %s\n", totalResource[0], totalResource[1]);
-		for(i = ret/2; i < ret; i++)
-		{
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s 读写磁盘数据: %s\n", info[i][0], info[i][1], info[i][2], \
-					info[i][3], info[i][4], info[i][8], info[i][9]);
-		}
+		printk("总CPU使用率为: %d\t总内存使用率为: %d\n", totalResource.cpuUsed, totalResource.memUsed);
 
 		printk("解决进程之间冲突问题\n");
 		printk("解决进程之间冲突问题\n");
@@ -75,10 +70,12 @@ int monitorResource(void *data)
 		solveProcessRelate(info, ret);	
 		for(i = ret/2; i < ret; i++)
 		{
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s 读写磁盘数据: %s,  upload: %s  download: %s  total: %s\n", \
-					info[i][0], info[i][1], info[i][2],	info[i][3], info[i][4], info[i][8], info[i][9], info[i][10], info[i][11], info[i][12]);
+			printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %d  download: %d  total: %d\n", \
+					info[i].name, info[i].pid, info[i].ppid,	info[i].cpuUsed, info[i].memUsed, info[i].ioSyscallNum, \
+					info[i].ioDataBytes, info[i].uploadPackage, info[i].downloadPackage, info[i].totalPackage);
 		}
-		freeResource(info, ret, PROCESS_INFO_NUM);
+		//freeResource(info, ret, PROCESS_INFO_NUM);
+		vfree(info);
 		/*
 		startHook();
 		msleep(1000);

@@ -59,7 +59,7 @@ void freeResource(char ***info, int oneSize, int secondSize);
  * @para allInfo: 存放所有进程的资源使用情况
  * @para allProcNum: 所有进程的个数
 **********************************************/
-bool getInfoByID(char *id, char info[][MAX_INFOLENGTH], char ***allInfo, int allProcNum);
+bool getInfoByID(int id, ProcInfo *info, ProcInfo allInfo[], int allProcNum);
 
 /***********************************************
  * func: 查找软件name的在/proc目录下的status文件路径
@@ -73,24 +73,9 @@ int getStatusPathByName(char name[], char path[]);
 /***********************************************
  * func: 获取应用程序使用系统资源的情况
  * return: 运行进程的个数
- * @para info: 是一个四级指针,存放资源使用信息，是一个三维数组   第一维是进程个数   第二维是进程信息个数   第三维是信息对应的字符串
- *		 info[i][0] = 程序名称
- *		 info[i][1] = 程序PID
- *		 info[i][2] = 程序PPID
- *		 info[i][3] = 程序CPU使用率
- *		 info[i][4] = 程序MEM使用率
- *		 info[i][5] = 程序使用虚拟内存大小
- *		 info[i][6] = 程序使用物理内存大小
- *		 info[i][7] = 程序状态
- *		 info[i][8] = read/pread+write/pwrite系统调用次数
- *		 info[i][9] = read_write_bytes
- *		 info[i][10] = 程序上传数据包个数
- *		 info[i][11] = 程序下载数据包个数
- *		 info[i][12] = 程序总数据包个数 = 上传 + 下载
- * @para totalResource:
- *		 totalResource[0] = 总CPU使用情况
- *		 totalResource[1] = 总内存使用情况
+ * @para info: 存放进程信息的数据
+ * @para totalResource: 系统的总资源使用率
 ************************************************/
-int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH]);
+int getProgressInfo(ProcInfo **info, SysResource *totalResource);
 
 #endif

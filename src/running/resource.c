@@ -98,6 +98,7 @@ int getProcAll(ProcPIDPath *path)
 	return count;
 }
 
+/*
 char*** mallocResource(int oneSize, int secondSize, int thirdSize)
 {
 	char ***info = (char **)vmalloc(sizeof(char **)*oneSize);
@@ -126,22 +127,17 @@ void freeResource(char ***info, int oneSize, int secondSize)
 	}
 	vfree(info);
 }
+*/
 
-bool getInfoByID(char *id, char info[][MAX_INFOLENGTH], char ***allInfo, int allProcNum)
+bool getInfoByID(int id, ProcInfo *info, ProcInfo allInfo[], int allProcNum)
 {
 	int i;
 	for(i = 0; i < allProcNum; i++)
 	{
 		//匹配当对应进程
-		if(strcasecmp(allInfo[i][1], id) == 0)
+		if(allInfo[i].pid == id)
 		{
-			int j;
-			for(j = 0; j < PROCESS_INFO_NUM; j++)
-			{
-				memset(info[j], 0, MAX_INFOLENGTH);
-				strcpy(info[j], allInfo[i][j]);
-			}
-
+			*info = allInfo[i];
 			return true;
 		}
 	}
@@ -149,7 +145,7 @@ bool getInfoByID(char *id, char info[][MAX_INFOLENGTH], char ***allInfo, int all
 	return false;
 }
 
-int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
+int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 {
 	int retValue = 0;
 	ProcPIDPath *beginPath = vmalloc(sizeof(ProcPIDPath));
@@ -159,11 +155,14 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 	startHook();
 
 	int i;
-	char ***infoPre = mallocResource(runningProcNum, PROCESS_INFO_NUM, MAX_INFOLENGTH);
-	//infoNext[i][0] = CPU数据
-	//infoNext[i][1] = read、write系统调用次数数据
-	//infoNext[i][2] = 读写磁盘的数据
-	char ***infoNext = mallocResource(runningProcNum, 3, MAX_INFOLENGTH);
+	ProcInfo *infoPre = vmalloc(sizeof(ProcInfo)*runningProcNum);
+	for(i = 0; i < runningProcNum; i++)
+		memset(&infoPre[i], 0, sizeof(ProcInfo));
+
+	ProcInfo *infoNext = vmalloc(sizeof(ProcInfo)*runningProcNum);
+	for(i = 0; i < runningProcNum; i++)
+		memset(&infoNext[i], 0, sizeof(ProcInfo));
+
 	for(i = 0; i < runningProcNum; i++, currentPath = currentPath->next)
 	{
 		memset(status, 0, FILE_PATH_MAX_LENGTH);
@@ -178,7 +177,7 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		{
 			sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
 			RecordLog(error_info);
-			strcpy(infoPre[i][0], "processExit");
+			strcpy(infoPre[i].name, "processExit");
 			continue;
 		}
 		while(KReadLine(fp, lineData) == -1)
@@ -189,32 +188,32 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 			removeChar(subStr[1], '\t');
 			if(strcasecmp(subStr[0], "Name") == 0)
 			{
-				strcpy(infoPre[i][0], subStr[1]);
+				strcpy(infoPre[i].name, subStr[1]);
 				continue;
 			}
 			else if(strcasecmp(subStr[0], "Pid") == 0)
 			{
-				strcpy(infoPre[i][1], subStr[1]);
+				infoPre[i].pid = ExtractNumFromStr(subStr[1]);
 				continue;
 			}
 			else if(strcasecmp(subStr[0], "PPid") == 0)
 			{
-				strcpy(infoPre[i][2], subStr[1]);
+				infoPre[i].ppid = ExtractNumFromStr(subStr[1]);
 				continue;
 			}
 			else if(strcasecmp(subStr[0], "VmPeak") == 0)
 			{
-				strcpy(infoPre[i][5], subStr[1]);
+				strcpy(infoPre[i].VmPeak, subStr[1]);
 				continue;
 			}
 			else if(strcasecmp(subStr[0], "VmRSS") == 0)
 			{
-				strcpy(infoPre[i][6], subStr[1]);
+				strcpy(infoPre[i].VmRSS, subStr[1]);
 				break;    //结束读取
 			}
 			else if(strcasecmp(subStr[0], "State") == 0)
 			{
-				strcpy(infoPre[i][7], subStr[1]);
+				strcpy(infoPre[i].State, subStr[1]);
 				continue;
 			}
 		}
@@ -222,15 +221,12 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		//获取进程使用CPU信息
 		Process_Cpu_Occupy_t process_cpu_occupy;
 		getProcessCPUTime(stat, &process_cpu_occupy);
-		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
-		sprintf(infoPre[i][3], "%d", process_cpu);
+		infoPre[i].cpuUsed = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
 		//获取进程read、write系统调用信息
 		Process_IO_Data processIOData;
 		getProcessIOData(io, &processIOData);
-		unsigned long long syscIO = processIOData.syscr + processIOData.syscw;
-		unsigned long long read_write_bytes = processIOData.read_bytes + processIOData.write_bytes;
-		sprintf(infoPre[i][8], "%lld", syscIO);
-		sprintf(infoPre[i][9], "%lld", read_write_bytes);
+		infoNext[i].ioSyscallNum = processIOData.syscr + processIOData.syscw;
+		infoNext[i].ioDataBytes = processIOData.read_bytes + processIOData.write_bytes;
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
@@ -249,9 +245,9 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 			if(mapProcessPort(currentPath->path, *PortPackageData))
 			{
 				//通过端口找到对应的进程号
-				sprintf(infoPre[i][10], "%d", PortPackageData->outPackageSize);
-				sprintf(infoPre[i][11], "%d", PortPackageData->inPackageSize);
-				sprintf(infoPre[i][12], "%d", PortPackageData->inPackageSize + PortPackageData->outPackageSize);
+				infoPre[i].uploadPackage = PortPackageData->outPackageSize;
+				infoPre[i].downloadPackage = PortPackageData->inPackageSize;
+				infoPre[i].totalPackage = infoPre[i].uploadPackage + infoPre[i].downloadPackage;
 			}
 		}
 		PortPackageData = PortPackageData->next;
@@ -272,22 +268,19 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		{
 			sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
 			RecordLog(error_info);
-			strcpy(infoNext[i][0], "processExit");
+			strcpy(infoNext[i].name, "processExit");
 			continue;
 		}
 		KCloseFile(fp);
 		//获取进程使用CPU信息
 		Process_Cpu_Occupy_t process_cpu_occupy;
 		getProcessCPUTime(stat, &process_cpu_occupy);
-		int process_cpu = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
-		sprintf(infoNext[i][0], "%d", process_cpu);
+		infoNext[i].cpuUsed = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
 		//获取进程read、write系统调用信息
 		Process_IO_Data processIOData;
 		getProcessIOData(io, &processIOData);
-		unsigned long long syscIO = processIOData.syscr + processIOData.syscw;
-		unsigned long long read_write_bytes = processIOData.read_bytes + processIOData.write_bytes;
-		sprintf(infoNext[i][1], "%lld", syscIO);
-		sprintf(infoNext[i][2], "%lld", read_write_bytes);
+		infoNext[i].ioSyscallNum = processIOData.syscr + processIOData.syscw;
+		infoNext[i].ioDataBytes = processIOData.read_bytes + processIOData.write_bytes;
 		//不断的删除path
 		ProcPIDPath *temp = beginPath;
 		beginPath = beginPath->next;
@@ -299,62 +292,49 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 	//计算总CPU使用率
 	int totalcpu = total_cpu2 - total_cpu1;
 	int totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
-	int totalpcpu = 100*(totalcpu-totalidle)/totalcpu;
-	sprintf(totalResouce[0], "%d", totalpcpu);
+	totalResource->cpuUsed = 100*(totalcpu-totalidle)/totalcpu;
 	if(getTotalPM(totalMem) == 1)
 	{
 		//计算内存使用率
 		unsigned int totalMemNum = ExtractNumFromStr(totalMem[0]);
 		unsigned int totalFreeMem = ExtractNumFromStr(totalMem[1]);
-		int totalpmem = 100*(totalMemNum-totalFreeMem)/totalMemNum;
-		sprintf(totalResouce[1], "%d", totalpmem);
+		totalResource->memUsed = 100*(totalMemNum-totalFreeMem)/totalMemNum;
 		unsigned int vmrssNum;
-		int pmem;
-		int process_cpu1, process_cpu2;
 		unsigned long long process_io1, process_io2;
 		unsigned long long process_io3, process_io4;
-		int pcpu;
 		for(i = 0; i < runningProcNum; i++)
 		{
-			if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i][0], "processExit") == 0)
+			if(strcasecmp(infoPre[i].name, "processExit") == 0 || strcasecmp(infoNext[i].name, "processExit") == 0)
 				continue;	
-			vmrssNum = ExtractNumFromStr(infoPre[i][6]);
-			pmem = 100*vmrssNum/totalMemNum;
-			sprintf(infoPre[i][4], "%d", pmem);    //计算内存使用率
-			process_cpu2 = ExtractNumFromStr(infoNext[i][0]);
-			process_cpu1 = ExtractNumFromStr(infoPre[i][3]);
-			pcpu = 100*(process_cpu2-process_cpu1)/(total_cpu2-total_cpu1);
-			sprintf(infoPre[i][3], "%d", pcpu);
+			vmrssNum = ExtractNumFromStr(infoPre[i].VmRSS);
+			infoPre[i].memUsed = 100*vmrssNum/totalMemNum;
+			process_cpu2 = infoNext[i].cpuUsed;
+			process_cpu1 = infoPre[i].cpuUsed;
+			infoPre[i].cpuUsed = 100*(infoNext[i].cpuUsed-infoPre[i].cpuUsed)/(total_cpu2-total_cpu1);
 			//获取前后两次的系统调用次数
-			process_io1 = ExtractNumFromStr(infoNext[i][1]);
-			process_io2 = ExtractNumFromStr(infoPre[i][8]);
+			process_io1 = infoNext[i].ioSyscallNum;
+			process_io2 = infoPre[i].ioSyscallNum;
 			//获取前后两次读写磁盘的数据量
-			process_io3 = ExtractNumFromStr(infoNext[i][2]);
-			process_io4 = ExtractNumFromStr(infoPre[i][9]);
+			process_io3 = infoNext[i].ioDataBytes;
+			process_io4 = infoPre[i].ioDataBytes;
 			//计算一定时间时隔内系统调用的次数，用来判断对磁盘访问次数的评价
-			sprintf(infoPre[i][8], "%lld", process_io1-process_io2);   
-			sprintf(infoPre[i][9], "%lld", process_io3-process_io4);
-			//printk("process_io3 = %lld\t process_io4 = %lld\n", process_io3, process_io4);
+			infoPre[i].ioSyscallNum = process_io1 - process_io2;
+			infoPre[i].ioDataBytes = process_io3 - process_io4;
 			retValue++;
 		}
 	}
 	
-	(*info) = mallocResource(retValue, PROCESS_INFO_NUM, MAX_INFOLENGTH);
+	(*info) = vmalloc(sizeof(ProcInfo)*retValue);
 	int temp = 0;
 	for(i = 0; i < runningProcNum; i++)
 	{
-		if(strcasecmp(infoPre[i][0], "processExit") == 0 || strcasecmp(infoNext[i][0], "processExit") == 0)
+		if(strcasecmp(infoPre[i].name, "processExit") == 0 || strcasecmp(infoNext[i].name, "processExit") == 0)
 			continue;
-		int j;
-		for(j = 0; j < PROCESS_INFO_NUM; j++)
-		{
-			strcpy((*info)[temp][j], infoPre[i][j]);
-		}
-		temp++;
+		(*info)[temp++] = infoPre[i];
 	}
 	
-	freeResource(infoPre, runningProcNum, PROCESS_INFO_NUM);
-	freeResource(infoNext, runningProcNum, 3);
+	vfree(infoPre);
+	vfree(infoNext);
 	vfree(beginPath);
 	
 	return retValue;
