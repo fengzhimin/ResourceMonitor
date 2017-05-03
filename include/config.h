@@ -26,9 +26,9 @@
 
 #define MAX_PROCPATH          30    //proc目录下进程的最大路径  例如/proc/1024
 
-#define PROCESS_INFO_NUM       10    //定义进程信息的个
+#define PROCESS_INFO_NUM       13    //定义进程信息的个数
 
-#define CALC_CPU_TIME         500    //计算CPU时间的间隔, 单位为ms
+#define CALC_CPU_TIME         1000    //计算CPU时间的间隔, 单位为ms
 
 //当进程的CPU使用率大于PROCESSRELATECPUDOWN小于PROCESSRELATECPUUP时,计算父进程和父父进程的资源使用情况
 #define PROCESSRELATECPUDOWN      10   

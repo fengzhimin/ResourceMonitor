@@ -152,24 +152,27 @@ bool getInfoByID(char *id, char info[][MAX_INFOLENGTH], char ***allInfo, int all
 int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 {
 	int retValue = 0;
-	ProcPIDPath *path = vmalloc(sizeof(ProcPIDPath));
-	ProcPIDPath *path1 = path;
-	int runningProcNum = getProcAll(path);
+	ProcPIDPath *beginPath = vmalloc(sizeof(ProcPIDPath));
+	ProcPIDPath *currentPath = beginPath;
+	int runningProcNum = getProcAll(beginPath);
+	//开始截取数据包
+	startHook();
+
 	int i;
 	char ***infoPre = mallocResource(runningProcNum, PROCESS_INFO_NUM, MAX_INFOLENGTH);
 	//infoNext[i][0] = CPU数据
 	//infoNext[i][1] = read、write系统调用次数数据
 	//infoNext[i][2] = 读写磁盘的数据
 	char ***infoNext = mallocResource(runningProcNum, 3, MAX_INFOLENGTH);
-	for(i = 0; i < runningProcNum; i++, path = path->next)
+	for(i = 0; i < runningProcNum; i++, currentPath = currentPath->next)
 	{
 		memset(status, 0, FILE_PATH_MAX_LENGTH);
 		memset(stat, 0, FILE_PATH_MAX_LENGTH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 		memset(io, 0, FILE_PATH_MAX_LENGTH);
-		sprintf(status, "%s/%s", path->path, "status");
-		sprintf(stat, "%s/%s", path->path, "stat");
-		sprintf(io, "%s/%s", path->path, "io");
+		sprintf(status, "%s/%s", currentPath->path, "status");
+		sprintf(stat, "%s/%s", currentPath->path, "stat");
+		sprintf(io, "%s/%s", currentPath->path, "io");
 		struct file *fp = KOpenFile(status, O_RDONLY);
 		if(fp == NULL)
 		{
@@ -232,16 +235,37 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
+
+	//隔一段时间
 	msleep(CALC_CPU_TIME);
+
+	//停止截取数据包
+	stopHook();
+	PortPackageData = PortPackageData->next;  //跳过第一个元素
+	while(PortPackageData != NULL)
+	{
+		for(i = 0, currentPath = beginPath; i < runningProcNum; i++, currentPath = currentPath->next)
+		{
+			if(mapProcessPort(currentPath->path, *PortPackageData))
+			{
+				//通过端口找到对应的进程号
+				sprintf(infoPre[i][10], "%d", PortPackageData->outPackageSize);
+				sprintf(infoPre[i][11], "%d", PortPackageData->inPackageSize);
+				sprintf(infoPre[i][12], "%d", PortPackageData->inPackageSize + PortPackageData->outPackageSize);
+			}
+		}
+		PortPackageData = PortPackageData->next;
+	}
+
 	for(i = 0; i < runningProcNum; i++)
 	{
 		memset(status, 0, FILE_PATH_MAX_LENGTH);
 		memset(stat, 0, FILE_PATH_MAX_LENGTH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 		memset(io, 0, FILE_PATH_MAX_LENGTH);
-		sprintf(status, "%s/%s", path1->path, "status");
-		sprintf(stat, "%s/%s", path1->path, "stat");
-		sprintf(io, "%s/%s", path1->path, "io");
+		sprintf(status, "%s/%s", beginPath->path, "status");
+		sprintf(stat, "%s/%s", beginPath->path, "stat");
+		sprintf(io, "%s/%s", beginPath->path, "io");
 		struct file *fp = KOpenFile(status, O_RDONLY);
 		//测试文件是否存在
 		if(fp == NULL)
@@ -264,9 +288,10 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 		unsigned long long read_write_bytes = processIOData.read_bytes + processIOData.write_bytes;
 		sprintf(infoNext[i][1], "%lld", syscIO);
 		sprintf(infoNext[i][2], "%lld", read_write_bytes);
-		ProcPIDPath *temp = path1->next;
-		vfree(path1);
-		path1 = temp;
+		//不断的删除path
+		ProcPIDPath *temp = beginPath;
+		beginPath = beginPath->next;
+		vfree(temp);
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy2;
 	getTotalCPUTime(&total_cpu_occupy2);
@@ -330,7 +355,7 @@ int getProgressInfo(char ****info, char totalResouce[][MAX_INFOLENGTH])
 	
 	freeResource(infoPre, runningProcNum, PROCESS_INFO_NUM);
 	freeResource(infoNext, runningProcNum, 3);
-	vfree(path1);
+	vfree(beginPath);
 	
 	return retValue;
 }

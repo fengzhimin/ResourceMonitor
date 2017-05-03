@@ -353,8 +353,8 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 		RecordLog(error_info);
 		return false;
 	}
-	char fdPath[FILE_PATH_MAX_LENGTH];
-	memset(fdPath, 0, FILE_PATH_MAX_LENGTH);
+	char fdPath[MAX_PROCPATH];
+	memset(fdPath, 0, MAX_PROCPATH);
 	sprintf(fdPath, "%s/fd", ProcPath);
 	int fdDir = vfs_opendir(fdPath);
 	if(fdDir == -1)
@@ -369,14 +369,14 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 	begin = cur = vfs_readdir(fdDir);
 	vfs_closedir(fdDir);
 	char buflinkInfo[LINK_MAX_NUM];
-	char path[FILE_PATH_MAX_LENGTH];
+	char path[MAX_PROCPATH];
 	while(cur != NULL)
 	{
 		//只处理符号链接
 		if(cur->type == DT_LNK)
 		{
 			memset(buflinkInfo, 0, LINK_MAX_NUM);
-			memset(path, 0, FILE_PATH_MAX_LENGTH);
+			memset(path, 0, MAX_PROCPATH);
 			sprintf(path, "%s/%s", fdPath, cur->name);
 			int retLink = vfs_readlink(path, buflinkInfo, LINK_MAX_NUM);
 			if(retLink < 0 || retLink > LINK_MAX_NUM)
@@ -392,6 +392,7 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 				int inode = ExtractNumFromStr(buflinkInfo);
 				if(portinode == inode)
 				{
+					//释放读取文件夹资源
 					vfs_free_readdir(begin);
 					return true;
 				}
@@ -400,6 +401,7 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 
 		cur = cur->next;
 	}
-
+	//释放读取文件夹资源
+	vfs_free_readdir(begin);
 	return false;
 }

@@ -312,7 +312,7 @@ struct KCode_dirent * vfs_readdir(const int fd)
 		for (bpos = 0; bpos < nread;) 
 		{
 		    d = (struct linux_dirent *) (buf + bpos);
-		    printk("%8ld  ", d->d_ino);
+		    //printk("%8ld  ", d->d_ino);
 		    d_type = *(buf + bpos + d->d_reclen - 1);
 		    bpos += d->d_reclen;
 		    if(num != 0)
@@ -416,11 +416,13 @@ int vfs_readlink(const char *path, char *buf, int bufsize)
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
+/*
 	struct kstat stat;
 	vfs_lstat(path, &stat);
 	printk("stat.ino = %d\n", stat.ino);
 	printk("stat.dev = %d\n", stat.dev);
 	printk("stat.mode = %d\n", stat.mode);
+*/
 	int ret = sys_readlink(path, buf, bufsize);
 	set_fs(fs);
 	return ret;

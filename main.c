@@ -57,7 +57,7 @@ int monitorResource(void *data)
 {
 	while(!kthread_should_stop())
 	{
-		/*
+		
 		char ***info;
 		char totalResource[2][MAX_INFOLENGTH];
 		int ret = getProgressInfo(&info, totalResource);
@@ -75,11 +75,11 @@ int monitorResource(void *data)
 		solveProcessRelate(info, ret);	
 		for(i = ret/2; i < ret; i++)
 		{
-			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s 读写磁盘数据: %s\n", info[i][0], info[i][1], info[i][2], \
-					info[i][3], info[i][4], info[i][8], info[i][9]);
+			printk("进程 %s: PID: %s PPID: %s CPU使用率: %s MEM使用率: %s  IO次数: %s 读写磁盘数据: %s,  upload: %s  download: %s  total: %s\n", \
+					info[i][0], info[i][1], info[i][2],	info[i][3], info[i][4], info[i][8], info[i][9], info[i][10], info[i][11], info[i][12]);
 		}
 		freeResource(info, ret, PROCESS_INFO_NUM);
-		*/
+		/*
 		startHook();
 		msleep(1000);
 		stopHook();
@@ -89,6 +89,7 @@ int monitorResource(void *data)
 					PortPackageData->inPackageSize, PortPackageData->outPackageSize);
 			PortPackageData = PortPackageData->next;
 		}
+		*/
 	}
 
 	return 0;

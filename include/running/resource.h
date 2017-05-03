@@ -18,6 +18,7 @@
 #include "resource/memeory/memResource.h"
 #include "resource/CPU/CPUResource.h"
 #include "resource/device/DevResource.h"
+#include "resource/network/netResource.h"
 #include <linux/delay.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -82,6 +83,10 @@ int getStatusPathByName(char name[], char path[]);
  *		 info[i][6] = 程序使用物理内存大小
  *		 info[i][7] = 程序状态
  *		 info[i][8] = read/pread+write/pwrite系统调用次数
+ *		 info[i][9] = read_write_bytes
+ *		 info[i][10] = 程序上传数据包个数
+ *		 info[i][11] = 程序下载数据包个数
+ *		 info[i][12] = 程序总数据包个数 = 上传 + 下载
  * @para totalResource:
  *		 totalResource[0] = 总CPU使用情况
  *		 totalResource[1] = 总内存使用情况
