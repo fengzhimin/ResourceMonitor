@@ -127,4 +127,11 @@ int judgeSocketLink(char *info);
 ******************************************/
 bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo);
 
+/**********************************************
+ * func: 获取系统网络数据
+ * return: false = 失败   true = 成功
+ * @para totalNet: 存放获取后的数据
+**********************************************/
+bool getTotalNet(NetInfo *totalNet);
+
 #endif

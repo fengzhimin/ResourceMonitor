@@ -62,7 +62,8 @@ int monitorResource(void *data)
 		SysResource totalResource;
 		int ret = getProgressInfo(&info, &totalResource);
 		int i;
-		printk("总CPU使用率为: %d\t总内存使用率为: %d\n", totalResource.cpuUsed, totalResource.memUsed);
+		printk("总CPU使用率为: %d\t总内存使用率为: %d\t 上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
+				totalResource.uploadBytes, totalResource.downloadBytes);
 
 		printk("解决进程之间冲突问题\n");
 		printk("解决进程之间冲突问题\n");

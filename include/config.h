@@ -60,7 +60,9 @@ int GetNote_SymbolNum(void);
 #define HEX_MAX_NUM              15    //存放十六进制的最大字符串长度
 #define LINK_MAX_NUM             256   //一个链接信息的最大长度
 
-
+/***********************************
+ * function: 存放进程使用的系统资源数据
+***********************************/
 typedef struct ProcessInfo
 {
 	char name[MAX_INFOLENGTH];   //进程的名称
@@ -81,10 +83,20 @@ typedef struct ProcessInfo
 	unsigned long long totalBytes;      //上传字节数+下载字节数
 } ProcInfo;
 
+/************************************
+ * function: 存放系统的总资源使用情况
+************************************/
 typedef struct SystemResource
 {
 	int cpuUsed;    //系统的CPU使用率
 	int memUsed;    //系统的mem使用率
+	//以下都是针对单位时间内的变化，不会累计
+	unsigned int uploadPackage;     //系统的下载的数据包个数
+	unsigned int downloadPackage;   //系统的上传的数据包个数
+	unsigned int totalPackage;      //系统的总数据包个数(上传+下载)
+	unsigned long long uploadBytes;    //系统的上传字节
+	unsigned long long downloadBytes;  //系统的下载字节
+	unsigned long long totalBytes;     //系统的总网速(上传字节+下载字节)
 } SysResource;
 
 /**************************
@@ -104,6 +116,17 @@ typedef struct ConfigInfo
 	char key[CONFIG_KEY_MAX_NUM];
 	char value[CONFIG_VALUE_MAX_NUM];
 } ConfigInfo;
+
+/************************************
+ * function: 定义系统网络相关的信息(/proc/net.dev)
+************************************/
+typedef struct TotalNetInfo
+{
+	unsigned int uploadPackage;     //系统的下载的数据包个数
+	unsigned int downloadPackage;   //系统的上传的数据包个数
+	unsigned long long uploadBytes;    //系统的上传字节
+	unsigned long long downloadBytes;  //系统的下载字节
+} NetInfo;
 
 /**************************
  * function: 定义物理内存相关的信息(/proc/meminfo)

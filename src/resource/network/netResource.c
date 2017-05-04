@@ -10,7 +10,8 @@
 #include "resource/network/netResource.h"
 
 static char error_info[200];
-char lineData[LINE_CHAR_MAX_NUM];
+static char lineData[LINE_CHAR_MAX_NUM];
+static char subStr[17][MAX_SUBSTR];
 
 
 //定义钩子函数
@@ -415,4 +416,42 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 	//释放读取文件夹资源
 	vfs_free_readdir(begin);
 	return false;
+}
+
+bool getTotalNet(NetInfo *totalNet)
+{
+	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	int lineNum = 1;
+	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
+	if(fp == NULL)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "   ", "\n");
+		RecordLog(error_info);
+		return false;
+	}
+	while(KReadLine(fp, lineData) == -1)
+	{
+		if(lineNum == 3)
+		{
+			//提取/proc/meminfo 中的第三行数据(MemAvailable)
+			removeBeginSpace(lineData);
+			cutStrByLabel(lineData, ' ', subStr, 17);
+			totalNet->downloadBytes = ExtractNumFromStr(subStr[1]);
+			totalNet->uploadBytes = ExtractNumFromStr(subStr[9]);
+			totalNet->downloadPackage = ExtractNumFromStr(subStr[2]);
+			totalNet->uploadPackage = ExtractNumFromStr(subStr[10]);
+			break;
+		}
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		lineNum++;
+	}
+	if(lineNum == 1)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "    ", "\n");
+		RecordLog(error_info);
+		KCloseFile(fp);
+		return false;
+	}
+	KCloseFile(fp);
+	return true;
 }
