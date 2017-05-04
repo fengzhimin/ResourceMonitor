@@ -77,9 +77,15 @@ unsigned int filter_http(char *type, struct sk_buff *pskb)
 		{
 			//判断是输入数据包还是输出数据包
 			if(strcmp(type, "in") == 0)
+			{
 				currentPortPackageData->inPackageSize++;
+				currentPortPackageData->inDataBytes += skb->len;
+			}
 			else
+			{
 				currentPortPackageData->outPackageSize++;
+				currentPortPackageData->outDataBytes += skb->len;
+			}
 		}
 		else
 		{
@@ -91,11 +97,15 @@ unsigned int filter_http(char *type, struct sk_buff *pskb)
 			{
 				temp.inPackageSize = 1;
 				temp.outPackageSize = 0;
+				temp.inDataBytes = skb->len;
+				temp.outDataBytes = 0;
 			}
 			else
 			{
 				temp.inPackageSize = 0;
 				temp.outPackageSize = 1;
+				temp.inDataBytes = 0;
+				temp.outDataBytes = skb->len;
 			}
 			temp.next = NULL;
 			AddPortPackage(temp);
@@ -134,11 +144,15 @@ unsigned int filter_http(char *type, struct sk_buff *pskb)
 			{
 				temp.inPackageSize = 1;
 				temp.outPackageSize = 0;
+				temp.inDataBytes = skb->len;
+				temp.outDataBytes = 0;
 			}
 			else
 			{
 				temp.inPackageSize = 0;
 				temp.outPackageSize = 1;
+				temp.inDataBytes = 0;
+				temp.outDataBytes = skb->len;
 			}
 			temp.next = NULL;
 			AddPortPackage(temp);
@@ -181,6 +195,7 @@ bool startHook()
 	beginPortPackageData = currentPortPackageData = endPortPackageData = PortPackageData = kmalloc(sizeof(Port_Map_Package), GFP_ATOMIC);
 	PortPackageData->port = -1;  //申请列表头
 	PortPackageData->inPackageSize = PortPackageData->outPackageSize = 0;
+	PortPackageData->inDataBytes = PortPackageData->outDataBytes = 0;
 	PortPackageData->protocol = '0';
 	PortPackageData->next = NULL;
 	int ret = 0;
@@ -219,11 +234,7 @@ void AddPortPackage(Port_Map_Package temp)
 {
 	//在列表的末尾新增一个端口数据
 	endPortPackageData = endPortPackageData->next = kmalloc(sizeof(Port_Map_Package), GFP_ATOMIC);
-	endPortPackageData->port = temp.port;
-	endPortPackageData->protocol = temp.protocol;
-	endPortPackageData->inPackageSize = temp.inPackageSize;
-	endPortPackageData->outPackageSize = temp.outPackageSize;
-	endPortPackageData->next = NULL;
+	(*endPortPackageData) = temp;
 }
 
 void ClearPortPackage()

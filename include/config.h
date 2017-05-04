@@ -76,6 +76,9 @@ typedef struct ProcessInfo
 	int uploadPackage;   //上传数据包个数
 	int downloadPackage; //下载数据包个数
 	int totalPackage;    //上传数据包+下载数据包
+	unsigned long long uploadBytes;   //上传字节数
+	unsigned long long downloadBytes;   //下载字节数
+	unsigned long long totalBytes;      //上传字节数+下载字节数
 } ProcInfo;
 
 typedef struct SystemResource
@@ -158,6 +161,8 @@ typedef struct ProcessIOData
  * protocol: 表示数据包是什么类型的协议  'T' =TCP 'U' = UDP
  * inPackageSize: 该端口对应的下载数据包个数
  * outPackageSize: 该端口对应的上传数据包个数
+ * inDataBytes: 该端口对应的下载数据字节
+ * outDataBytes: 该端口对应的上传数据字节
  * next: 下一个端口数据
 ****************************/
 typedef struct PortMapPackage
@@ -166,6 +171,8 @@ typedef struct PortMapPackage
 	char protocol;
 	unsigned int inPackageSize;
 	unsigned int outPackageSize;
+	unsigned long long inDataBytes;
+	unsigned long long outDataBytes;
 	struct PortMapPackage *next;
 } Port_Map_Package;
 

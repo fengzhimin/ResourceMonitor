@@ -224,8 +224,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		//获取进程read、write系统调用信息
 		Process_IO_Data processIOData;
 		getProcessIOData(io, &processIOData);
-		infoNext[i].ioSyscallNum = processIOData.syscr + processIOData.syscw;
-		infoNext[i].ioDataBytes = processIOData.read_bytes + processIOData.write_bytes;
+		infoPre[i].ioSyscallNum = processIOData.syscr + processIOData.syscw;
+		infoPre[i].ioDataBytes = processIOData.read_bytes + processIOData.write_bytes;
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
@@ -247,6 +247,9 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 				infoPre[i].uploadPackage = PortPackageData->outPackageSize;
 				infoPre[i].downloadPackage = PortPackageData->inPackageSize;
 				infoPre[i].totalPackage = infoPre[i].uploadPackage + infoPre[i].downloadPackage;
+				infoPre[i].uploadBytes = PortPackageData->outDataBytes;
+				infoPre[i].downloadBytes = PortPackageData->inDataBytes;
+				infoPre[i].totalBytes = infoPre[i].uploadBytes + infoPre[i].downloadBytes;
 			}
 		}
 		PortPackageData = PortPackageData->next;

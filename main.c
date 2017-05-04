@@ -70,9 +70,9 @@ int monitorResource(void *data)
 		solveProcessRelate(info, ret);	
 		for(i = ret/2; i < ret; i++)
 		{
-			printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %d  download: %d  total: %d\n", \
+			printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %lld  download: %lld  total: %lld\n", \
 					info[i].name, info[i].pid, info[i].ppid,	info[i].cpuUsed, info[i].memUsed, info[i].ioSyscallNum, \
-					info[i].ioDataBytes, info[i].uploadPackage, info[i].downloadPackage, info[i].totalPackage);
+					info[i].ioDataBytes, info[i].uploadBytes, info[i].downloadBytes, info[i].totalBytes);
 		}
 		//freeResource(info, ret, PROCESS_INFO_NUM);
 		vfree(info);
