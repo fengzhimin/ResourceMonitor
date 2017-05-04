@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-06 00:44
-* Last modified: 2017-04-10 18:47
+* Last modified: 2017-05-04 14:43
 * Email        : 374648064@qq.com
 * Filename     : config.h
 * Descrip:q
@@ -101,6 +101,15 @@ typedef struct ConfigInfo
 	char key[CONFIG_KEY_MAX_NUM];
 	char value[CONFIG_VALUE_MAX_NUM];
 } ConfigInfo;
+
+/**************************
+ * function: 定义物理内存相关的信息(/proc/meminfo)
+**************************/
+typedef struct TotalMemInfo
+{
+	unsigned int memTotal;      //物理总内存大小
+	unsigned int memAvailable;  //可以物理内存大小
+} MemInfo;
 
 /***************************
  * function: 定义CPU使用时间

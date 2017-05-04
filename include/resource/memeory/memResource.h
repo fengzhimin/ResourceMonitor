@@ -17,10 +17,10 @@
 
 /**********************************************
  * func: 获取物理内存大小
- * return: -1 = 失败   1 = 成功
- * @para totalMem[0]: 存放物理内存总大小
- * @para totalMem[1]: 存放物理内存可用大小
+ * return: false = 失败   true = 成功
+ * @para totalMem.memTotal: 存放物理内存总大小
+ * @para totalMem.memAvailable: 存放物理内存可用大小
 **********************************************/
-int getTotalPM(char totalMem[][MAX_INFOLENGTH]);
+bool getTotalPM(MemInfo *totalMem);
 
 #endif

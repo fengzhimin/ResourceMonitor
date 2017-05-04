@@ -9,9 +9,8 @@
 #include "running/resource.h"
 
 static char error_info[200];
-static char totalMem[2][MAX_INFOLENGTH];
-static char status[FILE_PATH_MAX_LENGTH], stat[FILE_PATH_MAX_LENGTH], lineData[LINE_CHAR_MAX_NUM];
-static char io[FILE_PATH_MAX_LENGTH];
+static char status[MAX_PROCPATH], stat[MAX_PROCPATH], lineData[LINE_CHAR_MAX_NUM];
+static char io[MAX_PROCPATH];
 
 
 /*
@@ -165,10 +164,10 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 
 	for(i = 0; i < runningProcNum; i++, currentPath = currentPath->next)
 	{
-		memset(status, 0, FILE_PATH_MAX_LENGTH);
-		memset(stat, 0, FILE_PATH_MAX_LENGTH);
+		memset(status, 0, MAX_PROCPATH);
+		memset(stat, 0, MAX_PROCPATH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
-		memset(io, 0, FILE_PATH_MAX_LENGTH);
+		memset(io, 0, MAX_PROCPATH);
 		sprintf(status, "%s/%s", currentPath->path, "status");
 		sprintf(stat, "%s/%s", currentPath->path, "stat");
 		sprintf(io, "%s/%s", currentPath->path, "io");
@@ -255,10 +254,10 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 
 	for(i = 0; i < runningProcNum; i++)
 	{
-		memset(status, 0, FILE_PATH_MAX_LENGTH);
-		memset(stat, 0, FILE_PATH_MAX_LENGTH);
+		memset(status, 0, MAX_PROCPATH);
+		memset(stat, 0, MAX_PROCPATH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
-		memset(io, 0, FILE_PATH_MAX_LENGTH);
+		memset(io, 0, MAX_PROCPATH);
 		sprintf(status, "%s/%s", beginPath->path, "status");
 		sprintf(stat, "%s/%s", beginPath->path, "stat");
 		sprintf(io, "%s/%s", beginPath->path, "io");
@@ -293,33 +292,22 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	int totalcpu = total_cpu2 - total_cpu1;
 	int totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
 	totalResource->cpuUsed = 100*(totalcpu-totalidle)/totalcpu;
-	if(getTotalPM(totalMem) == 1)
+	MemInfo totalMem;
+	if(getTotalPM(&totalMem))
 	{
 		//计算内存使用率
-		unsigned int totalMemNum = ExtractNumFromStr(totalMem[0]);
-		unsigned int totalFreeMem = ExtractNumFromStr(totalMem[1]);
-		totalResource->memUsed = 100*(totalMemNum-totalFreeMem)/totalMemNum;
+		totalResource->memUsed = 100*(totalMem.memTotal-totalMem.memAvailable)/totalMem.memTotal;
 		unsigned int vmrssNum;
-		unsigned long long process_io1, process_io2;
-		unsigned long long process_io3, process_io4;
 		for(i = 0; i < runningProcNum; i++)
 		{
 			if(strcasecmp(infoPre[i].name, "processExit") == 0 || strcasecmp(infoNext[i].name, "processExit") == 0)
 				continue;	
 			vmrssNum = ExtractNumFromStr(infoPre[i].VmRSS);
-			infoPre[i].memUsed = 100*vmrssNum/totalMemNum;
-			process_cpu2 = infoNext[i].cpuUsed;
-			process_cpu1 = infoPre[i].cpuUsed;
+			infoPre[i].memUsed = 100*vmrssNum/totalMem.memTotal;
 			infoPre[i].cpuUsed = 100*(infoNext[i].cpuUsed-infoPre[i].cpuUsed)/(total_cpu2-total_cpu1);
-			//获取前后两次的系统调用次数
-			process_io1 = infoNext[i].ioSyscallNum;
-			process_io2 = infoPre[i].ioSyscallNum;
-			//获取前后两次读写磁盘的数据量
-			process_io3 = infoNext[i].ioDataBytes;
-			process_io4 = infoPre[i].ioDataBytes;
 			//计算一定时间时隔内系统调用的次数，用来判断对磁盘访问次数的评价
-			infoPre[i].ioSyscallNum = process_io1 - process_io2;
-			infoPre[i].ioDataBytes = process_io3 - process_io4;
+			infoPre[i].ioSyscallNum = infoNext[i].ioSyscallNum - infoPre[i].ioSyscallNum;
+			infoPre[i].ioDataBytes = infoNext[i].ioDataBytes - infoPre[i].ioDataBytes;
 			retValue++;
 		}
 	}
