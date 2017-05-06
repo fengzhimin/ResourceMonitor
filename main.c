@@ -62,32 +62,20 @@ int monitorResource(void *data)
 		SysResource totalResource;
 		int ret = getProgressInfo(&info, &totalResource);
 		int i;
-		printk("总CPU使用率为: %d\t总内存使用率为: %d\t 上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
+		//printk("总CPU使用率为: %d\t总内存使用率为: %d\t 上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
 				totalResource.uploadBytes, totalResource.downloadBytes);
-		/*
-		printk("解决进程之间冲突问题\n");
-		printk("解决进程之间冲突问题\n");
-		printk("解决进程之间冲突问题\n");
 		solveProcessRelate(info, ret);	
-		for(i = ret/2; i < ret; i++)
+		for(i = 0; i < ret; i++)
 		{
-			printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %lld  download: %lld  total: %lld\n", \
+			if(strcasecmp(info[i].name, "monitorKthread") == 0)
+				continue;
+			if((totalResource.cpuUsed > 70 && info[i].cpuUsed > 30) || (totalResource.memUsed > 70 && info[i].memUsed > 30) || info[i].ioSyscallNum > 1000 || \
+					(info[i].totalBytes > 2000000 && totalResource.totalBytes > 6000000))
+				printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %lld  download: %lld  total: %lld\n", \
 					info[i].name, info[i].pid, info[i].ppid,	info[i].cpuUsed, info[i].memUsed, info[i].ioSyscallNum, \
 					info[i].ioDataBytes, info[i].uploadBytes, info[i].downloadBytes, info[i].totalBytes);
 		}
-		//freeResource(info, ret, PROCESS_INFO_NUM);
 		vfree(info);
-		/*
-		startHook();
-		msleep(1000);
-		stopHook();
-		while(PortPackageData != NULL)
-		{
-			printk("port = %d\t inPackageSize = %d\t outPackageSize = %d\n", PortPackageData->port, \
-					PortPackageData->inPackageSize, PortPackageData->outPackageSize);
-			PortPackageData = PortPackageData->next;
-		}
-		*/
 	}
 
 	return 0;

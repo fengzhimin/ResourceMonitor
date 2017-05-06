@@ -13,9 +13,9 @@
 
 #include <linux/stddef.h>
 
-#define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
+#define OPENLOG 0    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
-#define SHOWINFO   0     //0:: 表示不在终端显示日志   1: 表示在终端显示
+#define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
 
 #define CONFIG_FILE_MAX_NUM   100   //一个软件的最大配置文件个数由程序自动寻找配置文件
 
