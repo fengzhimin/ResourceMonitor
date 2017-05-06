@@ -20,7 +20,7 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 	char _function[50];
 	sprintf(_function, "%s%20s%s", " [函数:", function, "] ");    //获取正在执行的函数名
 	char _file[50];
-	sprintf(_file, "%s%15s%s", "[文件:", file, "] ");           //获取正在执行的文件名
+	sprintf(_file, "%s%25s%s", "[文件:", file, "] ");           //获取正在执行的文件名
 	char _line[50];
 	sprintf(_line, "%s%4d%s", "[行数:", line, "] ");          //获取正在执行的行数
 	
@@ -42,14 +42,16 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 int WriteLog(const char* logName, const char* logInfo, const char *file, const char* function, const int line)
 {
 #if OPENLOG
-	printk("%s", logInfo);   //终端及时显示信息
 	struct file * _fd = KOpenFile(logName, O_APPEND | O_WRONLY);
 	if(NULL == _fd)
 		return -1;
 	
 	char *_mergeInfo = CreateLogInfo(logInfo, file, function, line);
 
-	printk(_mergeInfo);
+	//判断是否在终端显示信息
+	if(SHOWINFO == 1)
+		printk(_mergeInfo);
+
 	int _ret_write = KWriteFile(_fd, _mergeInfo);
 
 	kfree(_mergeInfo);
