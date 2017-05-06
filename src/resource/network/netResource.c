@@ -421,6 +421,7 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 bool getTotalNet(NetInfo *totalNet)
 {
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	memset(totalNet, 0, sizeof(NetInfo));
 	int lineNum = 1;
 	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
 	if(fp == NULL)
@@ -431,16 +432,15 @@ bool getTotalNet(NetInfo *totalNet)
 	}
 	while(KReadLine(fp, lineData) == -1)
 	{
-		if(lineNum == 3)
+		if(lineNum >= 3)
 		{
 			//提取/proc/meminfo 中的第三行数据(MemAvailable)
 			removeBeginSpace(lineData);
 			cutStrByLabel(lineData, ' ', subStr, 17);
-			totalNet->downloadBytes = ExtractNumFromStr(subStr[1]);
-			totalNet->uploadBytes = ExtractNumFromStr(subStr[9]);
-			totalNet->downloadPackage = ExtractNumFromStr(subStr[2]);
-			totalNet->uploadPackage = ExtractNumFromStr(subStr[10]);
-			break;
+			totalNet->downloadBytes += ExtractNumFromStr(subStr[1]);
+			totalNet->uploadBytes += ExtractNumFromStr(subStr[9]);
+			totalNet->downloadPackage += ExtractNumFromStr(subStr[2]);
+			totalNet->uploadPackage += ExtractNumFromStr(subStr[10]);
 		}
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 		lineNum++;

@@ -93,9 +93,9 @@ typedef struct SystemResource
 	int cpuUsed;    //系统的CPU使用率
 	int memUsed;    //系统的mem使用率
 	//以下都是针对单位时间内的变化，不会累计
-	unsigned int uploadPackage;     //系统的下载的数据包个数
-	unsigned int downloadPackage;   //系统的上传的数据包个数
-	unsigned int totalPackage;      //系统的总数据包个数(上传+下载)
+	unsigned long long uploadPackage;     //系统的下载的数据包个数
+	unsigned long long downloadPackage;   //系统的上传的数据包个数
+	unsigned long long totalPackage;      //系统的总数据包个数(上传+下载)
 	unsigned long long uploadBytes;    //系统的上传字节
 	unsigned long long downloadBytes;  //系统的下载字节
 	unsigned long long totalBytes;     //系统的总网速(上传字节+下载字节)
@@ -120,12 +120,12 @@ typedef struct ConfigInfo
 } ConfigInfo;
 
 /************************************
- * function: 定义系统网络相关的信息(/proc/net.dev)
+ * function: 定义系统网络相关的信息(/proc/net/dev)  注意: 是系统中所有网卡的数据和
 ************************************/
 typedef struct TotalNetInfo
 {
-	unsigned int uploadPackage;     //系统的下载的数据包个数
-	unsigned int downloadPackage;   //系统的上传的数据包个数
+	unsigned long long uploadPackage;     //系统的下载的数据包个数
+	unsigned long long downloadPackage;   //系统的上传的数据包个数
 	unsigned long long uploadBytes;    //系统的上传字节
 	unsigned long long downloadBytes;  //系统的下载字节
 } NetInfo;

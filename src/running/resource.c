@@ -230,6 +230,7 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
+	//获取系统的网络使用情况
 	NetInfo totalNet1;
 	getTotalNet(&totalNet1);
 
@@ -321,7 +322,7 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	NetInfo totalNet2;
 	getTotalNet(&totalNet2);
 	totalResource->uploadPackage = totalNet2.uploadPackage - totalNet1.uploadPackage;
-	totalResource->downloadPackage = totalNet2.downloadPackage - totalNet2.downloadPackage;
+	totalResource->downloadPackage = totalNet2.downloadPackage - totalNet1.downloadPackage;
 	totalResource->totalPackage = totalResource->uploadPackage + totalResource->downloadPackage;
 	totalResource->uploadBytes = totalNet2.uploadBytes - totalNet1.uploadBytes;
 	totalResource->downloadBytes = totalNet2.downloadBytes - totalNet1.downloadBytes;
