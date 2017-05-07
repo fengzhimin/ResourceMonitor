@@ -2,3 +2,4 @@ af_inet.c: /net/ipv4
 monitorResource.h: /include/linux
 monitorResource.c: fs/
 Makefile: fs/
+注释掉源码中的include/linux/fs.h中的vfs_readdir声明

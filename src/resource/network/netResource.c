@@ -311,9 +311,14 @@ int getInodeByHexPort(char *path, char *hex)
 		memset(hexPort, 0, HEX_MAX_NUM);
 		ret = getPortFromStr(lineData, hexPort);
 		if(strcasecmp(hexPort, hex) == 0)
+		{
+			KCloseFile(fp);
 			return ret;
+		}
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	}
+
+	KCloseFile(fp);
 
 	return -1;
 }

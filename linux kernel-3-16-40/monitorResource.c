@@ -141,10 +141,14 @@ int judge(char *path, char *hex)
 		memset(hexPort, 0, HEX_MAX_NUM);
 		ret = getPort(lineData, hexPort);
 		if(strcasecmp(hexPort, hex) == 0)
+		{
+			KCloseFile(fp);
 			return ret;   //return inode
+		}
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	}
 	
+	KCloseFile(fp);
 	return -1;  
 }
 
