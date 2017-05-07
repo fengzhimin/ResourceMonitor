@@ -18,7 +18,7 @@ blog:           http://blog.csdn.net/u012819339
 #define USER_MSG    (NETLINK_USER + 1)
 #define MSG_LEN 100
 
-#define MAX_PLOAD 100
+#define MAX_PLOAD 1024
 
 struct _my_msg
 {
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 	    }
 	    printf("dest_addr.nl_pid = %d\n", dest_addr.nl_pid);
 	    printf("msg receive from kernel:%s\n", info.data);
-	    sleep(3);
+	    usleep(500000);
     }
     close(skfd);
 

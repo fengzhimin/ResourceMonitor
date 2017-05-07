@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-06 00:44
-* Last modified: 2017-05-04 14:43
+* Last modified: 2017-05-07 22:08
 * Email        : 374648064@qq.com
 * Filename     : config.h
 * Descrip:q
@@ -12,6 +12,7 @@
 #define __CONFIG_H__
 
 #include <linux/stddef.h>
+#include <linux/mutex.h>
 
 #define OPENLOG 0    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
@@ -208,6 +209,33 @@ extern Port_Map_Package *PortPackageData;         //存放当前时间段每个�
 extern Port_Map_Package *beginPortPackageData;    //PortPackageData 第一个元素
 extern Port_Map_Package *endPortPackageData;      //PortPackageData 最后一个元素
 extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作的元素
+
+//每一位代表一种资源是否冲突   1 = 冲突   0 = 不冲突
+#define CPU_CONFLICT    1    //CPU资源冲突(00000001)
+#define MEM_CONFLICT    2    //MEM资源冲突(00000010)
+#define NET_CONFLICT    4    //NET资源冲突(00000100)
+#define IO_CONFLICT     8    //IO资源冲突 (00001000)
+
+/**********************************
+ * function: 存放资源冲突的进程信息
+ * processInfo: 进程的资源使用情况
+ * conflictType: 冲突的类型
+ * next: 下一个地址
+**********************************/
+typedef struct ConflictProcess
+{
+	ProcInfo processInfo;
+	int conflictType;
+	struct ConflictProcess *next;
+} ConflictProcInfo;
+
+
+extern ConflictProcInfo *beginConflictProcess;   //冲突信息的头
+extern ConflictProcInfo *endConflictProcess;     //冲突信息的尾
+extern ConflictProcInfo *currentConflictProcess; //当前的冲突信息
+
+//冲突信息互斥锁
+extern struct mutex ConflictProcess_Mutex;
 
 #endif
 

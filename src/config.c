@@ -29,3 +29,9 @@ Port_Map_Package *PortPackageData = NULL;
 Port_Map_Package *beginPortPackageData = NULL;    //PortPackageData 第一个元素
 Port_Map_Package *endPortPackageData = NULL;      //PortPackageData 最后一个元素
 Port_Map_Package *currentPortPackageData = NULL;  //PortPackageData 当前操作的元素
+
+ConflictProcInfo *beginConflictProcess = NULL;   //冲突信息的头
+ConflictProcInfo *endConflictProcess = NULL;     //冲突信息的尾
+ConflictProcInfo *currentConflictProcess = NULL; //当前的冲突信息
+
+struct mutex ConflictProcess_Mutex;

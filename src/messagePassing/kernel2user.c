@@ -12,7 +12,7 @@
 static char error_info[200];
 static unsigned int pid;   //标记不同的用户层进程
 static struct sock *netlinkfd = NULL;    //netlink句柄
-static struct netlink_kernl_cfg cfg = 
+static struct netlink_kernel_cfg cfg = 
 {
 	.input = recv_Msg,    //接收的回调函数
 };
@@ -39,7 +39,7 @@ int send_Msg(int8_t *pbuf, unsigned int len)
 		RecordLog("netlink_alloc_skb error!\n");
 		return ret;
 	}
-	nlh = nlmsg_put(nl_skb, 0, 0 NETLINK_USER_MSG, len, 0);
+	nlh = nlmsg_put(nl_skb, 0, 0, NETLINK_USER_MSG, len, 0);
 	if(nlh == NULL)
 	{
 		RecordLog("nlmsg_put() error!\n");
@@ -55,13 +55,28 @@ int send_Msg(int8_t *pbuf, unsigned int len)
 void recv_Msg(struct sk_buff *skb)
 {
 	struct nlmsghdr *nlh = NULL;
-	void *data = nULL;
+	void *data = NULL;
 	if(skb->len >= nlmsg_total_size(0))
 	{
 		nlh = nlmsg_hdr(skb);
 		data = NLMSG_DATA(nlh);  //获取数据包中的数据
 		pid = nlh->nlmsg_pid;    //设置用户层的id
 		if(data)
-			send_Msg(data, nlmsg_len(nlh));
+		{
+			mutex_lock(&ConflictProcess_Mutex);
+			if(beginConflictProcess == NULL)
+				send_Msg(data, nlmsg_len(nlh));
+			else
+			{
+				currentConflictProcess = beginConflictProcess;
+				while(currentConflictProcess != NULL)
+				{
+					data = (void *)currentConflictProcess;
+					send_Msg(data, sizeof(ConflictProcInfo));
+					currentConflictProcess = currentConflictProcess->next;
+				}
+			}
+			mutex_unlock(&ConflictProcess_Mutex);
+		}
 	}
 }
