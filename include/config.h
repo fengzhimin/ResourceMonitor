@@ -37,6 +37,9 @@
 #define PROCESSRELATEMEMDOWN      20   
 #define PROCESSRELATEMEMUP        30
 
+//定义Netlink的类型
+#define NETLINK_USER_MSG  23
+
 extern char config_type[][20];    //配置文件的类型
 
 /*****************************
