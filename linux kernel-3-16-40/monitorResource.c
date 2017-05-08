@@ -9,6 +9,10 @@
 
 #include <linux/monitorResource.h>
 
+extern ConflictPortProcInfo *beginConflictPortProcInfo = NULL;   //存放端口冲突信息列表的首地址
+extern ConflictPortProcInfo *endConflictPortProcInfo = NULL;     //末尾地址
+extern ConflictPortProcInfo *currentConflictPortProcInfo = NULL; //当前操作的元素的地址
+
 struct file *KOpenFile(const char* fileName, int mode)
 {
 	struct file *fd = NULL;

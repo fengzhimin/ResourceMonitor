@@ -38,11 +38,35 @@ struct KCode_dirent {
     struct KCode_dirent *next;
 };
 
+/******************************************
+ * func: 存放冲突进程的信息
+ * pid: 进程ID
+ * ProcessName: 进程的名称
+******************************************/
 struct conflictProcess
 {
 	int pid;
 	char ProcessName[PROCESS_NAME_MAX_CHAR];
 };
+
+/******************************************
+ * func:　定义端口冲突进程的信息
+ * port:　冲突的端口号
+ * currentProcess: 被运行的进程的信息
+ * runningProcess: 已经占用端口的进程信息
+ * next: 下一个元素的地址
+******************************************/
+typedef struct ConflictPortProcessInfo
+{
+	unsigned int port;
+	struct conflictProcess currentProcess;
+	struct conflictProcess runningProcess;
+	struct ConflictPortProcessInfo *next;
+} ConflictPortProcInfo;
+
+extern ConflictPortProcInfo *beginConflictPortProcInfo;   //存放端口冲突信息列表的首地址
+extern ConflictPortProcInfo *endConflictPortProcInfo;     //末尾地址
+extern ConflictPortProcInfo *currentConflictPortProcInfo; //当前操作的元素的地址
 
 /**********************************
  * function: 内核态打开文件操作
@@ -91,26 +115,87 @@ int KReadLine(struct file *fd, char *data);
 *********************************/
 int KCloseFile(struct file *fd);
 
+/**********************************
+ * func: 十进制转十六进制
+ * return: 返回存放最后一个字符的下一个地址(用户递归计算)
+ * @para ch: 存放转化后的十六进制
+ * @para num: 要被转化的十进制数
+***********************************/
 char* decTohex(char *ch, int num);
 
+/****************************************
+ * func: 从/proc/net/tcp文件或者udp文件中获取一行数据中的十六进制端口号和对应的inode
+ * return: -1 = 没有端口信息   >0 = 获取了这行数据中端口对应的inode号
+ * @para str: 一行的数据
+ * @para hexPort: 存放十六进制的端口号
+****************************************/
 int getPort(char *str, char *hexPort);
 
+/****************************************
+ * func: 从/proc/net/tcp或者udp文件中获取要查找的端口对应的inode
+ * return: -1 = 没有找到    >0 = 对应的inode
+ * @para path: 要查找的文件(/proc/net/tcp)
+ * @para hex: 要查找的十六进制端口
+****************************************/
 int judge(char *path, char *hex);
 
+/*************************************
+ * func: 通过十进制端口号获取其对应的inode
+ * return: -1 = 失败　　>0 = inode
+ * @para port: 十进制端口号
+*************************************/
 int getConflictInode(int port);
 
+/**************************************
+ * func: 判断buf与inode是否相同
+ * return: true = 相同　　　false = 不相同
+ * @para buf: 被判断的字符串
+ * @para inode: 被判断的整数
+**************************************/
 bool judgeConflictID(char *buf, int inode);
 
+/***********************************************
+ * func: 获取占用port的进程信息
+ * return: 返回查找到的进程信息 如何pid = -1 则表示没有找到对应的冲突信息
+ * @para port: 被占用的端口
+************************************************/
 struct conflictProcess getConflictProcess(int port);
 
+/*****************************************
+ * func: 打开文件夹
+ * return: -1 = 打开失败　　>0 =　文件夹句柄
+ * @para path: 被打开的文件夹路径
+*****************************************/
 extern int vfs_opendir(const char *path);
 
+/*****************************************************
+ * func: 读取文件夹的内容
+ * return: 返回文件夹的内容(线性列表)
+ * @para fd: 打开的文件夹句柄
+*****************************************************/
 extern struct KCode_dirent* vfs_readdir(const int fd);
 
+/**************************************************
+ * func: 释放存放文件夹内容的列表
+ * return: void
+ * @para dir: 存放内容的首地址
+**************************************************/
 extern void vfs_free_readdir(struct KCode_dirent *dir);
 
+/**********************************
+ * func: 关闭打开的文件夹
+ * return: void
+ * @para fd: 打开的文件夹句柄
+**********************************/
 extern void vfs_closedir(const int fd);
 
+/*****************************************
+ * func: 读取一个链接
+ * return: sys_readlink系统调用的返回值
+ * @para path: 链接的路径
+ * @para buf: 存放链接中的内容
+ * @para bufsize: buf的大小
+******************************************/
 extern int vfs_readlink(const char *path, char *buf, int bufsize);
 
 #endif

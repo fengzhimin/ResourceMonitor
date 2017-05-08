@@ -511,11 +511,27 @@ int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		err = -EADDRINUSE;
 		printk("port %d already used! \n", snum);
 		struct conflictProcess conflictInfo = getConflictProcess(snum);
-		int inode = getConflictInode(snum);
 		if(conflictInfo.pid == -1)
 			printk("get Conflict Process error!\n");
 		else
+		{
 			printk("conflict process pid = %d name = %s\n", conflictInfo.pid, conflictInfo.ProcessName);
+			if(beginConflictPortProcInfo == NULL)
+			{
+				beginConflictPortProcInfo = endConflictPortProcInfo = currentConflictPortProcInfo = vmalloc(sizeof(ConflictPortProcInfo));
+				beginConflictPortProcInfo.next = NULL;
+			}
+			else
+			{
+				endConflictPortProcInfo = endConflictPortProcInfo->next = vmalloc(sizeof(ConflictPortProcInfo));
+				endConflictPortProcInfo->next = NULL;
+			}
+			endConflictPortProcInfo->port = snum;
+			endConflictPortProcInfo->currentProcess.pid = current->pid;
+			memset(endConflictPortProcInfo->currentProcess.ProcessName, 0, PROCESS_NAME_MAX_CHAR);
+			strcpy(endConflictPortProcInfo->currentProcess.ProcessName, current->comm);
+			endConflictPortProcInfo->runningProcess = conflictInfo;
+		}
 
 		goto out_release_sock;
 	}
