@@ -13,24 +13,22 @@ blog:           http://blog.csdn.net/u012819339
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
+#include "config.h"
 
 #define NETLINK_USER 22
 #define USER_MSG    (NETLINK_USER + 1)
 #define MSG_LEN 100
-
-#define MAX_PLOAD 1024
+#define DATA_SPACE   100
 
 struct _my_msg
 {
     struct nlmsghdr hdr;
-    int8_t  data[MSG_LEN];
+	ConflictProcInfo conflictInfo;
 };
-
-
 
 int main(int argc, char **argv)
 {
-    char *data = "hello kernel";
+    char *data = "request";
     struct sockaddr_nl  local, dest_addr;
 
     int skfd;
@@ -61,9 +59,9 @@ int main(int argc, char **argv)
     dest_addr.nl_pid = 0; // to kernel
     dest_addr.nl_groups = 0;
 
-    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PLOAD));
+    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(DATA_SPACE));
     memset(nlh, 0, sizeof(struct nlmsghdr));
-    nlh->nlmsg_len = NLMSG_SPACE(MAX_PLOAD);
+    nlh->nlmsg_len = NLMSG_SPACE(DATA_SPACE);
     nlh->nlmsg_flags = 0;
     nlh->nlmsg_type = 0;
     nlh->nlmsg_seq = 0;
@@ -77,22 +75,25 @@ int main(int argc, char **argv)
 
 	    if(!ret)
 	    {
-		perror("sendto error1\n");
-		close(skfd);
-		exit(-1);
+			perror("sendto error1\n");
+			close(skfd);
+			exit(-1);
 	    }
-	    printf("wait kernel msg!\n");
-	    memset(&info, 0, sizeof(info));
-	    ret = recvfrom(skfd, &info, sizeof(struct _my_msg), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-	    if(!ret)
-	    {
-		perror("recv form kernel error\n");
-		close(skfd);
-		exit(-1);
-	    }
-	    printf("dest_addr.nl_pid = %d\n", dest_addr.nl_pid);
-	    printf("msg receive from kernel:%s\n", info.data);
-	    usleep(500000);
+		while(1)
+		{
+			memset(&info, 0, sizeof(struct _my_msg));
+			ret = recvfrom(skfd, &info, sizeof(struct _my_msg), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+			if(!ret)
+			{
+				perror("recv form kernel error\n");
+				close(skfd);
+				exit(-1);
+			}
+			if(info.conflictInfo.conflictType == 0)
+				break;
+			printf("conflict type = %d\t conflict process = %s\n", info.conflictInfo.conflictType, info.conflictInfo.processInfo.name);
+		}
+	    usleep(100000);
     }
     close(skfd);
 

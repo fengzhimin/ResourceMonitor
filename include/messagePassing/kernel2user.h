@@ -36,7 +36,7 @@ void release_Netlink();
  * @para pbuf: 要发送的数据
  * @para len: 数据的长度
 ****************************************/
-int send_Msg(int8_t *pbuf, unsigned int len);
+int send_Msg(void *pbuf, unsigned int len);
 
 /****************************************
  * func: 接收数据

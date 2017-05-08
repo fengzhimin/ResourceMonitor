@@ -41,6 +41,9 @@
 //定义Netlink的类型
 #define NETLINK_USER_MSG  23
 
+//定义存放冲突信息的最大字符个数
+#define MAX_CONFLICTINFO      256
+
 extern char config_type[][20];    //配置文件的类型
 
 /*****************************
@@ -215,17 +218,20 @@ extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作
 #define MEM_CONFLICT    2    //MEM资源冲突(00000010)
 #define NET_CONFLICT    4    //NET资源冲突(00000100)
 #define IO_CONFLICT     8    //IO资源冲突 (00001000)
+#define PORT_CONFLICT   10   //端口资源冲突(00010000)
 
 /**********************************
  * function: 存放资源冲突的进程信息
  * processInfo: 进程的资源使用情况
  * conflictType: 冲突的类型
+ * conflictInfo: 存放冲突的信息
  * next: 下一个地址
 **********************************/
 typedef struct ConflictProcess
 {
 	ProcInfo processInfo;
 	int conflictType;
+	char conflictInfo[MAX_CONFLICTINFO];
 	struct ConflictProcess *next;
 } ConflictProcInfo;
 
@@ -236,6 +242,5 @@ extern ConflictProcInfo *currentConflictProcess; //当前的冲突信息
 
 //冲突信息互斥锁
 extern struct mutex ConflictProcess_Mutex;
-
 #endif
 

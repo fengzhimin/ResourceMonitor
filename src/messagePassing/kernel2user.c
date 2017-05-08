@@ -9,7 +9,6 @@
 
 #include "messagePassing/kernel2user.h"
 
-static char error_info[200];
 static unsigned int pid;   //标记不同的用户层进程
 static struct sock *netlinkfd = NULL;    //netlink句柄
 static struct netlink_kernel_cfg cfg = 
@@ -28,7 +27,7 @@ void release_Netlink()
 	sock_release(netlinkfd->sk_socket);
 }
 
-int send_Msg(int8_t *pbuf, unsigned int len)
+int send_Msg(void *pbuf, unsigned int len)
 {
 	struct sk_buff *nl_skb;
 	struct nlmsghdr *nlh;
@@ -55,26 +54,40 @@ int send_Msg(int8_t *pbuf, unsigned int len)
 void recv_Msg(struct sk_buff *skb)
 {
 	struct nlmsghdr *nlh = NULL;
-	void *data = NULL;
+	ConflictProcInfo data;
+	memset(&data, 0, sizeof(data));
+	void *requestData = NULL;
 	if(skb->len >= nlmsg_total_size(0))
 	{
 		nlh = nlmsg_hdr(skb);
-		data = NLMSG_DATA(nlh);  //获取数据包中的数据
+		requestData = NLMSG_DATA(nlh);  //获取数据包中的数据
 		pid = nlh->nlmsg_pid;    //设置用户层的id
-		if(data)
+		if(requestData)
 		{
 			mutex_lock(&ConflictProcess_Mutex);
 			if(beginConflictProcess == NULL)
-				send_Msg(data, nlmsg_len(nlh));
+			{
+				//发送标识结束的信息
+				send_Msg(&data, sizeof(ConflictProcInfo));
+			}
 			else
 			{
 				currentConflictProcess = beginConflictProcess;
 				while(currentConflictProcess != NULL)
 				{
-					data = (void *)currentConflictProcess;
-					send_Msg(data, sizeof(ConflictProcInfo));
+					send_Msg(currentConflictProcess, sizeof(ConflictProcInfo));
 					currentConflictProcess = currentConflictProcess->next;
 				}
+				//删除冲突信息
+				currentConflictProcess = beginConflictProcess;
+				while(beginConflictProcess != NULL)
+				{
+					beginConflictProcess = beginConflictProcess->next;
+					vfree(currentConflictProcess);
+					currentConflictProcess = beginConflictProcess;
+				}
+				//发送标识结束的信息
+				send_Msg(&data, sizeof(ConflictProcInfo));
 			}
 			mutex_unlock(&ConflictProcess_Mutex);
 		}

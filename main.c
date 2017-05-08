@@ -2,6 +2,7 @@
 #include <linux/kthread.h>
 #include <linux/err.h>
 #include <linux/mutex.h>
+#include <linux/monitorResource.h>
 #include "common/dateOper.h"
 #include "log/logOper.h"
 #include "common/fileOper.h"
@@ -70,6 +71,9 @@ int monitorResource(void *data)
 				totalResource.uploadBytes, totalResource.downloadBytes);
 		solveProcessRelate(info, ret);
 
+		//加锁
+		mutex_lock(&ConflictProcess_Mutex);
+
 		currentConflictProcess = beginConflictProcess;
 		while(beginConflictProcess != NULL)
 		{
@@ -78,9 +82,6 @@ int monitorResource(void *data)
 			currentConflictProcess = beginConflictProcess;
 		}
 
-		//加锁
-		mutex_lock(&ConflictProcess_Mutex);
-
 		for(i = 0; i < ret; i++)
 		{
 			if(strcasecmp(info[i].name, "monitorKthread") == 0)
@@ -88,18 +89,29 @@ int monitorResource(void *data)
 			if((totalResource.cpuUsed > 70 && info[i].cpuUsed > 30) || (totalResource.memUsed > 70 && info[i].memUsed > 30) || info[i].ioSyscallNum > 1000 || \
 					(info[i].totalBytes > 2000000 && totalResource.totalBytes > 6000000))
 			{
+				int conflictType = 0;
+				if(totalResource.cpuUsed > 70 && info[i].cpuUsed > 30)
+					conflictType |= CPU_CONFLICT;
+				if(totalResource.memUsed > 70 && info[i].memUsed > 30)
+					conflictType |= MEM_CONFLICT;
+				if(info[i].ioSyscallNum > 1000)
+					conflictType |= IO_CONFLICT;
+				if(info[i].totalBytes > 2000000 && totalResource.totalBytes > 6000000)
+					conflictType |= NET_CONFLICT;
+
+				printk("conflictType = %d\n", conflictType);
 				if(beginConflictProcess == NULL)
 				{
 					beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
 					beginConflictProcess->processInfo = info[i];
-					beginConflictProcess->conflictType = 0;
+					beginConflictProcess->conflictType = conflictType;
 					beginConflictProcess->next = NULL;
 				}
 				else
 				{
 					endConflictProcess = endConflictProcess->next = vmalloc(sizeof(ConflictProcInfo));
 					endConflictProcess->processInfo = info[i];
-					endConflictProcess->conflictType = 0;
+					endConflictProcess->conflictType = conflictType;
 					endConflictProcess->next = NULL;
 				}
 				printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %lld  download: %lld  total: %lld\n", \
@@ -107,6 +119,31 @@ int monitorResource(void *data)
 					info[i].ioDataBytes, info[i].uploadBytes, info[i].downloadBytes, info[i].totalBytes);
 			}
 		}
+		//处理端口冲突的问题
+		/*
+		currentConflictPortProcInfo = beginConflictPortProcInfo;
+		if(currentConflictPortProcInfo != NULL)
+		{
+			if(beginConflictProcess == NULL)
+			{
+				beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
+				beginConflictProcess->next = NULL;
+			}
+			else
+			{
+				endConflictProcess = endConflictProcess->next = vmalloc(sizeof(ConflictProcInfo));
+				endConflictProcess->next = NULL;
+			}
+			endConflictProcess->conflictType |= PORT_CONFLICT;
+			sprintf(endConflictProcess->conflictInfo, "进程:%s(%d) 与 进程:%s(%d) 在使用端口号为: %d 上冲突!\n", \
+			currentConflictPortProcInfo->currentProcess.ProcessName, currentConflictPortProcInfo->currentProcess.pid, \
+			currentConflictPortProcInfo->runningProcess.ProcessName, currentConflictPortProcInfo->runningProcess.pid, \
+			currentConflictPortProcInfo->port);
+			beginConflictPortProcInfo = beginConflictPortProcInfo->next;
+			vfree(currentConflictPortProcInfo);
+			currentConflictPortProcInfo = beginConflictPortProcInfo;
+		}
+		*/
 		//释放锁
 		mutex_unlock(&ConflictProcess_Mutex);
 

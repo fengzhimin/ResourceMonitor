@@ -54,19 +54,13 @@ struct conflictProcess
  * port:　冲突的端口号
  * currentProcess: 被运行的进程的信息
  * runningProcess: 已经占用端口的进程信息
- * next: 下一个元素的地址
 ******************************************/
 typedef struct ConflictPortProcessInfo
 {
 	unsigned int port;
 	struct conflictProcess currentProcess;
 	struct conflictProcess runningProcess;
-	struct ConflictPortProcessInfo *next;
 } ConflictPortProcInfo;
-
-extern ConflictPortProcInfo *beginConflictPortProcInfo;   //存放端口冲突信息列表的首地址
-extern ConflictPortProcInfo *endConflictPortProcInfo;     //末尾地址
-extern ConflictPortProcInfo *currentConflictPortProcInfo; //当前操作的元素的地址
 
 /**********************************
  * function: 内核态打开文件操作

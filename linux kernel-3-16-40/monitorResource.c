@@ -9,10 +9,6 @@
 
 #include <linux/monitorResource.h>
 
-extern ConflictPortProcInfo *beginConflictPortProcInfo = NULL;   //存放端口冲突信息列表的首地址
-extern ConflictPortProcInfo *endConflictPortProcInfo = NULL;     //末尾地址
-extern ConflictPortProcInfo *currentConflictPortProcInfo = NULL; //当前操作的元素的地址
-
 struct file *KOpenFile(const char* fileName, int mode)
 {
 	struct file *fd = NULL;
@@ -273,12 +269,12 @@ int vfs_opendir(const char *path)
 	fd = sys_open(path, O_RDONLY | O_DIRECTORY, 0);
 	struct fd f;
 	f = fdget(fd);
-	struct file *fil = f.file;
+	//struct file *fil = f.file;
 	//printk("f.file.f_pos = %d\n", fil->f_pos);
 	set_fs(fs);
 	if (fd < 0)
 	{
-		printk("open file %s failure!\n", path);
+		printk("open directory %s failure!\n", path);
 		return -1;
 	}
 	
