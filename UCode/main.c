@@ -12,6 +12,10 @@ blog:           http://blog.csdn.net/u012819339
 #include <linux/netlink.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <pthread.h>
 #include <errno.h>
 #include "config.h"
 
@@ -26,8 +30,29 @@ struct _my_msg
 	ConflictProcInfo conflictInfo;
 };
 
+void monitorPort()
+{
+	struct stat statFile;
+	char *filePath = "/etc/conflictPortInfo.info";
+	long long lastmodification = 0;
+	while(1)
+	{
+		stat(filePath, &statFile);
+		if(lastmodification != statFile.st_mtime)
+		{
+			lastmodification = statFile.st_mtime;
+			printf("%d", lastmodification);
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
+	pthread_t thr;
+	if(pthread_create(&thr, NULL, monitorPort, NULL) != 0)
+	{
+		printf("create thread failure!\n");
+	}
     char *data = "request";
     struct sockaddr_nl  local, dest_addr;
 

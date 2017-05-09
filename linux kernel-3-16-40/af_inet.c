@@ -516,12 +516,26 @@ int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		else
 		{
 			printk("conflict process pid = %d name = %s\n", conflictProcInfo.pid, conflictProcInfo.ProcessName);
+			struct file *fp = KOpenFile("/etc/conflictPortInfo.info", O_RDWR);
+			if(fp == NULL)
+				printk("create file /etc/conflictPortInfo.info failure!\n");
+			else
+			{
+				char conflictInfoStr[1024];
+				memset(conflictInfoStr, 0, 1024);
+				sprintf(conflictInfoStr, "进程:%s(%d)使用的端口(%d)已经被进程:%s(%d)所占用!\n", \
+						current->comm, current->pid, snum, conflictProcInfo.ProcessName, conflictProcInfo.pid);
+				KWriteFile(fp, conflictInfoStr);
+				KCloseFile(fp);
+			}
+			/*
 			ConflictPortProcInfo conflictInfo;
 			conflictInfo.port = snum;
 			conflictInfo.currentProcess.pid = current->pid;
 			memset(conflictInfo.currentProcess.ProcessName, 0, PROCESS_NAME_MAX_CHAR);
 			strcpy(conflictInfo.currentProcess.ProcessName, current->comm);
 			conflictInfo.runningProcess = conflictProcInfo;
+			*/
 		}
 
 		goto out_release_sock;
