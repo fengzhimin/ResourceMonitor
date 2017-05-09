@@ -208,25 +208,21 @@ struct conflictProcess getConflictProcess(int port)
 		int bpos;
 		char d_type;
 		fd = sys_open(path, O_RDONLY | O_DIRECTORY, 0);
-		if (fd < 0)
-		{
-			printk("open file %s failure! fd = %d\n", path, fd);
-		}
-		else
+		if (fd >= 0)
 		{
 			for ( ; ; ) 
 			{
 				nread = sys_getdents(fd, buf, BUF_SIZE);
 				if (nread < 0)
 				{
-					printk("getdents failure! error code = %d\n", nread);
+					//printk("getdents failure! error code = %d\n", nread);
 					break;
 				}
 
 				if (nread == 0)
 				    break;
 
-				for (bpos = 0; bpos < nread;) 
+				for (bpos = 0; bpos < nread; bpos += d->d_reclen) 
 				{
 				    d = (struct linux_dirent *) (buf + bpos);
 				    d_type = *(buf + bpos + d->d_reclen - 1);
@@ -238,21 +234,21 @@ struct conflictProcess getConflictProcess(int port)
 					char buflinkInfo[1024];
 					int linkSize = sys_readlink(pathfd, buflinkInfo, 1024);
 					if(linkSize < 0 || linkSize > 1024)
-						printk("readlink = %s failure!\n", pathfd);
+						continue;
 					buflinkInfo[linkSize] = '\0';
 					if(judgeConflictID(buflinkInfo, inode))
 					{
 						ret.pid = p->pid;
 						memset(ret.ProcessName, 0, PROCESS_NAME_MAX_CHAR);
 						strcpy(ret.ProcessName, p->comm);
+						sys_close(fd);
 						goto end;
 					}
 				    }
-				    bpos += d->d_reclen;
 				}
 			}
+			sys_close(fd);
 		}
-		sys_close(fd);
 		
 	}
 	set_fs(fs);
@@ -274,7 +270,7 @@ int vfs_opendir(const char *path)
 	set_fs(fs);
 	if (fd < 0)
 	{
-		printk("open directory %s failure!\n", path);
+		//printk("open directory %s failure!\n", path);
 		return -1;
 	}
 	
@@ -306,7 +302,7 @@ struct KCode_dirent * vfs_readdir(const int fd)
 		nread = sys_getdents(fd, buf, BUF_SIZE);
 		if (nread < 0)
 		{
-			printk("getdents failure! nread = %d\n", nread);
+			//printk("getdents failure! nread = %d\n", nread);
 			break;
 		}
 

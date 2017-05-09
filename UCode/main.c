@@ -17,6 +17,7 @@ blog:           http://blog.csdn.net/u012819339
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
+#include <fcntl.h>
 #include "config.h"
 
 #define NETLINK_USER 22
@@ -41,8 +42,16 @@ void monitorPort()
 		if(lastmodification != statFile.st_mtime)
 		{
 			lastmodification = statFile.st_mtime;
-			printf("%d", lastmodification);
+			int fd = open(filePath, O_RDONLY);
+			if(fd >= 0)
+			{
+				char buf[1024] = {'\0'};
+				read(fd, buf, 1024);
+				printf("%s\n", buf);
+				close(fd);
+			}
 		}
+		usleep(100000);
 	}
 }
 
