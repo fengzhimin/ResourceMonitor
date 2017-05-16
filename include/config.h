@@ -69,6 +69,8 @@ int GetNote_SymbolNum(void);
 #define HEX_MAX_NUM              15    //存放十六进制的最大字符串长度
 #define LINK_MAX_NUM             256   //一个链接信息的最大长度
 
+#define MAX_DIRNAME_LENGTH      64   //存放一个文件夹名称的最大长度
+
 /***********************************
  * function: 存放进程使用的系统资源数据
 ***********************************/
@@ -92,6 +94,34 @@ typedef struct ProcessInfo
 	unsigned long long totalBytes;      //上传字节数+下载字节数
 } ProcInfo;
 
+/*******************************************
+ * function: 存放磁盘的使用状态
+********************************************/
+typedef struct DiskStats
+{
+	unsigned long long rd_ios;   //读完成次数
+	unsigned long long rd_merges;     //合并读完成次数
+	unsigned long long rd_sectors;    //读扇区的次数
+	unsigned long long rd_ticks;      //读花费的毫秒数
+	unsigned long long wr_ios;        //写完成次数
+	unsigned long long wr_merges;     //合并写完成次数
+	unsigned long long wr_sectors;    //写扇区的次数
+	unsigned long long wr_ticks;      //写花费的毫秒数
+	unsigned long long handle_rdwr_num;    //正在处理的输入/输出的请求数
+	unsigned long long ticks;      //输入/输出操作花费的毫秒数
+	unsigned long long aveq;       //输入/输出的操作花费的加权毫秒数
+} DiskStat;
+
+/*******************************************
+ * function: 存放每个磁盘的使用状态
+*******************************************/
+typedef struct DiskStateInfo
+{
+	char diskName[MAX_DIRNAME_LENGTH];
+	DiskStat diskInfo;
+	struct DiskStateInfo *next;
+} DiskInfo;
+
 /************************************
  * function: 存放系统的总资源使用情况
 ************************************/
@@ -99,6 +129,7 @@ typedef struct SystemResource
 {
 	int cpuUsed;    //系统的CPU使用率
 	int memUsed;    //系统的mem使用率
+	int ioUsed;     //系统的io使用率(在统计时间内所有处理io时间除以总共统计时间)
 	//以下都是针对单位时间内的变化，不会累计
 	unsigned long long uploadPackage;     //系统的下载的数据包个数
 	unsigned long long downloadPackage;   //系统的上传的数据包个数

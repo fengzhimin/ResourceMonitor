@@ -12,6 +12,7 @@
 #include "running/conflictCheck.h"
 #include "messagePassing/kernel2user.h"
 #include "resource/network/netResource.h"
+#include "resource/device/DevResource.h"
 
 static struct task_struct *monitorTask = NULL;
 static DEFINE_MUTEX(mymutex);
@@ -26,7 +27,29 @@ int monitorResource(void *data);
 int Code_init(void)
 {
 	printk("success\n");
-
+	DiskInfo *beginDiskInfo = NULL;
+	int ret = getAllDiskState(&beginDiskInfo);
+	if(ret > 0)
+	{
+		DiskInfo *curDiskInfo = beginDiskInfo;
+		while(curDiskInfo != NULL)
+		{
+			printk("%s: %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld\n", curDiskInfo->diskName, curDiskInfo->diskInfo.rd_ios, curDiskInfo->diskInfo.rd_merges, \
+					curDiskInfo->diskInfo.rd_sectors, curDiskInfo->diskInfo.rd_ticks, curDiskInfo->diskInfo.wr_ios, curDiskInfo->diskInfo.wr_merges, \
+					curDiskInfo->diskInfo.wr_sectors, curDiskInfo->diskInfo.wr_ticks, curDiskInfo->diskInfo.handle_rdwr_num, curDiskInfo->diskInfo.ticks, \
+					curDiskInfo->diskInfo.aveq);
+			curDiskInfo = curDiskInfo->next;
+		}
+		while(beginDiskInfo != NULL)
+		{
+			curDiskInfo = beginDiskInfo;
+			beginDiskInfo = beginDiskInfo->next;
+			vfree(curDiskInfo);
+		}
+	}
+	else
+		printk("获取磁盘信息失败\n");
+	/*
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
 	if(IS_ERR(monitorTask))
 	{
@@ -38,7 +61,7 @@ int Code_init(void)
 	mutex_init(&ConflictProcess_Mutex);
 	init_Netlink();
 	wake_up_process(monitorTask);
-
+*/
 	return 0;
 }
 
