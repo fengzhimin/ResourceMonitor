@@ -116,27 +116,40 @@ int getAllDiskState(DiskInfo **beginDiskInfo)
 		memset(direntName, 0, MAX_DIRNAME_LENGTH);
 		memset(path, 0, FILE_PATH_MAX_LENGTH);
 		sprintf(path, "%s/%s/%s", "/sys/block", cur->name, "stat");
-		if((*beginDiskInfo) == NULL)
+		DiskStat temp_diskStat;
+		if(getDiskState(path, &temp_diskStat))
 		{
-			(*beginDiskInfo) = tailDiskInfo = vmalloc(sizeof(DiskInfo));
-			memset(tailDiskInfo, 0, sizeof(DiskInfo));
-			getDiskState(path, &(tailDiskInfo->diskInfo));
-			strcpy(tailDiskInfo->diskName, cur->name);
-			tailDiskInfo->next = NULL;
+			//判断是否为真实读取的磁盘，而不是虚拟磁盘
+			if(temp_diskStat.ticks > 0 && temp_diskStat.aveq > 0)
+			{
+				if((*beginDiskInfo) == NULL)
+				{
+					(*beginDiskInfo) = tailDiskInfo = vmalloc(sizeof(DiskInfo));
+					memset(tailDiskInfo, 0, sizeof(DiskInfo));
+					tailDiskInfo->diskInfo = temp_diskStat;
+					strcpy(tailDiskInfo->diskName, cur->name);
+					tailDiskInfo->next = NULL;
+				}
+				else
+				{
+					tailDiskInfo = tailDiskInfo->next = vmalloc(sizeof(DiskInfo));
+					memset(tailDiskInfo, 0, sizeof(DiskInfo));
+					tailDiskInfo->diskInfo = temp_diskStat;
+					strcpy(tailDiskInfo->diskName, cur->name);
+					tailDiskInfo->next = NULL;
+				}
+				++ret_num;
+			}
 		}
 		else
 		{
-			tailDiskInfo = tailDiskInfo->next = vmalloc(sizeof(DiskInfo));
-			memset(tailDiskInfo, 0, sizeof(DiskInfo));
-			getDiskState(path, &(tailDiskInfo->diskInfo));
-			strcpy(tailDiskInfo->diskName, cur->name);
-			tailDiskInfo->next = NULL;
+			sprintf(error_info, "%s%s%s%s%s", "从文件: ", path, "中获取磁盘信息失败！ 错误信息： ", "    ", "\n");
+			RecordLog(error_info);
 		}
-		++ret_num;
 
 		cur = cur->next;
 	}
 	//释放读取文件夹资源
 	vfs_free_readdir(begin);	
-	return true;
+	return ret_num;
 }

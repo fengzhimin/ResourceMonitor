@@ -27,29 +27,6 @@ int monitorResource(void *data);
 int Code_init(void)
 {
 	printk("success\n");
-	DiskInfo *beginDiskInfo = NULL;
-	int ret = getAllDiskState(&beginDiskInfo);
-	if(ret > 0)
-	{
-		DiskInfo *curDiskInfo = beginDiskInfo;
-		while(curDiskInfo != NULL)
-		{
-			printk("%s: %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld\n", curDiskInfo->diskName, curDiskInfo->diskInfo.rd_ios, curDiskInfo->diskInfo.rd_merges, \
-					curDiskInfo->diskInfo.rd_sectors, curDiskInfo->diskInfo.rd_ticks, curDiskInfo->diskInfo.wr_ios, curDiskInfo->diskInfo.wr_merges, \
-					curDiskInfo->diskInfo.wr_sectors, curDiskInfo->diskInfo.wr_ticks, curDiskInfo->diskInfo.handle_rdwr_num, curDiskInfo->diskInfo.ticks, \
-					curDiskInfo->diskInfo.aveq);
-			curDiskInfo = curDiskInfo->next;
-		}
-		while(beginDiskInfo != NULL)
-		{
-			curDiskInfo = beginDiskInfo;
-			beginDiskInfo = beginDiskInfo->next;
-			vfree(curDiskInfo);
-		}
-	}
-	else
-		printk("获取磁盘信息失败\n");
-	/*
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
 	if(IS_ERR(monitorTask))
 	{
@@ -61,7 +38,7 @@ int Code_init(void)
 	mutex_init(&ConflictProcess_Mutex);
 	init_Netlink();
 	wake_up_process(monitorTask);
-*/
+
 	return 0;
 }
 
@@ -90,8 +67,8 @@ int monitorResource(void *data)
 		SysResource totalResource;
 		int ret = getProgressInfo(&info, &totalResource);
 		int i;
-		//printk("总CPU使用率为: %d\t总内存使用率为: %d\t 上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
-				totalResource.uploadBytes, totalResource.downloadBytes);
+		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %d\t上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
+				totalResource.ioUsed, totalResource.uploadBytes, totalResource.downloadBytes);
 		solveProcessRelate(info, ret);
 
 		//加锁

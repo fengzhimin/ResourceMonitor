@@ -233,9 +233,43 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	//获取系统的网络使用情况
 	NetInfo totalNet1;
 	getTotalNet(&totalNet1);
+	DiskInfo *totalDiskInfo1;
+	int totalDiskInfoNum1 = getAllDiskState(&totalDiskInfo1);
 
 	//隔一段时间
 	msleep(CALC_CPU_TIME);
+
+	DiskInfo *totalDiskInfo2;
+	int totalDiskInfoNum2 = getAllDiskState(&totalDiskInfo2);
+	if(totalDiskInfoNum1 == totalDiskInfoNum2 && totalDiskInfoNum1 != 0)
+	{
+		DiskInfo *curDiskInfo1 = totalDiskInfo1;
+		DiskInfo *curDiskInfo2 = totalDiskInfo2;
+		int handle_IO_time = 0;
+		while(curDiskInfo1 != NULL)
+		{
+			handle_IO_time += (curDiskInfo2->diskInfo.aveq - curDiskInfo1->diskInfo.aveq);
+			curDiskInfo1 = curDiskInfo1->next;
+			curDiskInfo2 = curDiskInfo2->next;
+		}
+		//计算IO占用CPU时间
+		totalResource->ioUsed = handle_IO_time/CALC_CPU_TIME;
+		//释放列表资源
+		while(totalDiskInfo1 != NULL)
+		{
+			curDiskInfo1 = totalDiskInfo1;
+			curDiskInfo2 = totalDiskInfo2;
+			totalDiskInfo1 = totalDiskInfo1->next;
+			totalDiskInfo2 = totalDiskInfo2->next;
+			vfree(curDiskInfo1);
+			vfree(curDiskInfo2);
+		}
+	}
+	else
+	{
+		//针对前后两次磁盘的个数不一致的情况，直接忽略这次检测
+		totalResource->ioUsed = 0;
+	}
 
 	//停止截取数据包
 	stopHook();
