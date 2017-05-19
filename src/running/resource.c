@@ -246,14 +246,27 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		DiskInfo *curDiskInfo1 = totalDiskInfo1;
 		DiskInfo *curDiskInfo2 = totalDiskInfo2;
 		int handle_IO_time = 0;
+		IOUsedInfo *tailIOUsedInfo;
+		totalResource->ioUsed = tailIOUsedInfo = NULL;
 		while(curDiskInfo1 != NULL)
 		{
-			handle_IO_time += (curDiskInfo2->diskInfo.aveq - curDiskInfo1->diskInfo.aveq);
+			handle_IO_time = (curDiskInfo2->diskInfo.ticks - curDiskInfo1->diskInfo.ticks);
+			//计算每个磁盘的使用率
+			if(tailIOUsedInfo == NULL)
+			{
+				totalResource->ioUsed = tailIOUsedInfo = vmalloc(sizeof(IOUsedInfo));
+			}
+			else
+			{
+				tailIOUsedInfo = tailIOUsedInfo->next = vmalloc(sizeof(IOUsedInfo));
+			}
+			strcpy(tailIOUsedInfo->diskName, curDiskInfo1->diskName);
+			tailIOUsedInfo->ioUsed = handle_IO_time*100/CALC_CPU_TIME;
+			tailIOUsedInfo->next = NULL;
+
 			curDiskInfo1 = curDiskInfo1->next;
 			curDiskInfo2 = curDiskInfo2->next;
 		}
-		//计算IO占用CPU时间
-		totalResource->ioUsed = handle_IO_time/CALC_CPU_TIME;
 		//释放列表资源
 		while(totalDiskInfo1 != NULL)
 		{

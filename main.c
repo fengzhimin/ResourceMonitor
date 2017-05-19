@@ -66,9 +66,19 @@ int monitorResource(void *data)
 		ProcInfo *info;
 		SysResource totalResource;
 		int ret = getProgressInfo(&info, &totalResource);
+		//合并磁盘数据
+		char ioUsedInfo[100] = { 0 };
+		IOUsedInfo *diskUsed = NULL;
+		while(totalResource.ioUsed != NULL)
+		{
+			diskUsed = totalResource.ioUsed;
+			totalResource.ioUsed = totalResource.ioUsed->next;
+			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
+			vfree(diskUsed);
+		}
 		int i;
-		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %d\t上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
-				totalResource.ioUsed, totalResource.uploadBytes, totalResource.downloadBytes);
+		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
+				ioUsedInfo, totalResource.uploadBytes, totalResource.downloadBytes);
 		solveProcessRelate(info, ret);
 
 		//加锁
@@ -99,7 +109,7 @@ int monitorResource(void *data)
 				if(info[i].totalBytes > 2000000 && totalResource.totalBytes > 6000000)
 					conflictType |= NET_CONFLICT;
 
-				printk("conflictType = %d\n", conflictType);
+				//printk("conflictType = %d\n", conflictType);
 				if(beginConflictProcess == NULL)
 				{
 					beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
@@ -114,7 +124,7 @@ int monitorResource(void *data)
 					endConflictProcess->conflictType = conflictType;
 					endConflictProcess->next = NULL;
 				}
-				printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %lld  download: %lld  total: %lld\n", \
+				//printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %lld  download: %lld  total: %lld\n", \
 					info[i].name, info[i].pid, info[i].ppid,	info[i].cpuUsed, info[i].memUsed, info[i].ioSyscallNum, \
 					info[i].ioDataBytes, info[i].uploadBytes, info[i].downloadBytes, info[i].totalBytes);
 			}

@@ -125,19 +125,15 @@ int getAllDiskState(DiskInfo **beginDiskInfo)
 				if((*beginDiskInfo) == NULL)
 				{
 					(*beginDiskInfo) = tailDiskInfo = vmalloc(sizeof(DiskInfo));
-					memset(tailDiskInfo, 0, sizeof(DiskInfo));
-					tailDiskInfo->diskInfo = temp_diskStat;
-					strcpy(tailDiskInfo->diskName, cur->name);
-					tailDiskInfo->next = NULL;
 				}
 				else
 				{
 					tailDiskInfo = tailDiskInfo->next = vmalloc(sizeof(DiskInfo));
-					memset(tailDiskInfo, 0, sizeof(DiskInfo));
-					tailDiskInfo->diskInfo = temp_diskStat;
-					strcpy(tailDiskInfo->diskName, cur->name);
-					tailDiskInfo->next = NULL;
 				}
+				memset(tailDiskInfo, 0, sizeof(DiskInfo));
+				tailDiskInfo->diskInfo = temp_diskStat;
+				strcpy(tailDiskInfo->diskName, cur->name);
+				tailDiskInfo->next = NULL;
 				++ret_num;
 			}
 		}

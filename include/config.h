@@ -122,6 +122,16 @@ typedef struct DiskStateInfo
 	struct DiskStateInfo *next;
 } DiskInfo;
 
+/*******************************************
+ * function: 记录每个磁盘的使用率情况
+*******************************************/
+typedef struct DiskUsedInfo
+{
+	char diskName[MAX_DIRNAME_LENGTH];
+	int ioUsed;
+	struct DiskUsedInfo *next;
+} IOUsedInfo;
+
 /************************************
  * function: 存放系统的总资源使用情况
 ************************************/
@@ -129,7 +139,7 @@ typedef struct SystemResource
 {
 	int cpuUsed;    //系统的CPU使用率
 	int memUsed;    //系统的mem使用率
-	int ioUsed;     //系统的io使用率(在统计时间内所有处理io时间除以总共统计时间)
+	IOUsedInfo *ioUsed;     //系统的io使用率(在统计时间内所有处理io时间除以总共统计时间)
 	//以下都是针对单位时间内的变化，不会累计
 	unsigned long long uploadPackage;     //系统的下载的数据包个数
 	unsigned long long downloadPackage;   //系统的上传的数据包个数
