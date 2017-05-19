@@ -17,6 +17,9 @@
 #include <linux/sched.h>
 #include <linux/syscalls.h>
 #include <linux/vmalloc.h>
+#include <linux/if.h>
+#include <linux/sockios.h>
+#include <linux/ethtool.h>
 
 #define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
 #define PROCESS_NAME_MAX_CHAR   100   
@@ -192,4 +195,21 @@ extern void vfs_closedir(const int fd);
 ******************************************/
 extern int vfs_readlink(const char *path, char *buf, int bufsize);
 
+/*****************************************
+ * func: 创建一个套接字
+ * return: >0 = sockfd   -1 = 失败
+ * @para family: 协议族
+ * @para type: 类型
+ * @para protocol: 协议类型
+*****************************************/
+extern long vfs_socket(int family, int type, int protocol);
+
+/*****************************************
+ * func: 对设备的IO管理
+ * return: 0 = 成功　　!0 = 失败
+ * @para fd: 打开的设备的fd
+ * @para cmd: 对设备的控制命令
+ * @para arg: 补充参数
+*****************************************/
+extern long vfs_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg);
 #endif

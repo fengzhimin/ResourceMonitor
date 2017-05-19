@@ -428,3 +428,25 @@ int vfs_readlink(const char *path, char *buf, int bufsize)
 	return ret;
 }
 EXPORT_SYMBOL(vfs_readlink);
+
+long vfs_socket(int family, int type, int protocol)
+{
+	mm_segment_t fs;
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	int ret = sys_socket(family, type, protocol);
+	set_fs(fs);
+	return ret;
+}
+EXPORT_SYMBOL(vfs_socket);
+
+long vfs_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg)
+{
+	mm_segment_t fs;
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	int ret = sys_ioctl(fd, cmd, arg);
+	set_fs(fs);
+	return ret;
+}
+EXPORT_SYMBOL(vfs_ioctl);
