@@ -68,7 +68,9 @@ int monitorResource(void *data)
 		int ret = getProgressInfo(&info, &totalResource);
 		//合并磁盘数据
 		char ioUsedInfo[100] = { 0 };
+		char netUsedInfo[100] = { 0 };
 		IOUsedInfo *diskUsed = NULL;
+		NetUsedInfo *netUsed = NULL;
 		while(totalResource.ioUsed != NULL)
 		{
 			diskUsed = totalResource.ioUsed;
@@ -76,9 +78,15 @@ int monitorResource(void *data)
 			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
 			vfree(diskUsed);
 		}
+		while(totalResource.netUsed != NULL)
+		{
+			netUsed = totalResource.netUsed;
+			totalResource.netUsed = totalResource.netUsed->next;
+			sprintf(netUsedInfo, "%s %s:上传:%lld 下载:%lld", netUsedInfo, netUsed->netCardName, netUsed->downloadBytes, netUsed->uploadBytes);
+			vfree(netUsed);
+		}
 		int i;
-		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t上传速度: %lld\t 下载速度:%lld\n", totalResource.cpuUsed, totalResource.memUsed, \
-				ioUsedInfo, totalResource.uploadBytes, totalResource.downloadBytes);
+		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t NET使用率: %s\n", totalResource.cpuUsed, totalResource.memUsed, ioUsedInfo, netUsedInfo);
 		solveProcessRelate(info, ret);
 
 		//加锁
@@ -97,7 +105,7 @@ int monitorResource(void *data)
 			if(strcasecmp(info[i].name, "monitorKthread") == 0)
 				continue;
 			if((totalResource.cpuUsed > 70 && info[i].cpuUsed > 30) || (totalResource.memUsed > 70 && info[i].memUsed > 30) || info[i].ioSyscallNum > 1000 || \
-					(info[i].totalBytes > 2000000 && totalResource.totalBytes > 6000000))
+					(info[i].totalBytes > 2000000))
 			{
 				int conflictType = 0;
 				if(totalResource.cpuUsed > 70 && info[i].cpuUsed > 30)
@@ -106,7 +114,7 @@ int monitorResource(void *data)
 					conflictType |= MEM_CONFLICT;
 				if(info[i].ioSyscallNum > 1000)
 					conflictType |= IO_CONFLICT;
-				if(info[i].totalBytes > 2000000 && totalResource.totalBytes > 6000000)
+				if(info[i].totalBytes > 2000000)
 					conflictType |= NET_CONFLICT;
 
 				//printk("conflictType = %d\n", conflictType);

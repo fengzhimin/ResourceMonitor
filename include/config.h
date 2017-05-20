@@ -69,7 +69,8 @@ int GetNote_SymbolNum(void);
 #define HEX_MAX_NUM              15    //存放十六进制的最大字符串长度
 #define LINK_MAX_NUM             256   //一个链接信息的最大长度
 
-#define MAX_DIRNAME_LENGTH      64   //存放一个文件夹名称的最大长度
+#define MAX_DIRNAME_LENGTH       64   //存放一个文件夹名称的最大长度
+#define MAX_NETCARDNAME_LENGTH   32   //网卡的名称最长字符个数
 
 /***********************************
  * function: 存放进程使用的系统资源数据
@@ -132,6 +133,21 @@ typedef struct DiskUsedInfo
 	struct DiskUsedInfo *next;
 } IOUsedInfo;
 
+/******************************************
+ * function: 记录每个网卡的使用情况
+******************************************/
+typedef struct NetWorkUsedInfo
+{
+	char netCardName[MAX_NETCARDNAME_LENGTH];   //网卡名称
+	unsigned long long uploadPackage;     //系统的下载的数据包个数
+	unsigned long long downloadPackage;   //系统的上传的数据包个数
+	unsigned long long totalPackage;      //系统的总数据包个数(上传+下载)
+	unsigned long long uploadBytes;    //系统的上传字节
+	unsigned long long downloadBytes;  //系统的下载字节
+	unsigned long long totalBytes;     //系统的总网速(上传字节+下载字节)
+	struct NetWorkUsedInfo *next;
+} NetUsedInfo;
+
 /************************************
  * function: 存放系统的总资源使用情况
 ************************************/
@@ -141,12 +157,7 @@ typedef struct SystemResource
 	int memUsed;    //系统的mem使用率
 	IOUsedInfo *ioUsed;     //系统的io使用率(在统计时间内所有处理io时间除以总共统计时间)
 	//以下都是针对单位时间内的变化，不会累计
-	unsigned long long uploadPackage;     //系统的下载的数据包个数
-	unsigned long long downloadPackage;   //系统的上传的数据包个数
-	unsigned long long totalPackage;      //系统的总数据包个数(上传+下载)
-	unsigned long long uploadBytes;    //系统的上传字节
-	unsigned long long downloadBytes;  //系统的下载字节
-	unsigned long long totalBytes;     //系统的总网速(上传字节+下载字节)
+	NetUsedInfo *netUsed;   //系统的网卡使用率
 } SysResource;
 
 /**************************
@@ -167,15 +178,25 @@ typedef struct ConfigInfo
 	char value[CONFIG_VALUE_MAX_NUM];
 } ConfigInfo;
 
+/**********************************
+ * function: 获取每个网卡的流量数据
+**********************************/
+struct NetCardInfo
+{
+	char netCardName[MAX_NETCARDNAME_LENGTH];   //网卡名称
+	unsigned long long uploadPackage;     //系统的下载的数据包个数
+	unsigned long long downloadPackage;   //系统的上传的数据包个数
+	unsigned long long uploadBytes;    //系统的上传字节
+	unsigned long long downloadBytes;  //系统的下载字节
+};
+
 /************************************
  * function: 定义系统网络相关的信息(/proc/net/dev)  注意: 是系统中所有网卡的数据和
 ************************************/
 typedef struct TotalNetInfo
 {
-	unsigned long long uploadPackage;     //系统的下载的数据包个数
-	unsigned long long downloadPackage;   //系统的上传的数据包个数
-	unsigned long long uploadBytes;    //系统的上传字节
-	unsigned long long downloadBytes;  //系统的下载字节
+	struct NetCardInfo netCardInfo;
+	struct TotalNetInfo *next;
 } NetInfo;
 
 /**************************

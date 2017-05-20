@@ -423,29 +423,44 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 	return false;
 }
 
-bool getTotalNet(NetInfo *totalNet)
+int getTotalNet(NetInfo **totalNet)
 {
+	int netCardNum = 0;
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
-	memset(totalNet, 0, sizeof(NetInfo));
 	int lineNum = 1;
 	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
 	if(fp == NULL)
 	{
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "   ", "\n");
 		RecordLog(error_info);
-		return false;
+		return 0;
 	}
+	NetInfo *tailNetInfo = NULL;
+	(*totalNet) = NULL;
 	while(KReadLine(fp, lineData) == -1)
 	{
 		if(lineNum >= 3)
 		{
 			//提取/proc/meminfo 中的第三行数据(MemAvailable)
-			removeBeginSpace(lineData);
+			//removeBeginSpace(lineData);
+			if(tailNetInfo == NULL)
+			{
+				(*totalNet) = tailNetInfo = vmalloc(sizeof(NetInfo));
+			}
+			else
+			{
+				tailNetInfo = tailNetInfo->next = vmalloc(sizeof(NetInfo));
+			}
+			memset(tailNetInfo, 0, sizeof(NetInfo));
 			cutStrByLabel(lineData, ' ', subStr, 17);
-			totalNet->downloadBytes += ExtractNumFromStr(subStr[1]);
-			totalNet->uploadBytes += ExtractNumFromStr(subStr[9]);
-			totalNet->downloadPackage += ExtractNumFromStr(subStr[2]);
-			totalNet->uploadPackage += ExtractNumFromStr(subStr[10]);
+			subStr[0][strlen(subStr[0])-1] = '\0';
+			strcpy(tailNetInfo->netCardInfo.netCardName, subStr[0]);
+			tailNetInfo->netCardInfo.downloadBytes = ExtractNumFromStr(subStr[1]);
+			tailNetInfo->netCardInfo.uploadBytes = ExtractNumFromStr(subStr[9]);
+			tailNetInfo->netCardInfo.downloadPackage = ExtractNumFromStr(subStr[2]);
+			tailNetInfo->netCardInfo.uploadPackage = ExtractNumFromStr(subStr[10]);
+			tailNetInfo->next = NULL;
+			netCardNum++;
 		}
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 		lineNum++;
@@ -455,8 +470,95 @@ bool getTotalNet(NetInfo *totalNet)
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
-		return false;
+		return 0;
 	}
 	KCloseFile(fp);
-	return true;
+	return netCardNum;
+}
+
+int getAllNetCardName(char **netCardName, unsigned int size)
+{
+	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	memset((*netCardName), 0, size);
+	int lineNum = 1;
+	int netCardNum = 0;
+	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
+	if(fp == NULL)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "   ", "\n");
+		RecordLog(error_info);
+		return 0;
+	}
+	char _netCardName[MAX_NETCARDNAME_LENGTH+1];
+	int i;
+	while(KReadLine(fp, lineData) == -1)
+	{
+		if(lineNum >= 3)
+		{
+			//提取/proc/meminfo 中的第三行数据(MemAvailable)
+			memset(_netCardName, 0, MAX_NETCARDNAME_LENGTH+1);
+			for(i = 0; i < MAX_NETCARDNAME_LENGTH; i++)
+			{
+				if(lineData[i] == ':')
+					break;
+				_netCardName[i] = lineData[i];
+			}
+
+			//将多个网卡通过:合并在一起
+			if((strlen((*netCardName))+strlen(_netCardName)+1) >= size)
+			{
+				RecordLog("预存所有网卡名的数组小于所有网卡名的长度!\n");
+				KCloseFile(fp);
+				return netCardNum;
+			}
+			if(i == MAX_NETCARDNAME_LENGTH)
+			{
+				RecordLog("网卡名的字符长度大于预设值!\n");
+			}
+			else
+			{
+				sprintf((*netCardName), "%s:%s", (*netCardName), _netCardName);
+				netCardNum++;
+			}
+		}
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		lineNum++;
+	}
+	if(lineNum == 1)
+	{
+		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "    ", "\n");
+		RecordLog(error_info);
+		KCloseFile(fp);
+		return 0;
+	}
+	KCloseFile(fp);
+	return netCardNum;
+}
+
+int getNetCardSpeed(char *netCardName)
+{
+	struct ifreq ifr;
+	memset(&ifr, 0, sizeof(ifr));
+	strcpy(ifr.ifr_name, netCardName);
+	int sockfd = vfs_socket(AF_INET, SOCK_DGRAM, 0);
+	if(sockfd < 0)
+	{
+		RecordLog("建立socket失败!\n");
+		return 0;
+	}
+	int err;
+	struct ethtool_cmd ecmd;
+	ecmd.cmd = ETHTOOL_GSET;
+	ifr.ifr_data = (caddr_t)&ecmd;
+	err = vfs_ioctl(sockfd, SIOCETHTOOL, &ifr);
+	vfs_socketClose(sockfd);
+	if(err == 0)
+	{
+		return ecmd.speed;
+	}
+	else
+	{
+		RecordLog("vfs_ioctl执行失败!\n");
+		return 0;
+	}
 }

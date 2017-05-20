@@ -129,9 +129,25 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo);
 
 /**********************************************
  * func: 获取系统网络数据
- * return: false = 失败   true = 成功
+ * return: 0 = 失败   >0 = 网卡个数成功
  * @para totalNet: 存放获取后的数据
 **********************************************/
-bool getTotalNet(NetInfo *totalNet);
+int getTotalNet(NetInfo **totalNet);
+
+/*********************************************
+ * func: 获取系统的所有网卡
+ * return: 0 = 失败　>0 = 成功(网卡的个数)
+ * @para netCardName: 存放所有网卡名称
+ * @para size: netCardName数组的大小
+ * example: netCardName = "eth0:wlan0" = 系统有两个网卡eth0和wlan0
+*********************************************/
+int getAllNetCardName(char **netCardName, unsigned int size);
+
+/***********************************************
+ * func: 获取一个网卡的最大带宽(speed)
+ * return: 0 = 失败   >0 网卡的带宽  (单位是Mb/s)
+ * @para netCardName: 网卡的名称
+***********************************************/
+int getNetCardSpeed(char *netCardName);
 
 #endif

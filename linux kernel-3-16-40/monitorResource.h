@@ -205,6 +205,13 @@ extern int vfs_readlink(const char *path, char *buf, int bufsize);
 extern long vfs_socket(int family, int type, int protocol);
 
 /*****************************************
+ * func: 关闭一个套接字
+ * return: 0 = 成功　　-1 = 失败
+ * @para sockfd: 套接字句柄
+*****************************************/
+extern long vfs_socketClose(unsigned int sockfd);
+
+/*****************************************
  * func: 对设备的IO管理
  * return: 0 = 成功　　!0 = 失败
  * @para fd: 打开的设备的fd

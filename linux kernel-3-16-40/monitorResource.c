@@ -440,6 +440,17 @@ long vfs_socket(int family, int type, int protocol)
 }
 EXPORT_SYMBOL(vfs_socket);
 
+long vfs_socketClose(unsigned int sockfd)
+{
+	mm_segment_t fs;
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	long ret = sys_close(sockfd);
+	set_fs(fs);
+	return ret;
+}
+EXPORT_SYMBOL(vfs_socketClose);
+
 long vfs_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg)
 {
 	mm_segment_t fs;

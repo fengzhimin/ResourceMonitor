@@ -231,8 +231,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	getTotalCPUTime(&total_cpu_occupy1);
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
 	//获取系统的网络使用情况
-	NetInfo totalNet1;
-	getTotalNet(&totalNet1);
+	NetInfo *totalNet1;
+	int totalNetInfoNum1 = getTotalNet(&totalNet1);
 	DiskInfo *totalDiskInfo1;
 	int totalDiskInfoNum1 = getAllDiskState(&totalDiskInfo1);
 
@@ -241,10 +241,10 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 
 	DiskInfo *totalDiskInfo2;
 	int totalDiskInfoNum2 = getAllDiskState(&totalDiskInfo2);
+	DiskInfo *curDiskInfo1 = totalDiskInfo1;
+	DiskInfo *curDiskInfo2 = totalDiskInfo2;
 	if(totalDiskInfoNum1 == totalDiskInfoNum2 && totalDiskInfoNum1 != 0)
 	{
-		DiskInfo *curDiskInfo1 = totalDiskInfo1;
-		DiskInfo *curDiskInfo2 = totalDiskInfo2;
 		int handle_IO_time = 0;
 		IOUsedInfo *tailIOUsedInfo;
 		totalResource->ioUsed = tailIOUsedInfo = NULL;
@@ -281,7 +281,20 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	else
 	{
 		//针对前后两次磁盘的个数不一致的情况，直接忽略这次检测
-		totalResource->ioUsed = 0;
+		totalResource->ioUsed = NULL;
+		//释放列表资源
+		while(totalDiskInfo1 != NULL)
+		{
+			curDiskInfo1 = totalDiskInfo1;
+			totalDiskInfo1 = totalDiskInfo1->next;
+			vfree(curDiskInfo1);
+		}
+		while(totalDiskInfo2 != NULL)
+		{
+			curDiskInfo2 = totalDiskInfo2;
+			totalDiskInfo2 = totalDiskInfo2->next;
+			vfree(curDiskInfo2);
+		}
 	}
 
 	//停止截取数据包
@@ -366,14 +379,66 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	}
 
 	//获取系统的网络实时情况
-	NetInfo totalNet2;
-	getTotalNet(&totalNet2);
-	totalResource->uploadPackage = totalNet2.uploadPackage - totalNet1.uploadPackage;
-	totalResource->downloadPackage = totalNet2.downloadPackage - totalNet1.downloadPackage;
-	totalResource->totalPackage = totalResource->uploadPackage + totalResource->downloadPackage;
-	totalResource->uploadBytes = totalNet2.uploadBytes - totalNet1.uploadBytes;
-	totalResource->downloadBytes = totalNet2.downloadBytes - totalNet1.downloadBytes;
-	totalResource->totalBytes = totalResource->uploadBytes + totalResource->downloadBytes;
+	NetInfo *totalNet2;
+	int totalNetInfoNum2 = getTotalNet(&totalNet2);
+	NetInfo *curNetInfo1 = totalNet1;
+	NetInfo *curNetInfo2 = totalNet2;
+	if(totalNetInfoNum1 == totalNetInfoNum2 && totalNetInfoNum1 != 0)
+	{
+		NetUsedInfo *tailNetUsedInfo;
+		totalResource->netUsed = tailNetUsedInfo = NULL;
+		while(curNetInfo1 != NULL)
+		{
+			//计算每个网卡的使用率
+			if(tailNetUsedInfo == NULL)
+			{
+				totalResource->netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
+			}
+			else
+			{
+				tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
+			}
+			strcpy(tailNetUsedInfo->netCardName, curNetInfo1->netCardInfo.netCardName);
+			tailNetUsedInfo->next = NULL;
+			tailNetUsedInfo->uploadPackage = curNetInfo2->netCardInfo.uploadPackage - curNetInfo1->netCardInfo.uploadPackage;
+			tailNetUsedInfo->downloadPackage = curNetInfo2->netCardInfo.downloadPackage - curNetInfo1->netCardInfo.downloadPackage;
+			tailNetUsedInfo->totalPackage = tailNetUsedInfo->uploadPackage + tailNetUsedInfo->downloadPackage;
+			tailNetUsedInfo->uploadBytes = curNetInfo2->netCardInfo.uploadBytes - curNetInfo1->netCardInfo.uploadBytes;
+			tailNetUsedInfo->downloadBytes = curNetInfo2->netCardInfo.downloadBytes - curNetInfo1->netCardInfo.downloadBytes;
+			tailNetUsedInfo->totalBytes = tailNetUsedInfo->uploadBytes + tailNetUsedInfo->downloadBytes;
+
+			curNetInfo1 = curNetInfo1->next;
+			curNetInfo2 = curNetInfo2->next;
+		}
+		//释放列表资源
+		while(totalNet1 != NULL)
+		{
+			curNetInfo1 = totalNet1;
+			curNetInfo2 = totalNet2;
+			totalNet1 = totalNet1->next;
+			totalNet2 = totalNet2->next;
+			vfree(curNetInfo1);
+			vfree(curNetInfo2);
+		}
+	}
+	else
+	{
+		//当前后两次网卡数量不一致的时，直接忽略
+		totalResource->netUsed = NULL;
+		//释放列表资源
+		while(totalNet1 != NULL)
+		{
+			curNetInfo1 = totalNet1;
+			totalNet1 = totalNet1->next;
+			vfree(curNetInfo1);
+		}
+		while(totalNet2 != NULL)
+		{
+			curNetInfo2 = totalNet2;
+			totalNet2 = totalNet2->next;
+			vfree(curNetInfo2);
+		}
+	}
 	
 	(*info) = vmalloc(sizeof(ProcInfo)*retValue);
 	int temp = 0;
