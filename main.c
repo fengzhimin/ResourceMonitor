@@ -75,14 +75,19 @@ int monitorResource(void *data)
 		{
 			diskUsed = totalResource.ioUsed;
 			totalResource.ioUsed = totalResource.ioUsed->next;
-			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
+			sprintf(ioUsedInfo, "%s %s:%d%", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
 			vfree(diskUsed);
 		}
 		while(totalResource.netUsed != NULL)
 		{
 			netUsed = totalResource.netUsed;
+			int speed = getNetCardSpeed(netUsed->netCardName);
 			totalResource.netUsed = totalResource.netUsed->next;
-			sprintf(netUsedInfo, "%s %s:上传:%lld 下载:%lld", netUsedInfo, netUsed->netCardName, netUsed->downloadBytes, netUsed->uploadBytes);
+			//计算出来的是百分比
+			if(speed != 0)
+				sprintf(netUsedInfo, "%s %s:%d%", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
+			else
+				sprintf(netUsedInfo, "%s %s:%d%", netUsedInfo, netUsed->netCardName, 0);
 			vfree(netUsed);
 		}
 		int i;
