@@ -18,8 +18,6 @@
 
 #define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
 
-#define CONFIG_FILE_MAX_NUM   100   //一个软件的最大配置文件个数由程序自动寻找配置文件
-
 #define FILE_PATH_MAX_LENGTH   256    //一个文件的路径最大长度
 
 #define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
@@ -43,6 +41,10 @@
 
 //定义存放冲突信息的最大字符个数
 #define MAX_CONFLICTINFO      256
+
+//定义KCode配置文件存放的路径
+#define KCODE_CONFIG_PATH     "/etc/KCode.conf"
+#define KCODE_CONFIG_NOTESYMBOL    '#'
 
 extern char config_type[][20];    //配置文件的类型
 
