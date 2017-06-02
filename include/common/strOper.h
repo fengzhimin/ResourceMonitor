@@ -14,13 +14,15 @@
 #include <linux/slab.h>
 #include "config.h"
 
+
+#define cutStrByLabel(str, ch, subStr, subStrLength)   \
+	cutStrByLabelDebug(str, ch, subStr, subStrLength, __FILE__, __FUNCTION__, __LINE__);
 /**************************
  * function: 判断一个字符串是否为数字
  * return: true = 是数字　false = 不是一个数字
  * @para _ch: 要判断的字符串
 **************************/
 bool isNum(char *_ch);
-
 
 /*************************
  * function: 获取字符串中第一个非空字符的下标
@@ -86,7 +88,7 @@ unsigned long long ExtractNumFromStr(char *_str);
  * @para subStrLength: subStr的大小
  * example: str = str1:str2:str3  --->  ch = ':'时 subStr = str1 str2 str3
 ***********************************/
-int cutStrByLabel(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLength);
+int cutStrByLabelDebug(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLength, const char *file, const char *function, const int line);
 
 
 /**********************************

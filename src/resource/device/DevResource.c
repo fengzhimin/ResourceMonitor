@@ -15,11 +15,12 @@ static char subStr8[8][MAX_SUBSTR];
 static char subStr11[11][MAX_SUBSTR];
 static char lineData[LINE_CHAR_MAX_NUM];
 
-bool getProcessIOData(char *io, Process_IO_Data *processIOData)
+bool getProcessIODataDebug(char *io, Process_IO_Data *processIOData, const char *file, const char *function, const int line)
 {
 	struct file *fp = KOpenFile(io, O_RDONLY);
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", io, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return false;
@@ -42,6 +43,7 @@ bool getProcessIOData(char *io, Process_IO_Data *processIOData)
 	}
 	else
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", io, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
@@ -49,11 +51,12 @@ bool getProcessIOData(char *io, Process_IO_Data *processIOData)
 	}
 }
 
-bool getDiskState(char *diskPath, DiskStat *diskStatInfo)
+bool getDiskStateDebug(char *diskPath, DiskStat *diskStatInfo, const char *file, const char *function, const int line)
 {
 	struct file *fp = KOpenFile(diskPath, O_RDONLY);
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", diskPath, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return false;
@@ -61,6 +64,7 @@ bool getDiskState(char *diskPath, DiskStat *diskStatInfo)
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	if(KReadLine(fp, lineData) != -1)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", diskPath, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
@@ -86,11 +90,12 @@ bool getDiskState(char *diskPath, DiskStat *diskStatInfo)
 	return true;
 }
 
-int getAllDiskState(DiskInfo **beginDiskInfo)
+int getAllDiskStateDebug(DiskInfo **beginDiskInfo, const char *file, const char *function, const int line)
 {
 	int fdDir = vfs_opendir("/sys/block");
 	if(fdDir == -1)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "打开文件夹: /sys/block  失败！\n");
 		RecordLog(error_info);
 		return 0;
@@ -139,6 +144,7 @@ int getAllDiskState(DiskInfo **beginDiskInfo)
 		}
 		else
 		{
+			WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 			sprintf(error_info, "%s%s%s%s%s", "从文件: ", path, "中获取磁盘信息失败！ 错误信息： ", "    ", "\n");
 			RecordLog(error_info);
 		}

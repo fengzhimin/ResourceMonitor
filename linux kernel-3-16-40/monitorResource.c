@@ -9,7 +9,7 @@
 
 #include <linux/monitorResource.h>
 
-struct file *KOpenFile(const char* fileName, int mode)
+struct file *VFS_KOpenFile(const char* fileName, int mode)
 {
 	struct file *fd = NULL;
 	mode |= O_CREAT;   //默认添加创建属性
@@ -20,7 +20,7 @@ struct file *KOpenFile(const char* fileName, int mode)
 	return fd;
 }
 
-int KWriteFile(struct file *fd, char *data)
+int VFS_KWriteFile(struct file *fd, char *data)
 {
 	int _ret_value;
 	mm_segment_t fs;
@@ -32,7 +32,7 @@ int KWriteFile(struct file *fd, char *data)
 	return _ret_value;
 }
 
-int KReadFile(struct file *fd, char *data, size_t size)
+int VFS_KReadFile(struct file *fd, char *data, size_t size)
 {
 	int _ret_value;
 	mm_segment_t fs;
@@ -44,13 +44,13 @@ int KReadFile(struct file *fd, char *data, size_t size)
 	return _ret_value;
 }
 
-int KReadLine(struct file *fd, char *data)
+int VFS_KReadLine(struct file *fd, char *data)
 {
 	char _ch;
 	int n = 0;
-	while(KReadFile(fd, &_ch, 1) == 1)
+	while(VFS_KReadFile(fd, &_ch, 1) == 1)
 	{
-		if(n >= LINE_CHAR_MAX_NUM)
+		if(n >= VFS_LINE_CHAR_MAX_NUM)
 		{
 			printk("配置文件的一行数据大小超过预设大小!\n");
 			return -1;
@@ -63,7 +63,7 @@ int KReadLine(struct file *fd, char *data)
 	return 0;
 }
 
-int KCloseFile(struct file *fd)
+int VFS_KCloseFile(struct file *fd)
 {
 	return filp_close(fd, NULL);
 }
@@ -129,33 +129,33 @@ int getPort(char *str, char *hexPort)
 
 int judge(char *path, char *hex)
 {
-	struct file *fp = KOpenFile(path, O_RDONLY);
-	char lineData[LINE_CHAR_MAX_NUM];
-	memset(lineData, 0, LINE_CHAR_MAX_NUM);
-	KReadLine(fp, lineData);
-	memset(lineData, 0, LINE_CHAR_MAX_NUM);
-	char hexPort[HEX_MAX_NUM];
+	struct file *fp = VFS_KOpenFile(path, O_RDONLY);
+	char lineData[VFS_LINE_CHAR_MAX_NUM];
+	memset(lineData, 0, VFS_LINE_CHAR_MAX_NUM);
+	VFS_KReadLine(fp, lineData);
+	memset(lineData, 0, VFS_LINE_CHAR_MAX_NUM);
+	char hexPort[VFS_HEX_MAX_NUM];
 	int ret = -1;
-	while(KReadLine(fp, lineData) == -1)
+	while(VFS_KReadLine(fp, lineData) == -1)
 	{
-		memset(hexPort, 0, HEX_MAX_NUM);
+		memset(hexPort, 0, VFS_HEX_MAX_NUM);
 		ret = getPort(lineData, hexPort);
 		if(strcasecmp(hexPort, hex) == 0)
 		{
-			KCloseFile(fp);
+			VFS_KCloseFile(fp);
 			return ret;   //return inode
 		}
-		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		memset(lineData, 0, VFS_LINE_CHAR_MAX_NUM);
 	}
 	
-	KCloseFile(fp);
+	VFS_KCloseFile(fp);
 	return -1;  
 }
 
 int getConflictInode(int port)
 {
-	char hexPort[HEX_MAX_NUM];
-	memset(hexPort, 0, HEX_MAX_NUM);
+	char hexPort[VFS_HEX_MAX_NUM];
+	memset(hexPort, 0, VFS_HEX_MAX_NUM);
 	decTohex(hexPort, port);
 	int ret = judge("/proc/net/tcp", hexPort);
 	if(ret != -1)
@@ -191,7 +191,7 @@ struct conflictProcess getConflictProcess(int port)
 	struct task_struct *task, *p;
 	struct list_head *ps;
 	task = &init_task;
-	char path[FILE_PATH_MAX_LENGTH], pathfd[FILE_PATH_MAX_LENGTH];
+	char path[VFS_FILE_PATH_MAX_LENGTH], pathfd[VFS_FILE_PATH_MAX_LENGTH];
 	int inode = getConflictInode(port);
 	ret.pid = -1;
 	mm_segment_t fs;
@@ -200,10 +200,10 @@ struct conflictProcess getConflictProcess(int port)
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
-		memset(path, 0, FILE_PATH_MAX_LENGTH);
+		memset(path, 0, VFS_FILE_PATH_MAX_LENGTH);
 		sprintf(path, "%s/%d/fd", "/proc", p->pid);
 		int fd, nread;
-		char buf[BUF_SIZE];
+		char buf[VFS_BUF_SIZE];
 		struct linux_dirent *d;
 		int bpos;
 		char d_type;
@@ -212,7 +212,7 @@ struct conflictProcess getConflictProcess(int port)
 		{
 			for ( ; ; ) 
 			{
-				nread = sys_getdents(fd, buf, BUF_SIZE);
+				nread = sys_getdents(fd, buf, VFS_BUF_SIZE);
 				if (nread < 0)
 				{
 					//printk("getdents failure! error code = %d\n", nread);
@@ -228,7 +228,7 @@ struct conflictProcess getConflictProcess(int port)
 				    d_type = *(buf + bpos + d->d_reclen - 1);
 				    if(d_type == DT_LNK)
 				    {
-					memset(pathfd, 0, FILE_PATH_MAX_LENGTH);
+					memset(pathfd, 0, VFS_FILE_PATH_MAX_LENGTH);
 					sprintf(pathfd, "%s/%s", path, d->d_name);
 					//printk("pathfd = %s\n", pathfd);
 					char buflinkInfo[1024];
@@ -239,7 +239,7 @@ struct conflictProcess getConflictProcess(int port)
 					if(judgeConflictID(buflinkInfo, inode))
 					{
 						ret.pid = p->pid;
-						memset(ret.ProcessName, 0, PROCESS_NAME_MAX_CHAR);
+						memset(ret.ProcessName, 0, VFS_PROCESS_NAME_MAX_CHAR);
 						strcpy(ret.ProcessName, p->comm);
 						sys_close(fd);
 						goto end;
@@ -286,7 +286,7 @@ struct KCode_dirent * vfs_readdir(const int fd)
 	fs = get_fs();
 	set_fs(KERNEL_DS);
 	int nread;
-	char buf[BUF_SIZE];
+	char buf[VFS_BUF_SIZE];
 	struct linux_dirent *d;
 	int bpos;
 	char d_type;
@@ -299,7 +299,7 @@ struct KCode_dirent * vfs_readdir(const int fd)
 	//printk("begin = %d\t begin->name = %s\n", begin, begin->name);
 	while(1)
 	{
-		nread = sys_getdents(fd, buf, BUF_SIZE);
+		nread = sys_getdents(fd, buf, VFS_BUF_SIZE);
 		if (nread < 0)
 		{
 			//printk("getdents failure! nread = %d\n", nread);
@@ -317,9 +317,9 @@ struct KCode_dirent * vfs_readdir(const int fd)
 		    bpos += d->d_reclen;
 		    if(num != 0)
 		    {
-			cur = cur->next = vmalloc(dirent_size);
-			memset(cur, 0, dirent_size);
-			cur->next = NULL;
+				cur = cur->next = vmalloc(dirent_size);
+				memset(cur, 0, dirent_size);
+				cur->next = NULL;
 		    }
 		    strcpy(cur->name, d->d_name);
 		    //printk("cur = %d\t cur->name = %s\n", cur, cur->name);

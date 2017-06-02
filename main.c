@@ -36,7 +36,7 @@ int Code_init(void)
 	char *max_MEMUSE_ptr = max_MEMUSE_Str;
 	memset(max_CPUUSE_Str, 0, CONFIG_VALUE_MAX_NUM);
 	memset(max_MEMUSE_Str, 0, CONFIG_VALUE_MAX_NUM);
-	if(getConfValueByKey("CPU", &max_CPUUSE_ptr))
+	if(getConfValueByLabelAndKey("CPUINFO", "CPU", &max_CPUUSE_ptr))
 	{
 		max_CPUUSE = ExtractNumFromStr(max_CPUUSE_ptr);
 	}
@@ -45,7 +45,7 @@ int Code_init(void)
 		printk("提取配置项CPU的值失败!\n");
 	}
 
-	if(getConfValueByKey("MEM", &max_MEMUSE_ptr))
+	if(getConfValueByLabelAndKey("MEMINFO", "MEM", &max_MEMUSE_ptr))
 	{
 		max_MEMUSE = ExtractNumFromStr(max_MEMUSE_ptr);
 	}
@@ -102,19 +102,23 @@ int monitorResource(void *data)
 		{
 			diskUsed = totalResource.ioUsed;
 			totalResource.ioUsed = totalResource.ioUsed->next;
-			sprintf(ioUsedInfo, "%s %s:%d%", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
+			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
 			vfree(diskUsed);
 		}
 		while(totalResource.netUsed != NULL)
 		{
 			netUsed = totalResource.netUsed;
-			int speed = getNetCardSpeed(netUsed->netCardName);
 			totalResource.netUsed = totalResource.netUsed->next;
-			//计算出来的是百分比
-			if(speed != 0)
-				sprintf(netUsedInfo, "%s %s:%d%", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
-			else
-				sprintf(netUsedInfo, "%s %s:%d%", netUsedInfo, netUsed->netCardName, 0);
+			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
+			if(strcasecmp(netUsed->netCardName, "lo") != 0)
+			{
+				int speed = getNetCardSpeed(netUsed->netCardName);
+				//计算出来的是百分比
+				if(speed != 0)
+					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
+				else
+					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
+			}
 			vfree(netUsed);
 		}
 		int i;
@@ -138,7 +142,8 @@ int monitorResource(void *data)
 			{
 				if(strcasecmp(info[i].name, "monitorKthread") == 0)
 					continue;
-				//if(info[i].cpuUsed > 30 || info[i].memUsed > 30 || info[i].ioSyscallNum > 1000 || info[i].totalBytes > 2000000)
+				//判断是那个进程占用资源多
+				if(info[i].cpuUsed > 30 || info[i].memUsed > 30 || info[i].ioSyscallNum > 1000 || info[i].totalBytes > 2000000)
 				{
 					int conflictType = 0;
 					if(info[i].cpuUsed > 30)

@@ -14,7 +14,7 @@
 #include <linux/stddef.h>
 #include <linux/mutex.h>
 
-#define OPENLOG 0    //1: 表示打开日志功能　　　0: 表示关闭日志功能
+#define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
 #define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
 

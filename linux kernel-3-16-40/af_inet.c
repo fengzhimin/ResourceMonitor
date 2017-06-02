@@ -516,7 +516,7 @@ int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		else
 		{
 			printk("conflict process pid = %d name = %s\n", conflictProcInfo.pid, conflictProcInfo.ProcessName);
-			struct file *fp = KOpenFile("/etc/conflictPortInfo.info", O_RDWR);
+			struct file *fp = VFS_KOpenFile("/etc/conflictPortInfo.info", O_RDWR);
 			if(fp == NULL)
 				printk("create file /etc/conflictPortInfo.info failure!\n");
 			else
@@ -525,8 +525,8 @@ int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 				memset(conflictInfoStr, 0, 1024);
 				sprintf(conflictInfoStr, "进程:%s(%d)使用的端口(%d)已经被进程:%s(%d)所占用!\n", \
 						current->comm, current->pid, snum, conflictProcInfo.ProcessName, conflictProcInfo.pid);
-				KWriteFile(fp, conflictInfoStr);
-				KCloseFile(fp);
+				VFS_KWriteFile(fp, conflictInfoStr);
+				VFS_KCloseFile(fp);
 			}
 			/*
 			ConflictPortProcInfo conflictInfo;

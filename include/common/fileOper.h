@@ -14,6 +14,8 @@
 #include <linux/fs.h>
 #include <asm/uaccess.h>
 
+#define KReadLine(fd, data) KReadLineDebug(fd, data, __FILE__, __FUNCTION__, __LINE__)
+
 /**********************************
  * function: 内核态打开文件操作
  * return: struct file=成功  NULL=失败
@@ -51,7 +53,7 @@ int KReadFile(struct file *fd, char *data, size_t size);
  *@para fd: 文件指针
  *@para data: 存储读取的数据
 ***********************************/
-int KReadLine(struct file *fd, char *data);
+int KReadLineDebug(struct file *fd, char *data, const char *file, const char *function, const int line);
 
 
 /*********************************

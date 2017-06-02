@@ -13,7 +13,7 @@ static char lineData[LINE_CHAR_MAX_NUM];
 
 static char error_info[200];
 
-bool getTotalPM(MemInfo *totalMem)
+bool getTotalPMDebug(MemInfo *totalMem, const char *file, const char *function, const int line)
 {
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	int lineNum = 1;
@@ -21,6 +21,7 @@ bool getTotalPM(MemInfo *totalMem)
 	char subStr[2][MAX_SUBSTR];
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "   ", "\n");
 		RecordLog(error_info);
 		return false;
@@ -45,6 +46,7 @@ bool getTotalPM(MemInfo *totalMem)
 	}
 	if(lineNum == 1)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);

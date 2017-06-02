@@ -188,7 +188,7 @@ unsigned int NET_HookForward(unsigned int hook, struct sk_buff *pskb, const stru
 	return NF_ACCEPT;
 }
 
-bool startHook()
+bool startHookDebug(const char *file, const char *function, const int line)
 {
 	//每次开始截取数据包的时候清空先前所获取的数据
 	ClearPortPackage();
@@ -204,6 +204,7 @@ bool startHook()
 	ret = nf_register_hooks(net_hooks, ARRAY_SIZE(net_hooks));
 	if(ret)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		RecordLog("register hook failed\n");
 		return false;
 	}
@@ -292,11 +293,12 @@ int getPortFromStr(char *str, char *hexPort)
 	return -1;
 }
 
-int getInodeByHexPort(char *path, char *hex)
+int getInodeByHexPortDebug(char *path, char *hex, const char *file, const char *function, const int line)
 {
 	struct file *fp = KOpenFile(path, O_RDONLY);
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", path, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return -1;
@@ -361,11 +363,12 @@ int judgeSocketLink(char *info)
 	}
 }*/
 
-bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
+bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *file, const char *function, const int line)
 {
 	int portinode = getInodeByPort(portInfo.port, portInfo.protocol);
 	if(portinode == -1)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%d%s", "获取端口: ", portInfo.port, " 的inode失败\n");
 		RecordLog(error_info);
 		return false;
@@ -376,6 +379,7 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 	int fdDir = vfs_opendir(fdPath);
 	if(fdDir == -1)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件夹: ", fdPath, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return false;
@@ -398,6 +402,7 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 			int retLink = vfs_readlink(path, buflinkInfo, LINK_MAX_NUM);
 			if(retLink < 0 || retLink > LINK_MAX_NUM)
 			{
+				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 				sprintf(error_info, "%s%s%s%s%s", "读取符号链接: ", path, " 失败！ 错误信息： ", "    ", "\n");
 				RecordLog(error_info);	
 			}
@@ -423,7 +428,7 @@ bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo)
 	return false;
 }
 
-int getTotalNet(NetInfo **totalNet)
+int getTotalNetDebug(NetInfo **totalNet, const char *file, const char *function, const int line)
 {
 	int netCardNum = 0;
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
@@ -431,6 +436,7 @@ int getTotalNet(NetInfo **totalNet)
 	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "   ", "\n");
 		RecordLog(error_info);
 		return 0;
@@ -441,8 +447,6 @@ int getTotalNet(NetInfo **totalNet)
 	{
 		if(lineNum >= 3)
 		{
-			//提取/proc/meminfo 中的第三行数据(MemAvailable)
-			//removeBeginSpace(lineData);
 			if(tailNetInfo == NULL)
 			{
 				(*totalNet) = tailNetInfo = vmalloc(sizeof(NetInfo));
@@ -467,6 +471,7 @@ int getTotalNet(NetInfo **totalNet)
 	}
 	if(lineNum == 1)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
@@ -476,7 +481,7 @@ int getTotalNet(NetInfo **totalNet)
 	return netCardNum;
 }
 
-int getAllNetCardName(char **netCardName, unsigned int size)
+int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *file, const char *function, const int line)
 {
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	memset((*netCardName), 0, size);
@@ -485,6 +490,7 @@ int getAllNetCardName(char **netCardName, unsigned int size)
 	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "   ", "\n");
 		RecordLog(error_info);
 		return 0;
@@ -507,12 +513,14 @@ int getAllNetCardName(char **netCardName, unsigned int size)
 			//将多个网卡通过:合并在一起
 			if((strlen((*netCardName))+strlen(_netCardName)+1) >= size)
 			{
+				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 				RecordLog("预存所有网卡名的数组小于所有网卡名的长度!\n");
 				KCloseFile(fp);
 				return netCardNum;
 			}
 			if(i == MAX_NETCARDNAME_LENGTH)
 			{
+				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 				RecordLog("网卡名的字符长度大于预设值!\n");
 			}
 			else
@@ -526,6 +534,7 @@ int getAllNetCardName(char **netCardName, unsigned int size)
 	}
 	if(lineNum == 1)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
@@ -535,7 +544,7 @@ int getAllNetCardName(char **netCardName, unsigned int size)
 	return netCardNum;
 }
 
-int getNetCardSpeed(char *netCardName)
+int getNetCardSpeedDebug(char *netCardName, const char *file, const char *function, const int line)
 {
 	struct ifreq ifr;
 	memset(&ifr, 0, sizeof(ifr));
@@ -543,6 +552,7 @@ int getNetCardSpeed(char *netCardName)
 	int sockfd = vfs_socket(AF_INET, SOCK_DGRAM, 0);
 	if(sockfd < 0)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		RecordLog("建立socket失败!\n");
 		return 0;
 	}
@@ -558,6 +568,7 @@ int getNetCardSpeed(char *netCardName)
 	}
 	else
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		RecordLog("vfs_ioctl执行失败!\n");
 		return 0;
 	}

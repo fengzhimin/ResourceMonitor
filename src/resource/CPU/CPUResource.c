@@ -15,11 +15,12 @@ static char lineData[LINE_CHAR_MAX_NUM];
 
 static char error_info[200];
 
-int getProcessCPUTime(char *stat, Process_Cpu_Occupy_t *processCpuTime)
+int getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line)
 {
 	struct file *fp = KOpenFile(stat, O_RDONLY);
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", stat, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return -1;
@@ -42,6 +43,7 @@ int getProcessCPUTime(char *stat, Process_Cpu_Occupy_t *processCpuTime)
 	}
 	else
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", stat, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
@@ -49,12 +51,13 @@ int getProcessCPUTime(char *stat, Process_Cpu_Occupy_t *processCpuTime)
 	}
 }
 
-int getTotalCPUTime(Total_Cpu_Occupy_t *totalCpuTime)
+int getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, const char *function, const int line)
 {
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	struct file *fp = KOpenFile("/proc/stat", O_RDONLY);
 	if(fp == NULL)
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/stat", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		return -1;
@@ -68,6 +71,7 @@ int getTotalCPUTime(Total_Cpu_Occupy_t *totalCpuTime)
 	}
 	else
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/stat", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);

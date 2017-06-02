@@ -50,7 +50,7 @@ int KReadFile(struct file *fd, char *data, size_t size)
 	return _ret_value;
 }
 
-int KReadLine(struct file *fd, char *data)
+int KReadLineDebug(struct file *fd, char *data, const char *file, const char *function, const int line)
 {
 	char _ch;
 	int n = 0;
@@ -58,6 +58,7 @@ int KReadLine(struct file *fd, char *data)
 	{
 		if(n >= LINE_CHAR_MAX_NUM)
 		{
+			WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 			RecordLog("配置文件的一行数据大小超过预设大小!\n");
 			return -1;
 		}

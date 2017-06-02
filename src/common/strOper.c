@@ -175,7 +175,7 @@ unsigned long long ExtractNumFromStr(char *_str)
 		return -1;
 }
 
-int cutStrByLabel(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLength)
+int cutStrByLabelDebug(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLength, const char *file, const char *function, const int line)
 {
 	//将subStr清空
 	int i;
@@ -192,6 +192,7 @@ int cutStrByLabel(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLengt
 		{
 			if((i-j-1) >= MAX_SUBSTR)
 			{
+				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 				RecordLog("子字符串的长度超过最大存放子串数组的大小!\n");
 				strncpy(subStr[_ret_subNum], pstr, MAX_SUBSTR-1);
 				_ret_subNum++;
@@ -222,6 +223,7 @@ int cutStrByLabel(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLengt
 	//将最后一部分字符串拷贝出来
 	if(strlen(pstr) >= (MAX_SUBSTR+1))
 	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		RecordLog("子字符串的长度超过最大存放子串数组的大小!\n");
 		strncpy(subStr[_ret_subNum], pstr, MAX_SUBSTR-1);
 	}

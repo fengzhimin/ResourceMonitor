@@ -21,12 +21,12 @@
 #include <linux/sockios.h>
 #include <linux/ethtool.h>
 
-#define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
-#define PROCESS_NAME_MAX_CHAR   100   
-#define HEX_MAX_NUM            15
-#define FILE_PATH_MAX_LENGTH   100    //一个文件的路径最大长度
-#define BUF_SIZE 1024
-#define MAX_FILENAME_LENGTH 256
+#define VFS_LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
+#define VFS_PROCESS_NAME_MAX_CHAR   100   
+#define VFS_HEX_MAX_NUM            15
+#define VFS_FILE_PATH_MAX_LENGTH   100    //一个文件的路径最大长度
+#define VFS_BUF_SIZE 1024
+#define VFS_MAX_FILENAME_LENGTH 256
 
 struct linux_dirent {
     long           d_ino;
@@ -36,7 +36,7 @@ struct linux_dirent {
 };
 
 struct KCode_dirent {
-    char name[MAX_FILENAME_LENGTH];
+    char name[VFS_MAX_FILENAME_LENGTH];
     char type;
     struct KCode_dirent *next;
 };
@@ -49,7 +49,7 @@ struct KCode_dirent {
 struct conflictProcess
 {
 	int pid;
-	char ProcessName[PROCESS_NAME_MAX_CHAR];
+	char ProcessName[VFS_PROCESS_NAME_MAX_CHAR];
 };
 
 /******************************************
@@ -75,7 +75,7 @@ typedef struct ConflictPortProcessInfo
  *		  mode: O_RDWR 读写方式打开
  *		  mode: O_APPEND 追加方式打开
 **********************************/
-struct file *KOpenFile(const char* fileName, int mode);
+struct file *VFS_KOpenFile(const char* fileName, int mode);
 
 /*********************************
  *function: 向文件写入数据
@@ -83,7 +83,7 @@ struct file *KOpenFile(const char* fileName, int mode);
  *@para fd: 文件指针
  *@para data: 写入的数据
 **********************************/
-int KWriteFile(struct file *fd, char *data);
+int VFS_KWriteFile(struct file *fd, char *data);
 
 
 /*********************************
@@ -93,7 +93,7 @@ int KWriteFile(struct file *fd, char *data);
  *@para data: 存储读取的数据
  *@para size: data字符串的长度
 *********************************/
-int KReadFile(struct file *fd, char *data, size_t size);
+int VFS_KReadFile(struct file *fd, char *data, size_t size);
 
 
 /**********************************
@@ -102,7 +102,7 @@ int KReadFile(struct file *fd, char *data, size_t size);
  *@para fd: 文件指针
  *@para data: 存储读取的数据
 ***********************************/
-int KReadLine(struct file *fd, char *data);
+int VFS_KReadLine(struct file *fd, char *data);
 
 
 /*********************************
@@ -110,7 +110,7 @@ int KReadLine(struct file *fd, char *data);
  * return: 0 = 成功
  * @oara fd: 要关闭文件的指针
 *********************************/
-int KCloseFile(struct file *fd);
+int VFS_KCloseFile(struct file *fd);
 
 /**********************************
  * func: 十进制转十六进制

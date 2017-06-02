@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2017-04-27 06:38
-* Last modified: 2017-05-02 18:37
+* Last modified: 2017-06-02 19:25
 * Email        : 374648064@qq.com
 * Filename     : netResource.h
 * Description  : 
@@ -22,6 +22,13 @@
 #include <linux/udp.h>
 #include <linux/vmalloc.h>
 #include <linux/monitorResource.h>
+
+#define startHook()                           startHookDebug(__FILE__, __FUNCTION__, __LINE__)
+#define getInodeByHexPort(path, hex)          getInodeByHexPortDebug(path, hex, __FILE__, __FUNCTION__, __LINE__)
+#define mapProcessPort(ProcPath, portInfo)    mapProcessPortDebug(ProcPath, portInfo, __FILE__, __FUNCTION__, __LINE__)
+#define getTotalNet(totalNet)                 getTotalNetDebug(totalNet, __FILE__, __FUNCTION__, __LINE__)
+#define getAllNetCardName(netCardName, size)  getAllNetCardNameDebug(netCardName, size, __FILE__, __FUNCTION__, __LINE__)
+#define getNetCardSpeed(netCardName)          getNetCardSpeedDebug(netCardName, __FILE__, __FUNCTION__, __LINE__)
 
 /****************************************
  * func: 截取数据包函数，对数据包进行分析
@@ -60,7 +67,7 @@ unsigned int NET_HookForward(unsigned int hook, struct sk_buff *pskb, const stru
  * func: 开启数据包的截取
  * return: true = 成功   false = 失败
 ****************************************/
-bool startHook();
+bool startHookDebug(const char *file, const char *function, const int line);
 
 /****************************************
  * func: 关闭数据包的截取
@@ -102,7 +109,7 @@ int getPortFromStr(char *str, char *hexPort);
  * @para path: 要查找的文件(/proc/net/tcp)
  * @para hex: 要查找的十六进制端口
 ****************************************/
-int getInodeByHexPort(char *path, char *hex);
+int getInodeByHexPortDebug(char *path, char *hex, const char *file, const char *function, const int line);
 
 /****************************************
  * func: 通过端口号查找对应的inode
@@ -125,14 +132,14 @@ int judgeSocketLink(char *info);
  * @para ProcPath: 要判断的进程/proc目录  例如/proc/1234
  * @para portInfo: 截取到的端口信息
 ******************************************/
-bool mapProcessPort(char *ProcPath, Port_Map_Package portInfo);
+bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *file, const char *function, const int line);
 
 /**********************************************
  * func: 获取系统网络数据
  * return: 0 = 失败   >0 = 网卡个数成功
  * @para totalNet: 存放获取后的数据
 **********************************************/
-int getTotalNet(NetInfo **totalNet);
+int getTotalNetDebug(NetInfo **totalNet, const char *file, const char *function, const int line);
 
 /*********************************************
  * func: 获取系统的所有网卡
@@ -141,13 +148,13 @@ int getTotalNet(NetInfo **totalNet);
  * @para size: netCardName数组的大小
  * example: netCardName = "eth0:wlan0" = 系统有两个网卡eth0和wlan0
 *********************************************/
-int getAllNetCardName(char **netCardName, unsigned int size);
+int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *file, const char *function, const int line);
 
 /***********************************************
  * func: 获取一个网卡的最大带宽(speed)
  * return: 0 = 失败   >0 网卡的带宽  (单位是Mb/s)
  * @para netCardName: 网卡的名称
 ***********************************************/
-int getNetCardSpeed(char *netCardName);
+int getNetCardSpeedDebug(char *netCardName, const char *file, const char *function, const int line);
 
 #endif
