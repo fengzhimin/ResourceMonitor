@@ -15,6 +15,7 @@
 #include "common/dirOper.h"
 #include "common/strOper.h"
 #include "log/logOper.h"
+#include "running/schedTime.h"
 #include "resource/memeory/memResource.h"
 #include "resource/CPU/CPUResource.h"
 #include "resource/device/DevResource.h"
@@ -77,5 +78,12 @@ int getStatusPathByName(char name[], char path[]);
  * @para totalResource: 系统的总资源使用率
 ************************************************/
 int getProgressInfo(ProcInfo **info, SysResource *totalResource);
+
+/***********************************************
+ * func: 获取系统的资源使用情况
+ * return: void
+ * @para totalResource: 系统的资源使用情况
+***********************************************/
+void getSysResourceInfo(SysResource *totalResource);
 
 #endif

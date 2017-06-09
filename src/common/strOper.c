@@ -338,3 +338,18 @@ char *Dec2Hex(char *ch, int num)
 
 	return ++ch;
 }
+
+int StrFloatToInt(char *strFloat)
+{
+	int strFloatLength = strlen(strFloat);
+	int i, retNum = 0;
+	for(i = 0; i < strFloatLength; i++)
+	{
+		if(strFloat[i] == '.')
+			break;
+		retNum *= 10;
+		retNum += strFloat[i] - '0';
+	}
+
+	return retNum;
+}

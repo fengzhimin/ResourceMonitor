@@ -135,6 +135,14 @@ char* IntToStr(char *str, int num);
 int StrToInt(char *str);
 
 /**********************************
+ * func: 将字符串浮点数转化为int整数(正数)
+ * return: 转化后的int
+ * @para strFloat: 存放转化前的字符串
+ * example: strFloat = "11.22" ------> return = 11
+***********************************/
+int StrFloatToInt(char *strFloat);
+
+/**********************************
  * func: 将十进制数转化为十六进制
  * return: 最后一位数的下一位字符地址(用于递归函数)
  * @para str: 存放转化后的十六进制数

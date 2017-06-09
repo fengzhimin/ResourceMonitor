@@ -90,6 +90,48 @@ int monitorResource(void *data)
 	while(!kthread_should_stop())
 	{
 		
+		SysResource totalResource;
+		getSysResourceInfo(&totalResource);
+		//合并磁盘数据
+		char ioUsedInfo[100] = { 0 };
+		char netUsedInfo[100] = { 0 };
+		IOUsedInfo *diskUsed = NULL;
+		NetUsedInfo *netUsed = NULL;
+		while(totalResource.ioUsed != NULL)
+		{
+			diskUsed = totalResource.ioUsed;
+			totalResource.ioUsed = totalResource.ioUsed->next;
+			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
+			vfree(diskUsed);
+		}
+		while(totalResource.netUsed != NULL)
+		{
+			netUsed = totalResource.netUsed;
+			totalResource.netUsed = totalResource.netUsed->next;
+			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
+			if(strcasecmp(netUsed->netCardName, "lo") != 0)
+			{
+				int speed = getNetCardSpeed(netUsed->netCardName);
+				//计算出来的是百分比
+				if(speed != 0)
+					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
+				else
+					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
+			}
+			vfree(netUsed);
+		}
+		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t NET使用率: %s\n", totalResource.cpuUsed, totalResource.memUsed, ioUsedInfo, netUsedInfo);
+	}
+
+	return 0;
+}
+
+/* 同时获取系统的资源以及每个进程的资源使用
+int monitorResource(void *data)
+{
+	while(!kthread_should_stop())
+	{
+		
 		ProcInfo *info;
 		SysResource totalResource;
 		int ret = getProgressInfo(&info, &totalResource);
@@ -150,13 +192,7 @@ int monitorResource(void *data)
 						conflictType |= CPU_CONFLICT;
 					if(info[i].memUsed > 30)
 						conflictType |= MEM_CONFLICT;
-					/*
-					if(info[i].ioSyscallNum > 1000)
-						conflictType |= IO_CONFLICT;
-					if(info[i].totalBytes > 2000000)
-						conflictType |= NET_CONFLICT;
-					*/
-					//printk("conflictType = %d\n", conflictType);
+
 					if(beginConflictProcess == NULL)
 					{
 						beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
@@ -171,36 +207,8 @@ int monitorResource(void *data)
 						endConflictProcess->conflictType = conflictType;
 						endConflictProcess->next = NULL;
 					}
-					//printk("进程 %s: PID: %d PPID: %d CPU使用率: %d MEM使用率: %d  IO次数: %lld 读写磁盘数据: %lld,  upload: %lld  download: %lld  total: %lld\n", \
-						info[i].name, info[i].pid, info[i].ppid,	info[i].cpuUsed, info[i].memUsed, info[i].ioSyscallNum, \
-						info[i].ioDataBytes, info[i].uploadBytes, info[i].downloadBytes, info[i].totalBytes);
 				}
 			}
-			//处理端口冲突的问题
-			/*
-			currentConflictPortProcInfo = beginConflictPortProcInfo;
-			if(currentConflictPortProcInfo != NULL)
-			{
-				if(beginConflictProcess == NULL)
-				{
-					beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
-					beginConflictProcess->next = NULL;
-				}
-				else
-				{
-					endConflictProcess = endConflictProcess->next = vmalloc(sizeof(ConflictProcInfo));
-					endConflictProcess->next = NULL;
-				}
-				endConflictProcess->conflictType |= PORT_CONFLICT;
-				sprintf(endConflictProcess->conflictInfo, "进程:%s(%d) 与 进程:%s(%d) 在使用端口号为: %d 上冲突!\n", \
-				currentConflictPortProcInfo->currentProcess.ProcessName, currentConflictPortProcInfo->currentProcess.pid, \
-				currentConflictPortProcInfo->runningProcess.ProcessName, currentConflictPortProcInfo->runningProcess.pid, \
-				currentConflictPortProcInfo->port);
-				beginConflictPortProcInfo = beginConflictPortProcInfo->next;
-				vfree(currentConflictPortProcInfo);
-				currentConflictPortProcInfo = beginConflictPortProcInfo;
-			}
-			*/
 			//释放锁
 			mutex_unlock(&ConflictProcess_Mutex);
 		}
@@ -210,3 +218,4 @@ int monitorResource(void *data)
 
 	return 0;
 }
+*/
