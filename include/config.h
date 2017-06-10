@@ -45,6 +45,9 @@
 //定义KCode配置文件存放的路径
 #define KCODE_CONFIG_PATH     "/etc/KCode.conf"
 #define KCODE_CONFIG_NOTESYMBOL    '#'
+#define MAX_MONITOR_SOFTWARE_NUM   10    //监控软件的最大个数
+#define MONITOR_LABEL         "monitor"  //用于标识监控软件的label
+#define MONITOR_KEY           "software" //用于标识监控软件的key
 
 extern char config_type[][20];    //配置文件的类型
 
@@ -317,5 +320,9 @@ extern ConflictProcInfo *currentConflictProcess; //当前的冲突信息
 
 //冲突信息互斥锁
 extern struct mutex ConflictProcess_Mutex;
+
+//要监控的软件资源使用情况
+extern ProcInfo MonitorProcInfo[MAX_MONITOR_SOFTWARE_NUM];
+
 #endif
 

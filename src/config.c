@@ -35,3 +35,5 @@ ConflictProcInfo *endConflictProcess = NULL;     //冲突信息的尾
 ConflictProcInfo *currentConflictProcess = NULL; //当前的冲突信息
 
 struct mutex ConflictProcess_Mutex;
+
+ProcInfo MonitorProcInfo[MAX_MONITOR_SOFTWARE_NUM];
