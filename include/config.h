@@ -65,7 +65,7 @@ int GetNote_SymbolNum(void);
 #define CONFIG_KEY_MAX_NUM       50     //配置项key的最大值
 #define CONFIG_VALUE_MAX_NUM     30    //配置项value的最大值
 
-#define MAX_SUBSTR               256   //拆分后子字符串的最大长度
+#define MAX_SUBSTR               512   //拆分后子字符串的最大长度
 #define MAX_INFOLENGTH           50    //获取应用程序占用系统每个资源数据的最大长度
 
 #define HEX_MAX_NUM              15    //存放十六进制的最大字符串长度

@@ -298,9 +298,11 @@ int getInodeByHexPortDebug(char *path, char *hex, const char *file, const char *
 	struct file *fp = KOpenFile(path, O_RDONLY);
 	if(fp == NULL)
 	{
+		/*
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", path, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
+		*/
 		return -1;
 	}
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
@@ -368,9 +370,11 @@ bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *
 	int portinode = getInodeByPort(portInfo.port, portInfo.protocol);
 	if(portinode == -1)
 	{
+		/*
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%d%s", "获取端口: ", portInfo.port, " 的inode失败\n");
 		RecordLog(error_info);
+		*/
 		return false;
 	}
 	char fdPath[MAX_PROCPATH];
@@ -379,9 +383,11 @@ bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *
 	int fdDir = vfs_opendir(fdPath);
 	if(fdDir == -1)
 	{
+		/*
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件夹: ", fdPath, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
+		*/
 		return false;
 	}
 	

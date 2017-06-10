@@ -20,9 +20,11 @@ bool getProcessIODataDebug(char *io, Process_IO_Data *processIOData, const char 
 	struct file *fp = KOpenFile(io, O_RDONLY);
 	if(fp == NULL)
 	{
+		/*
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", io, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
+		*/
 		return false;
 	}
 

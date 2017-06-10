@@ -20,9 +20,11 @@ int getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, con
 	struct file *fp = KOpenFile(stat, O_RDONLY);
 	if(fp == NULL)
 	{
+		/*
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", stat, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
+		*/
 		return -1;
 	}
 

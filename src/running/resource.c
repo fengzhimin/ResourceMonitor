@@ -177,8 +177,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		struct file *fp = KOpenFile(status, O_RDONLY);
 		if(fp == NULL)
 		{
-			sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
-			RecordLog(error_info);
+			//sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
+			//RecordLog(error_info);
 			strcpy(infoPre[i].name, "processExit");
 			continue;
 		}
@@ -338,8 +338,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		//测试文件是否存在
 		if(fp == NULL)
 		{
-			sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
-			RecordLog(error_info);
+			//sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
+			//RecordLog(error_info);
 			strcpy(infoNext[i].name, "processExit");
 			continue;
 		}

@@ -20,8 +20,10 @@ ProcSchedInfo getProcSchedInfoDebug(char *sched, const char *file, const char *f
 	struct file *fp = KOpenFile(sched, O_RDONLY);
 	if(fp == NULL)
 	{
+		/*
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s", "打开文件: ", sched, "失败!\n");
+		*/
 	}
 	else
 	{
