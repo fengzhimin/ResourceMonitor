@@ -615,3 +615,246 @@ void getSysResourceInfo(SysResource *totalResource)
 		}
 	}
 }
+
+void getMonitorProgressInfo(int monitorNum)
+{
+	if(monitorNum <= 0 || monitorNum > MAX_MONITOR_SOFTWARE_NUM)
+		return ;
+
+	ProcPIDPath *beginPath = vmalloc(sizeof(ProcPIDPath));
+	ProcPIDPath *currentPath = beginPath;
+	int runningProcNum = getProcAll(beginPath);
+	//开始截取数据包
+	startHook();
+
+	int i;
+	ProcInfo *infoNext = vmalloc(sizeof(ProcInfo)*monitorNum);
+	for(i = 0; i < monitorNum; i++)
+		memset(&infoNext[i], 0, sizeof(ProcInfo));
+
+	int monitorProcInfo_index = 0;
+	for(i = 0; i < runningProcNum; i++, currentPath = currentPath->next)
+	{
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		memset(status, 0, MAX_PROCPATH);
+		sprintf(status, "%s/%s", currentPath->path, "status");
+		struct file *fp = KOpenFile(status, O_RDONLY);
+		if(fp == NULL)
+		{
+			//sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
+			//RecordLog(error_info);
+			continue;
+		}
+		char subStr[2][MAX_SUBSTR];
+		if(KReadLine(fp, lineData) == -1)
+		{
+			//通过判断Name字段来判断该进程是否为要监控的进程(这里忽略系统同时执行两个名称一样的程序)
+			cutStrByLabel(lineData, ':', subStr, 2);
+			removeChar(subStr[1], '\t');
+			for(monitorProcInfo_index = 0; monitorProcInfo_index < monitorNum; monitorProcInfo_index++)
+			{
+				if(strcasecmp(subStr[1], MonitorProcInfo[monitorProcInfo_index].name) == 0)
+					break;
+			}
+		}
+		if(monitorProcInfo_index == monitorNum)
+		{
+			//该进程不属于要监控的进程
+			KCloseFile(fp);
+			continue;
+		}
+		//属于要监控的进程
+		while(KReadLine(fp, lineData) == -1)
+		{
+			memset(lineData, 0, LINE_CHAR_MAX_NUM);
+			removeChar(subStr[1], '\t');
+			if(strcasecmp(subStr[0], "Pid") == 0)
+			{
+				MonitorProcInfo[monitorProcInfo_index].pid = ExtractNumFromStr(subStr[1]);
+				continue;
+			}
+			else if(strcasecmp(subStr[0], "PPid") == 0)
+			{
+				MonitorProcInfo[monitorProcInfo_index].ppid = ExtractNumFromStr(subStr[1]);
+				continue;
+			}
+			else if(strcasecmp(subStr[0], "VmPeak") == 0)
+			{
+				strcpy(MonitorProcInfo[monitorProcInfo_index].VmPeak, subStr[1]);
+				continue;
+			}
+			else if(strcasecmp(subStr[0], "VmRSS") == 0)
+			{
+				strcpy(MonitorProcInfo[monitorProcInfo_index].VmRSS, subStr[1]);
+				break;    //结束读取
+			}
+			else if(strcasecmp(subStr[0], "State") == 0)
+			{
+				strcpy(MonitorProcInfo[monitorProcInfo_index].State, subStr[1]);
+				continue;
+			}
+		}
+		KCloseFile(fp);
+		memset(stat, 0, MAX_PROCPATH);
+		memset(io, 0, MAX_PROCPATH);
+		memset(sched, 0, MAX_PROCPATH);
+		sprintf(stat, "%s/%s", currentPath->path, "stat");
+		sprintf(io, "%s/%s", currentPath->path, "io");
+		sprintf(sched, "%s/%s", currentPath->path, "sched");
+		//获取进程使用CPU信息
+		Process_Cpu_Occupy_t process_cpu_occupy;
+		getProcessCPUTime(stat, &process_cpu_occupy);
+		MonitorProcInfo[monitorProcInfo_index].cpuUsed += process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
+		//获取进程read、write系统调用信息
+		Process_IO_Data processIOData;
+		getProcessIOData(io, &processIOData);
+		MonitorProcInfo[monitorProcInfo_index].ioSyscallNum += processIOData.syscr + processIOData.syscw;
+		MonitorProcInfo[monitorProcInfo_index].ioDataBytes += processIOData.read_bytes + processIOData.write_bytes;
+		//获取进程的sched
+		ProcSchedInfo process_schedInfo = getProcSchedInfo(sched);
+		MonitorProcInfo[monitorProcInfo_index].schedInfo.sum_exec_runtime += process_schedInfo.sum_exec_runtime;
+		MonitorProcInfo[monitorProcInfo_index].schedInfo.wait_sum += process_schedInfo.wait_sum;
+		MonitorProcInfo[monitorProcInfo_index].schedInfo.iowait_sum += process_schedInfo.iowait_sum;
+	}
+	Total_Cpu_Occupy_t total_cpu_occupy1;
+	getTotalCPUTime(&total_cpu_occupy1);
+	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
+
+	//隔一段时间
+	msleep(CALC_CPU_TIME);
+
+	//停止截取数据包
+	stopHook();
+	PortPackageData = PortPackageData->next;  //跳过第一个元素
+	while(PortPackageData != NULL)
+	{
+		for(i = 0, currentPath = beginPath; i < runningProcNum; i++, currentPath = currentPath->next)
+		{
+			memset(lineData, 0, LINE_CHAR_MAX_NUM);
+			memset(status, 0, MAX_PROCPATH);
+			sprintf(status, "%s/%s", currentPath->path, "status");
+			struct file *fp = KOpenFile(status, O_RDONLY);
+			if(fp == NULL)
+			{
+				//sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
+				//RecordLog(error_info);
+				continue;
+			}
+			char subStr[2][MAX_SUBSTR];
+			if(KReadLine(fp, lineData) == -1)
+			{
+				//通过判断Name字段来判断该进程是否为要监控的进程(这里忽略系统同时执行两个名称一样的程序)
+				cutStrByLabel(lineData, ':', subStr, 2);
+				removeChar(subStr[1], '\t');
+				for(monitorProcInfo_index = 0; monitorProcInfo_index < monitorNum; monitorProcInfo_index++)
+				{
+					if(strcasecmp(subStr[1], MonitorProcInfo[monitorProcInfo_index].name) == 0)
+						break;
+				}
+			}
+			if(monitorProcInfo_index == monitorNum)
+			{
+				//该进程不属于要监控的进程
+				KCloseFile(fp);
+				continue;
+			}
+			KCloseFile(fp);
+			if(mapProcessPort(currentPath->path, *PortPackageData))
+			{
+				//通过端口找到对应的进程号
+				monitorProcInfo[monitorProcInfo_index].uploadPackage += PortPackageData->outPackageSize;
+				monitorProcInfo[monitorProcInfo_index].downloadPackage += PortPackageData->inPackageSize;
+				monitorProcInfo[monitorProcInfo_index].totalPackage += infoPre[i].uploadPackage + infoPre[i].downloadPackage;
+				monitorProcInfo[monitorProcInfo_index].uploadBytes += PortPackageData->outDataBytes;
+				monitorProcInfo[monitorProcInfo_index].downloadBytes += PortPackageData->inDataBytes;
+				monitorProcInfo[monitorProcInfo_index].totalBytes += infoPre[i].uploadBytes + infoPre[i].downloadBytes;
+			}
+		}
+		PortPackageData = PortPackageData->next;
+	}
+
+	for(i = 0; i < runningProcNum; i++)
+	{
+		memset(status, 0, MAX_PROCPATH);
+		memset(stat, 0, MAX_PROCPATH);
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+		memset(io, 0, MAX_PROCPATH);
+		memset(sched, 0, MAX_PROCPATH);
+		sprintf(status, "%s/%s", beginPath->path, "status");
+		sprintf(stat, "%s/%s", beginPath->path, "stat");
+		sprintf(io, "%s/%s", beginPath->path, "io");
+		sprintf(sched, "%s/%s", beginPath->path, "sched");
+		struct file *fp = KOpenFile(status, O_RDONLY);
+		//测试文件是否存在
+		if(fp == NULL)
+		{
+			//sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
+			//RecordLog(error_info);
+			continue;
+		}
+		char subStr[2][MAX_SUBSTR];
+		if(KReadLine(fp, lineData) == -1)
+		{
+			//通过判断Name字段来判断该进程是否为要监控的进程(这里忽略系统同时执行两个名称一样的程序)
+			cutStrByLabel(lineData, ':', subStr, 2);
+			removeChar(subStr[1], '\t');
+			for(monitorProcInfo_index = 0; monitorProcInfo_index < monitorNum; monitorProcInfo_index++)
+			{
+				if(strcasecmp(subStr[1], MonitorProcInfo[monitorProcInfo_index].name) == 0)
+					break;
+			}
+		}
+		if(monitorProcInfo_index == monitorNum)
+		{
+			//该进程不属于要监控的进程
+			KCloseFile(fp);
+			continue;
+		}
+		KCloseFile(fp);
+		//获取进程使用CPU信息
+		Process_Cpu_Occupy_t process_cpu_occupy;
+		getProcessCPUTime(stat, &process_cpu_occupy);
+		infoNext[monitorProcInfo_index].cpuUsed += process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
+		//获取进程read、write系统调用信息
+		Process_IO_Data processIOData;
+		getProcessIOData(io, &processIOData);
+		infoNext[monitorProcInfo_index].ioSyscallNum += processIOData.syscr + processIOData.syscw;
+		infoNext[monitorProcInfo_index].ioDataBytes += processIOData.read_bytes + processIOData.write_bytes;
+		//获取进程的sched
+		ProcSchedInfo process_schedInfo = getProcSchedInfo(sched);
+		infoNext[monitorProcInfo_index].schedInfo.sum_exec_runtime += process_schedInfo.sum_exec_runtime;
+		infoNext[monitorProcInfo_index].schedInfo.wait_sum += process_schedInfo.wait_sum;
+		infoNext[monitorProcInfo_index].schedInfo.iowait_sum += process_schedInfo.iowait_sum;
+		//不断的删除path
+		ProcPIDPath *temp = beginPath;
+		beginPath = beginPath->next;
+		vfree(temp);
+	}
+	Total_Cpu_Occupy_t total_cpu_occupy2;
+	getTotalCPUTime(&total_cpu_occupy2);
+	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;	
+	MemInfo totalMem;
+	if(getTotalPM(&totalMem))
+	{
+		unsigned int vmrssNum;
+		for(i = 0; i < monitorNum; i++)
+		{
+			vmrssNum = ExtractNumFromStr(MonitorProcInfo[i].VmRSS);
+			MonitorProcInfo[i].memUsed = 100*vmrssNum/totalMem.memTotal;
+			MonitorProcInfo[i].cpuUsed = 100*(infoNext[i].cpuUsed-MonitorProcInfo[i].cpuUsed)/(total_cpu2-total_cpu1);
+			//计算一定时间间隔内系统调用的次数，用来判断对磁盘访问次数的评价
+			MonitorProcInfo[i].ioSyscallNum = infoNext[i].ioSyscallNum - MonitorProcInfo[i].ioSyscallNum;
+			MonitorProcInfo[i].ioDataBytes = infoNext[i].ioDataBytes - MonitorProcInfo[i].ioDataBytes;
+			//计算一定时间间隔内进程sched
+			MonitorProcInfo[i].schedInfo.sum_exec_runtime = infoNext[i].schedInfo.sum_exec_runtime - MonitorProcInfo[i].schedInfo.sum_exec_runtime;
+			MonitorProcInfo[i].schedInfo.wait_sum = infoNext[i].schedInfo.wait_sum - MonotorProcInfo[i].schedInfo.wait_sum;
+			MonitorProcInfo[i].schedInfo.iowait_sum = infoNext[i].schedInfo.iowait_sum - MonitorProcInfo[i].schedInfo.iowait_sum;
+		}
+	}
+
+	
+	vfree(infoNext);
+	vfree(beginPath);
+	
+	return retValue;
+}

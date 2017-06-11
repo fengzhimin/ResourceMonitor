@@ -14,6 +14,7 @@
 #include "common/fileOper.h"
 #include "common/dirOper.h"
 #include "common/strOper.h"
+#include "common/confOper.h"
 #include "log/logOper.h"
 #include "running/schedTime.h"
 #include "resource/memeory/memResource.h"
@@ -85,5 +86,12 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource);
  * @para totalResource: 系统的资源使用情况
 ***********************************************/
 void getSysResourceInfo(SysResource *totalResource);
+
+/***********************************************
+ * func: 获取要监控软件的资源使用情况
+ * return: void
+ * @para monitorNum: 监控软件的个数
+ * *********************************************/
+void getMonitorProgressInfo(int monitorNum);
 
 #endif
