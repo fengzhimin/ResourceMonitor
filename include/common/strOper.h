@@ -109,6 +109,14 @@ void removeBeginSpace(char *str);
 void removeChar(char *str, char ch);
 
 /**********************************
+ * func: 移除字符串中所有的空白符(空格+TAB)
+ * return: void
+ * @para str: 处理的字符串数组
+ * example: str = "1 2	3" ch = ' '  ------>  str = "123"
+***********************************/
+void removeSpace(char *str);
+
+/**********************************
  * func: 获取字符串中子字符串的个数
  * return: int
  * @para str: 原字符串
@@ -125,6 +133,15 @@ int GetSubStrNum(char *str, char *substr);
  * example: num = 12 -------> str = "12"
 ***********************************/
 char* IntToStr(char *str, int num);
+
+/**********************************
+ * func: 将Long long转化为字符串
+ * return: 存放最后一个字符的下一个字符的地址
+ * @para str: 存放转化后的字符串
+ * @para num: long long
+ * example: num = 12 -------> str = "12"
+***********************************/
+char* LongToStr(char *str, long long num);
 
 /**********************************
  * func: 将字符串整数转化为int整数(正数)

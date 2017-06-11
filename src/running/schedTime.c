@@ -29,7 +29,7 @@ ProcSchedInfo getProcSchedInfoDebug(char *sched, const char *file, const char *f
 	{
 		while(KReadLine(fp, lineData) == -1)
 		{
-			removeChar(lineData, ' ');
+			removeSpace(lineData);
 			cutStrByLabel(lineData, ':', subStr2, 2);
 			if(strcasecmp(subStr2[0], "se.sum_exec_runtime") == 0)
 				retValue.sum_exec_runtime = StrFloatToInt(subStr2[1]);

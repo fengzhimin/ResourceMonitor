@@ -276,6 +276,26 @@ void removeChar(char *str, char ch)
 	kfree(temp);
 }
 
+void removeSpace(char *str)
+{
+	int _length = strlen(str);
+	char *temp = kmalloc(sizeof(char)*(_length+1), GFP_ATOMIC);
+	memset(temp, 0, _length);
+	strcpy(temp, str);
+	memset(str, 0, _length);
+	int j = 0;
+	int i;
+	for(i = 0; i < _length; i++)
+	{
+		if(temp[i] == '\t' || temp[i] == ' ')
+			continue;
+		else
+			str[j++] = temp[i];
+	}
+
+	kfree(temp);
+}
+
 int GetSubStrNum(char *str, char *substr)
 {
 	int ret_num = 0;
@@ -296,6 +316,21 @@ int GetSubStrNum(char *str, char *substr)
 }
 
 char* IntToStr(char *str, int num)
+{
+	if(num < 10)
+	{
+		str[0] = num + '0';
+		return ++str;
+	}
+	else
+	{
+		str = IntToStr(str, num/10);
+		str[0] = num%10 + '0';
+		return ++str;
+	}
+}
+
+char* LongToStr(char *str, long long num)
 {
 	if(num < 10)
 	{

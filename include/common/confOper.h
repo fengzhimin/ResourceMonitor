@@ -32,12 +32,12 @@
  *			key = value
  *			getConfValueByLabelAndKey("label1", "key1", &value)   --->  value = value1
 ***************************************/
-bool getConfValueByLabelAndKeyDebug(char *label, char *key, char **value, char *file, char *function, char *line);
+bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const char *file, const char *function, const int line);
 
 /****************************************
  * func: 从配置文件中获取要监控的软件(设置全局变量MonitorProcInfo)
  * return: 监控软件的个数
 ****************************************/
-int getMonitorSoftWareDebug(char *file, char *function, char *line);
+int getMonitorSoftWareDebug(const char *file, const char *function, const int line);
 
 #endif

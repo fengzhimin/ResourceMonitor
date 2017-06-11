@@ -13,7 +13,7 @@ static char subStr2[2][MAX_SUBSTR];
 static char lineData[LINE_CHAR_MAX_NUM];
 static char error_info[200];
 
-bool getConfValueByLabelAndKeyDebug(char *label, char *key, char **value, char *file, char *function, char *line)
+bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const char *file, const char *function, const int line)
 {
 	struct file *fd = KOpenFile(KCODE_CONFIG_PATH, O_RDONLY);
 	if(fd == NULL)
@@ -55,7 +55,7 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char **value, char *
 				if(strcasecmp(key, subStr2[0]) == 0)
 				{
 					removeChar(subStr2[1], ' ');
-					strcpy(*value, subStr2[1]);
+					strcpy(value, subStr2[1]);
 					KCloseFile(fd);
 					return true;
 				}
@@ -68,7 +68,7 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char **value, char *
 	return false;
 }
 
-int getMonitorSoftWareDebug(char *file, char *function, char *line)
+int getMonitorSoftWareDebug(const char *file, const char *function, const int line)
 {
 	struct file *fd = KOpenFile(KCODE_CONFIG_PATH, O_RDONLY);
 	if(fd == NULL)

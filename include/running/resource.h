@@ -17,6 +17,7 @@
 #include "common/confOper.h"
 #include "log/logOper.h"
 #include "running/schedTime.h"
+#include "running/monitorSoftWare.h"
 #include "resource/memeory/memResource.h"
 #include "resource/CPU/CPUResource.h"
 #include "resource/device/DevResource.h"

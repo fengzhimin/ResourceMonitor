@@ -55,7 +55,7 @@ int getStatusPathByName(char name[], char path[])
 				{
 					char subStr[2][MAX_SUBSTR];
 					cutStrByLabel(temp1, ':', subStr, 2);
-					removeChar(subStr[1], '\t');
+					removeSpace(subStr[1]);
 					if(strcasecmp(subStr[1], name) == 0)
 					{
 						strcpy(path, temp);
@@ -187,7 +187,7 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 			char subStr[2][MAX_SUBSTR];
 			cutStrByLabel(lineData, ':', subStr, 2);
 			memset(lineData, 0, LINE_CHAR_MAX_NUM);
-			removeChar(subStr[1], '\t');
+			removeSpace(subStr[1]);
 			if(strcasecmp(subStr[0], "Name") == 0)
 			{
 				strcpy(infoPre[i].name, subStr[1]);
@@ -341,6 +341,10 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 			//sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
 			//RecordLog(error_info);
 			strcpy(infoNext[i].name, "processExit");
+			//不断的删除path
+			ProcPIDPath *temp = beginPath;
+			beginPath = beginPath->next;
+			vfree(temp);
 			continue;
 		}
 		KCloseFile(fp);
@@ -621,6 +625,8 @@ void getMonitorProgressInfo(int monitorNum)
 	if(monitorNum <= 0 || monitorNum > MAX_MONITOR_SOFTWARE_NUM)
 		return ;
 
+	clearMonitorExceptName(monitorNum);
+
 	ProcPIDPath *beginPath = vmalloc(sizeof(ProcPIDPath));
 	ProcPIDPath *currentPath = beginPath;
 	int runningProcNum = getProcAll(beginPath);
@@ -628,6 +634,7 @@ void getMonitorProgressInfo(int monitorNum)
 	startHook();
 
 	int i;
+	long long VmPeak, VmRSS;
 	ProcInfo *infoNext = vmalloc(sizeof(ProcInfo)*monitorNum);
 	for(i = 0; i < monitorNum; i++)
 		memset(&infoNext[i], 0, sizeof(ProcInfo));
@@ -650,12 +657,17 @@ void getMonitorProgressInfo(int monitorNum)
 		{
 			//通过判断Name字段来判断该进程是否为要监控的进程(这里忽略系统同时执行两个名称一样的程序)
 			cutStrByLabel(lineData, ':', subStr, 2);
-			removeChar(subStr[1], '\t');
+			removeSpace(subStr[1]);
 			for(monitorProcInfo_index = 0; monitorProcInfo_index < monitorNum; monitorProcInfo_index++)
 			{
 				if(strcasecmp(subStr[1], MonitorProcInfo[monitorProcInfo_index].name) == 0)
 					break;
 			}
+		}
+		else
+		{
+			KCloseFile(fp);
+			continue;
 		}
 		if(monitorProcInfo_index == monitorNum)
 		{
@@ -666,8 +678,9 @@ void getMonitorProgressInfo(int monitorNum)
 		//属于要监控的进程
 		while(KReadLine(fp, lineData) == -1)
 		{
+			cutStrByLabel(lineData, ':', subStr, 2);
 			memset(lineData, 0, LINE_CHAR_MAX_NUM);
-			removeChar(subStr[1], '\t');
+			removeSpace(subStr[1]);
 			if(strcasecmp(subStr[0], "Pid") == 0)
 			{
 				MonitorProcInfo[monitorProcInfo_index].pid = ExtractNumFromStr(subStr[1]);
@@ -680,12 +693,16 @@ void getMonitorProgressInfo(int monitorNum)
 			}
 			else if(strcasecmp(subStr[0], "VmPeak") == 0)
 			{
-				strcpy(MonitorProcInfo[monitorProcInfo_index].VmPeak, subStr[1]);
+				VmPeak = ExtractNumFromStr(subStr[1]) + ExtractNumFromStr(MonitorProcInfo[monitorProcInfo_index].VmPeak);
+				memset(MonitorProcInfo[monitorProcInfo_index].VmPeak, 0, MAX_INFOLENGTH);
+				LongToStr(MonitorProcInfo[monitorProcInfo_index].VmPeak, VmPeak);
 				continue;
 			}
 			else if(strcasecmp(subStr[0], "VmRSS") == 0)
 			{
-				strcpy(MonitorProcInfo[monitorProcInfo_index].VmRSS, subStr[1]);
+				VmRSS = ExtractNumFromStr(subStr[1]) + ExtractNumFromStr(MonitorProcInfo[monitorProcInfo_index].VmRSS);
+				memset(MonitorProcInfo[monitorProcInfo_index].VmRSS, 0, MAX_INFOLENGTH);
+				LongToStr(MonitorProcInfo[monitorProcInfo_index].VmRSS, VmRSS);
 				break;    //结束读取
 			}
 			else if(strcasecmp(subStr[0], "State") == 0)
@@ -745,12 +762,17 @@ void getMonitorProgressInfo(int monitorNum)
 			{
 				//通过判断Name字段来判断该进程是否为要监控的进程(这里忽略系统同时执行两个名称一样的程序)
 				cutStrByLabel(lineData, ':', subStr, 2);
-				removeChar(subStr[1], '\t');
+				removeSpace(subStr[1]);
 				for(monitorProcInfo_index = 0; monitorProcInfo_index < monitorNum; monitorProcInfo_index++)
 				{
 					if(strcasecmp(subStr[1], MonitorProcInfo[monitorProcInfo_index].name) == 0)
 						break;
 				}
+			}
+			else
+			{
+				KCloseFile(fp);
+				continue;
 			}
 			if(monitorProcInfo_index == monitorNum)
 			{
@@ -762,12 +784,12 @@ void getMonitorProgressInfo(int monitorNum)
 			if(mapProcessPort(currentPath->path, *PortPackageData))
 			{
 				//通过端口找到对应的进程号
-				monitorProcInfo[monitorProcInfo_index].uploadPackage += PortPackageData->outPackageSize;
-				monitorProcInfo[monitorProcInfo_index].downloadPackage += PortPackageData->inPackageSize;
-				monitorProcInfo[monitorProcInfo_index].totalPackage += infoPre[i].uploadPackage + infoPre[i].downloadPackage;
-				monitorProcInfo[monitorProcInfo_index].uploadBytes += PortPackageData->outDataBytes;
-				monitorProcInfo[monitorProcInfo_index].downloadBytes += PortPackageData->inDataBytes;
-				monitorProcInfo[monitorProcInfo_index].totalBytes += infoPre[i].uploadBytes + infoPre[i].downloadBytes;
+				MonitorProcInfo[monitorProcInfo_index].uploadPackage += PortPackageData->outPackageSize;
+				MonitorProcInfo[monitorProcInfo_index].downloadPackage += PortPackageData->inPackageSize;
+				MonitorProcInfo[monitorProcInfo_index].totalPackage += MonitorProcInfo[monitorProcInfo_index].uploadPackage + MonitorProcInfo[monitorProcInfo_index].downloadPackage;
+				MonitorProcInfo[monitorProcInfo_index].uploadBytes += PortPackageData->outDataBytes;
+				MonitorProcInfo[monitorProcInfo_index].downloadBytes += PortPackageData->inDataBytes;
+				MonitorProcInfo[monitorProcInfo_index].totalBytes += MonitorProcInfo[monitorProcInfo_index].uploadBytes + MonitorProcInfo[monitorProcInfo_index].downloadBytes;
 			}
 		}
 		PortPackageData = PortPackageData->next;
@@ -790,6 +812,10 @@ void getMonitorProgressInfo(int monitorNum)
 		{
 			//sprintf(error_info, "%s%s%s%s%s", "打开文件: ", status, " 失败！ 错误信息： ", "    ", "\n");
 			//RecordLog(error_info);
+			//不断的删除path
+			ProcPIDPath *temp = beginPath;
+			beginPath = beginPath->next;
+			vfree(temp);
 			continue;
 		}
 		char subStr[2][MAX_SUBSTR];
@@ -797,16 +823,29 @@ void getMonitorProgressInfo(int monitorNum)
 		{
 			//通过判断Name字段来判断该进程是否为要监控的进程(这里忽略系统同时执行两个名称一样的程序)
 			cutStrByLabel(lineData, ':', subStr, 2);
-			removeChar(subStr[1], '\t');
+			removeSpace(subStr[1]);
 			for(monitorProcInfo_index = 0; monitorProcInfo_index < monitorNum; monitorProcInfo_index++)
 			{
 				if(strcasecmp(subStr[1], MonitorProcInfo[monitorProcInfo_index].name) == 0)
 					break;
 			}
 		}
+		else
+		{
+			//不断的删除path
+			ProcPIDPath *temp = beginPath;
+			beginPath = beginPath->next;
+			vfree(temp);
+			KCloseFile(fp);
+			continue;
+		}
 		if(monitorProcInfo_index == monitorNum)
 		{
 			//该进程不属于要监控的进程
+			//不断的删除path
+			ProcPIDPath *temp = beginPath;
+			beginPath = beginPath->next;
+			vfree(temp);
 			KCloseFile(fp);
 			continue;
 		}
@@ -847,7 +886,7 @@ void getMonitorProgressInfo(int monitorNum)
 			MonitorProcInfo[i].ioDataBytes = infoNext[i].ioDataBytes - MonitorProcInfo[i].ioDataBytes;
 			//计算一定时间间隔内进程sched
 			MonitorProcInfo[i].schedInfo.sum_exec_runtime = infoNext[i].schedInfo.sum_exec_runtime - MonitorProcInfo[i].schedInfo.sum_exec_runtime;
-			MonitorProcInfo[i].schedInfo.wait_sum = infoNext[i].schedInfo.wait_sum - MonotorProcInfo[i].schedInfo.wait_sum;
+			MonitorProcInfo[i].schedInfo.wait_sum = infoNext[i].schedInfo.wait_sum - MonitorProcInfo[i].schedInfo.wait_sum;
 			MonitorProcInfo[i].schedInfo.iowait_sum = infoNext[i].schedInfo.iowait_sum - MonitorProcInfo[i].schedInfo.iowait_sum;
 		}
 	}
@@ -855,6 +894,4 @@ void getMonitorProgressInfo(int monitorNum)
 	
 	vfree(infoNext);
 	vfree(beginPath);
-	
-	return retValue;
 }
