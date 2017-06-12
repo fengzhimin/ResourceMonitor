@@ -128,7 +128,12 @@ int monitorResource(void *data)
 		int i;
 		for(i = 0; i < monitorNum; i++)
 		{
-			printk("%s %d %d %d %d %d %d %d %s\n", MonitorProcInfo[i].name, MonitorProcInfo[i].pid, MonitorProcInfo[i].ppid, MonitorProcInfo[i].cpuUsed, MonitorProcInfo[i].memUsed, MonitorProcInfo[i].schedInfo.sum_exec_runtime, MonitorProcInfo[i].schedInfo.wait_sum, MonitorProcInfo[i].schedInfo.iowait_sum, MonitorProcInfo[i].State);	
+			printk("%s %d %d %d %d %d %d %d %s\n", MonitorProcInfo[i].name, MonitorProcInfo[i].pid, MonitorProcInfo[i].ppid, MonitorProcInfo[i].cpuUsed, MonitorProcInfo[i].memUsed, MonitorProcInfo[i].schedInfo.sum_exec_runtime, MonitorProcInfo[i].schedInfo.wait_sum, MonitorProcInfo[i].schedInfo.iowait_sum, MonitorProcInfo[i].State);
+			int j;
+			printk("%s\t", MonitorProcInfoArray[i].procName);
+			for(j = 0; j < MAX_SCHEDINFOARRAY; j++)
+				printk("[%d %d %d]", MonitorProcInfoArray[i].procSchedInfo[j].sum_exec_runtime, MonitorProcInfoArray[i].procSchedInfo[j].wait_sum, MonitorProcInfoArray[i].procSchedInfo[j].iowait_sum);
+			printk("\n");
 		}
 	}
 

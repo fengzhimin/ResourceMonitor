@@ -47,3 +47,21 @@ ProcSchedInfo getProcSchedInfoDebug(char *sched, const char *file, const char *f
 
 	return retValue;
 }
+
+ProcSchedInfo add(ProcSchedInfo value1, ProcSchedInfo value2)
+{
+	value1.sum_exec_runtime += value2.sum_exec_runtime;
+	value1.wait_sum += value2.wait_sum;
+	value1.iowait_sum += value2.iowait_sum;
+
+	return value1;
+}
+
+ProcSchedInfo sub(ProcSchedInfo value1, ProcSchedInfo value2)
+{
+	value1.sum_exec_runtime -= value2.sum_exec_runtime;
+	value1.wait_sum -= value2.wait_sum;
+	value1.iowait_sum -= value2.iowait_sum;
+
+	return value1;
+}

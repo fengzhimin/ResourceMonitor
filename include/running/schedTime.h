@@ -25,4 +25,21 @@
 **************************************/
 ProcSchedInfo getProcSchedInfoDebug(char *sched, const char *file, const char *function, const int line);
 
+/**************************************
+ * func: 将两个ProcSchedInfo类型的对象相加
+ * return: 返回相加后的结果
+ * @para value1: 被加的ProcSchedInfo
+ * @para value2: 加的ProcSchedInfo
+****************************************/
+ProcSchedInfo add(ProcSchedInfo value1, ProcSchedInfo value2);
+
+/**************************************
+ * func: 将两个ProcSchedInfo类型的对象相减
+ * return: 返回相减后的结果
+ * @para value1: 被减数
+ * @para value2: 减数
+ * example: value1 - value2
+****************************************/
+ProcSchedInfo sub(ProcSchedInfo value1, ProcSchedInfo value2);
+
 #endif

@@ -117,7 +117,9 @@ int getMonitorSoftWareDebug(const char *file, const char *function, const int li
 						break;
 					}
 					removeChar(subStr2[1], ' ');
-					strcpy(MonitorProcInfo[retMonitorNum++].name, subStr2[1]);
+					strcpy(MonitorProcInfoArray[retMonitorNum].procName, subStr2[1]);
+					strcpy(MonitorProcInfo[retMonitorNum].name, subStr2[1]);
+					retMonitorNum++;
 				}
 			}
 		}

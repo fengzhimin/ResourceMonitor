@@ -11,9 +11,13 @@
 
 void clearMonitor()
 {
+	currentRecordSchedIndex = 0;
 	int i;
 	for(i = 0; i < MAX_MONITOR_SOFTWARE_NUM; i++)
+	{
 		memset(&MonitorProcInfo[i], 0, sizeof(ProcInfo));
+		memset(&MonitorProcInfoArray[i], 0, sizeof(ProcSchedInfoArray));
+	}
 }
 
 void clearMonitorExceptName(int monitorNum)

@@ -48,6 +48,7 @@
 #define MAX_MONITOR_SOFTWARE_NUM   10    //监控软件的最大个数
 #define MONITOR_LABEL         "monitor"  //用于标识监控软件的label
 #define MONITOR_KEY           "software" //用于标识监控软件的key
+#define MAX_SCHEDINFOARRAY         60    //存放60*CALC_CPU_TIME毫秒内的程序sched数据
 
 extern char config_type[][20];    //配置文件的类型
 
@@ -86,6 +87,15 @@ typedef struct ProcessSchedInfo
 	int wait_sum;     //在就绪队列里的等待时间
 	int iowait_sum;   //io等待时间
 } ProcSchedInfo;
+
+/*************************************
+ * function: 存放一段时间内的进程sched信息
+**************************************/
+typedef struct ProcessSchedInfoArray
+{
+	char procName[MAX_INFOLENGTH];   //进程名
+	ProcSchedInfo procSchedInfo[MAX_SCHEDINFOARRAY];    //每个阶段的ProcSchedInfo数据
+} ProcSchedInfoArray;
 
 /***********************************
  * function: 存放进程使用的系统资源数据
@@ -323,6 +333,13 @@ extern struct mutex ConflictProcess_Mutex;
 
 //要监控的软件资源使用情况
 extern ProcInfo MonitorProcInfo[MAX_MONITOR_SOFTWARE_NUM];
+
+//记录当前操作的proSchedInfo数组下标(把结构体ProcSchedInfoArray中的procSchedInfo数组看做为一个循环列表来操作)
+//currentRecordSchedIndex的值介于0 ~ MAX_SCHEDINFOARRAY-1之间
+extern int currentRecordSchedIndex;
+
+//要监控的软件的一段时间内的sched数据
+extern ProcSchedInfoArray MonitorProcInfoArray[MAX_MONITOR_SOFTWARE_NUM];
 
 #endif
 

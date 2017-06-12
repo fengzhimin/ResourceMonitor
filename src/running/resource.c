@@ -729,9 +729,7 @@ void getMonitorProgressInfo(int monitorNum)
 		MonitorProcInfo[monitorProcInfo_index].ioDataBytes += processIOData.read_bytes + processIOData.write_bytes;
 		//获取进程的sched
 		ProcSchedInfo process_schedInfo = getProcSchedInfo(sched);
-		MonitorProcInfo[monitorProcInfo_index].schedInfo.sum_exec_runtime += process_schedInfo.sum_exec_runtime;
-		MonitorProcInfo[monitorProcInfo_index].schedInfo.wait_sum += process_schedInfo.wait_sum;
-		MonitorProcInfo[monitorProcInfo_index].schedInfo.iowait_sum += process_schedInfo.iowait_sum;
+		MonitorProcInfo[monitorProcInfo_index].schedInfo = add(MonitorProcInfo[monitorProcInfo_index].schedInfo, process_schedInfo);
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
@@ -861,9 +859,7 @@ void getMonitorProgressInfo(int monitorNum)
 		infoNext[monitorProcInfo_index].ioDataBytes += processIOData.read_bytes + processIOData.write_bytes;
 		//获取进程的sched
 		ProcSchedInfo process_schedInfo = getProcSchedInfo(sched);
-		infoNext[monitorProcInfo_index].schedInfo.sum_exec_runtime += process_schedInfo.sum_exec_runtime;
-		infoNext[monitorProcInfo_index].schedInfo.wait_sum += process_schedInfo.wait_sum;
-		infoNext[monitorProcInfo_index].schedInfo.iowait_sum += process_schedInfo.iowait_sum;
+		infoNext[monitorProcInfo_index].schedInfo = add(infoNext[monitorProcInfo_index].schedInfo, process_schedInfo);
 		//不断的删除path
 		ProcPIDPath *temp = beginPath;
 		beginPath = beginPath->next;
@@ -885,9 +881,10 @@ void getMonitorProgressInfo(int monitorNum)
 			MonitorProcInfo[i].ioSyscallNum = infoNext[i].ioSyscallNum - MonitorProcInfo[i].ioSyscallNum;
 			MonitorProcInfo[i].ioDataBytes = infoNext[i].ioDataBytes - MonitorProcInfo[i].ioDataBytes;
 			//计算一定时间间隔内进程sched
-			MonitorProcInfo[i].schedInfo.sum_exec_runtime = infoNext[i].schedInfo.sum_exec_runtime - MonitorProcInfo[i].schedInfo.sum_exec_runtime;
-			MonitorProcInfo[i].schedInfo.wait_sum = infoNext[i].schedInfo.wait_sum - MonitorProcInfo[i].schedInfo.wait_sum;
-			MonitorProcInfo[i].schedInfo.iowait_sum = infoNext[i].schedInfo.iowait_sum - MonitorProcInfo[i].schedInfo.iowait_sum;
+			MonitorProcInfo[i].schedInfo = sub(infoNext[i].schedInfo, MonitorProcInfo[i].schedInfo);
+			//记录下进程的schedInfo信息
+			MonitorProcInfoArray[i].procSchedInfo[currentRecordSchedIndex] = MonitorProcInfo[i].schedInfo;
+			currentRecordSchedIndex %= MAX_SCHEDINFOARRAY;
 		}
 	}
 

@@ -37,3 +37,7 @@ ConflictProcInfo *currentConflictProcess = NULL; //当前的冲突信息
 struct mutex ConflictProcess_Mutex;
 
 ProcInfo MonitorProcInfo[MAX_MONITOR_SOFTWARE_NUM];
+
+int currentRecordSchedIndex = 0;                 //记录当前操作的proSchedInfo数组下标(把结构体ProcSchedInfoArray中的procSchedInfo数组看做为一个循环列表来操作)
+
+ProcSchedInfoArray MonitorProcInfoArray[MAX_MONITOR_SOFTWARE_NUM];
