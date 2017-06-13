@@ -20,4 +20,17 @@
 ***********************************************/
 void solveProcessRelate(ProcInfo info[], int processNum);
 
+/***********************************************
+ * func: 判断是否系统资源冲突
+ * return: false = 不冲突   true = 冲突
+ * @para sysResource: 系统的资源使用率
+***********************************************/
+bool judgeSysResConflict(SysResource sysResource);
+
+/***********************************************
+ * func: 判断是否监控软件使用资源冲突
+ * return: false = 没有冲突   true = 有冲突
+***********************************************/
+bool judgeSoftWareConflict();
+
 #endif

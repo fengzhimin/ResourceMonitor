@@ -41,3 +41,10 @@ ProcInfo MonitorProcInfo[MAX_MONITOR_SOFTWARE_NUM];
 int currentRecordSchedIndex = 0;                 //记录当前操作的proSchedInfo数组下标(把结构体ProcSchedInfoArray中的procSchedInfo数组看做为一个循环列表来操作)
 
 ProcSchedInfoArray MonitorProcInfoArray[MAX_MONITOR_SOFTWARE_NUM];
+
+int max_CPUUSE = 70;
+int max_MEMUSE = 70;
+int max_IOUSE = 80;
+int max_NETUSE = 70;
+
+int monitorNum = 0; 

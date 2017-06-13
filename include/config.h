@@ -341,5 +341,14 @@ extern int currentRecordSchedIndex;
 //要监控的软件的一段时间内的sched数据
 extern ProcSchedInfoArray MonitorProcInfoArray[MAX_MONITOR_SOFTWARE_NUM];
 
+//系统资源使用率临界值
+extern int max_CPUUSE;
+extern int max_MEMUSE;
+extern int max_IOUSE;
+extern int max_NETUSE;
+
+//系统监控软件的个数
+extern int monitorNum;
+
 #endif
 

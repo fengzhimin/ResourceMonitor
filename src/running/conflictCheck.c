@@ -38,3 +38,68 @@ void solveProcessRelate(ProcInfo info[], int processNum)
 		}
 	}
 }
+
+bool judgeSysResConflict(SysResource sysResource)
+{
+	//合并磁盘数据
+	char ioUsedInfo[100] = { 0 };
+	char netUsedInfo[100] = { 0 };
+	IOUsedInfo *diskUsed = NULL;
+	NetUsedInfo *netUsed = NULL;
+	while(sysResource.ioUsed != NULL)
+	{
+		diskUsed = sysResource.ioUsed;
+		sysResource.ioUsed = sysResource.ioUsed->next;
+		sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
+		vfree(diskUsed);
+	}
+	while(sysResource.netUsed != NULL)
+	{
+		netUsed = sysResource.netUsed;
+		sysResource.netUsed = sysResource.netUsed->next;
+		//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
+		if(strcasecmp(netUsed->netCardName, "lo") != 0)
+		{
+			int speed = getNetCardSpeed(netUsed->netCardName);
+			//计算出来的是百分比
+			if(speed != 0)
+				sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
+			else
+				sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
+		}
+		vfree(netUsed);
+	}
+	printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t NET使用率: %s\n", sysResource.cpuUsed, sysResource.memUsed, ioUsedInfo, netUsedInfo);
+
+	if(sysResource.cpuUsed >= max_CPUUSE || sysResource.memUsed >= max_MEMUSE)
+		return true;
+	else
+		return false;
+}
+
+bool judgeSoftWareConflict()
+{
+	getMonitorProgressInfo();
+	int i, j;
+	int aveWait_sum = 0;
+	int aveIOWait_sum = 0;
+	for(i = 0; i < monitorNum; i++)
+	{
+		printk("%s %d %d %d %d %d %d %d %s\n", MonitorProcInfo[i].name, MonitorProcInfo[i].pid, MonitorProcInfo[i].ppid, MonitorProcInfo[i].cpuUsed, MonitorProcInfo[i].memUsed, MonitorProcInfo[i].schedInfo.sum_exec_runtime, MonitorProcInfo[i].schedInfo.wait_sum, MonitorProcInfo[i].schedInfo.iowait_sum, MonitorProcInfo[i].State);
+		if(MonitorProcInfo[i].pid != 0)
+		{
+			for(j = 0; j < MAX_SCHEDINFOARRAY; j++)
+			{
+				aveWait_sum += MonitorProcInfoArray[i].procSchedInfo[j].wait_sum;
+				aveIOWait_sum += MonitorProcInfoArray[i].procSchedInfo[j].iowait_sum;
+			}
+			aveWait_sum /= MAX_SCHEDINFOARRAY;
+			aveIOWait_sum /= MAX_SCHEDINFOARRAY;
+			//当1s内的等待时间大于500ms时认为软件有冲突
+			if(aveWait_sum >= 500 || aveIOWait_sum >= 500)
+				return true;
+		}
+	}
+
+	return false;
+}

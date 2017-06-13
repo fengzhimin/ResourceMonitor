@@ -18,8 +18,6 @@
 
 static struct task_struct *monitorTask = NULL;
 static DEFINE_MUTEX(mymutex);
-static int max_CPUUSE = 70, max_MEMUSE = 70;
-static int monitorNum = 0;
 
 /**********************************
  * func: 创建内核线程用于监控资源使用情况
@@ -89,51 +87,62 @@ module_exit(Code_exit);
 
 int monitorResource(void *data)
 {
+	int i;
+	SysResource totalResource;
 	while(!kthread_should_stop())
 	{
 		
-		SysResource totalResource;
 		getSysResourceInfo(&totalResource);
-		//合并磁盘数据
-		char ioUsedInfo[100] = { 0 };
-		char netUsedInfo[100] = { 0 };
-		IOUsedInfo *diskUsed = NULL;
-		NetUsedInfo *netUsed = NULL;
-		while(totalResource.ioUsed != NULL)
+		if(judgeSysResConflict(totalResource))
 		{
-			diskUsed = totalResource.ioUsed;
-			totalResource.ioUsed = totalResource.ioUsed->next;
-			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
-			vfree(diskUsed);
-		}
-		while(totalResource.netUsed != NULL)
-		{
-			netUsed = totalResource.netUsed;
-			totalResource.netUsed = totalResource.netUsed->next;
-			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
-			if(strcasecmp(netUsed->netCardName, "lo") != 0)
+			if(judgeSoftWareConflict())
 			{
-				int speed = getNetCardSpeed(netUsed->netCardName);
-				//计算出来的是百分比
-				if(speed != 0)
-					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
-				else
-					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
-			}
-			vfree(netUsed);
-		}
-		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t NET使用率: %s\n", totalResource.cpuUsed, totalResource.memUsed, ioUsedInfo, netUsedInfo);
+				//系统资源冲突
+				//加锁
+				mutex_lock(&ConflictProcess_Mutex);
 
-		getMonitorProgressInfo(monitorNum);
-		int i;
-		for(i = 0; i < monitorNum; i++)
-		{
-			printk("%s %d %d %d %d %d %d %d %s\n", MonitorProcInfo[i].name, MonitorProcInfo[i].pid, MonitorProcInfo[i].ppid, MonitorProcInfo[i].cpuUsed, MonitorProcInfo[i].memUsed, MonitorProcInfo[i].schedInfo.sum_exec_runtime, MonitorProcInfo[i].schedInfo.wait_sum, MonitorProcInfo[i].schedInfo.iowait_sum, MonitorProcInfo[i].State);
-			int j;
-			printk("%s\t", MonitorProcInfoArray[i].procName);
-			for(j = 0; j < MAX_SCHEDINFOARRAY; j++)
-				printk("[%d %d %d]", MonitorProcInfoArray[i].procSchedInfo[j].sum_exec_runtime, MonitorProcInfoArray[i].procSchedInfo[j].wait_sum, MonitorProcInfoArray[i].procSchedInfo[j].iowait_sum);
-			printk("\n");
+				currentConflictProcess = beginConflictProcess;
+				while(beginConflictProcess != NULL)
+				{
+					beginConflictProcess = beginConflictProcess->next;
+					vfree(currentConflictProcess);
+					currentConflictProcess = beginConflictProcess;
+				}
+
+				for(i = 0; i < monitorNum; i++)
+				{
+					//判断是那个进程占用资源多
+					if(MonitorProcInfo[i].cpuUsed > 30 || MonitorProcInfo[i].memUsed > 30 || MonitorProcInfo[i].ioDataBytes > 1000 || MonitorProcInfo[i].totalBytes > 2000000)
+					{
+						int conflictType = 0;
+						if(MonitorProcInfo[i].cpuUsed > 30)
+							conflictType |= CPU_CONFLICT;
+						if(MonitorProcInfo[i].memUsed > 30)
+							conflictType |= MEM_CONFLICT;
+						if(MonitorProcInfo[i].ioDataBytes > 2000000)
+							conflictType |= IO_CONFLICT;
+						if(MonitorProcInfo[i].totalBytes > 2000000)
+							conflictType |= NET_CONFLICT;
+
+						if(beginConflictProcess == NULL)
+						{
+							beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
+							beginConflictProcess->processInfo = MonitorProcInfo[i];
+							beginConflictProcess->conflictType = conflictType;
+							beginConflictProcess->next = NULL;
+						}
+						else
+						{
+							endConflictProcess = endConflictProcess->next = vmalloc(sizeof(ConflictProcInfo));
+							endConflictProcess->processInfo = MonitorProcInfo[i];
+							endConflictProcess->conflictType = conflictType;
+							endConflictProcess->next = NULL;
+						}
+					}
+				}
+				//释放锁
+				mutex_unlock(&ConflictProcess_Mutex);
+			}
 		}
 	}
 

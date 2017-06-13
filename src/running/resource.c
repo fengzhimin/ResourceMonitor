@@ -620,7 +620,7 @@ void getSysResourceInfo(SysResource *totalResource)
 	}
 }
 
-void getMonitorProgressInfo(int monitorNum)
+void getMonitorProgressInfo()
 {
 	if(monitorNum <= 0 || monitorNum > MAX_MONITOR_SOFTWARE_NUM)
 		return ;
