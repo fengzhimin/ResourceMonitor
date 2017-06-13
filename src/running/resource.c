@@ -884,8 +884,9 @@ void getMonitorProgressInfo(int monitorNum)
 			MonitorProcInfo[i].schedInfo = sub(infoNext[i].schedInfo, MonitorProcInfo[i].schedInfo);
 			//记录下进程的schedInfo信息
 			MonitorProcInfoArray[i].procSchedInfo[currentRecordSchedIndex] = MonitorProcInfo[i].schedInfo;
-			currentRecordSchedIndex %= MAX_SCHEDINFOARRAY;
 		}
+		currentRecordSchedIndex++;
+		currentRecordSchedIndex %= MAX_SCHEDINFOARRAY;
 	}
 
 	
