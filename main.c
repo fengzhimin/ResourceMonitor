@@ -12,9 +12,8 @@
 #include "running/resource.h"
 #include "running/conflictCheck.h"
 #include "running/monitorSoftWare.h"
+#include "running/process.h"
 #include "messagePassing/kernel2user.h"
-#include "resource/network/netResource.h"
-#include "resource/device/DevResource.h"
 
 static struct task_struct *monitorTask = NULL;
 static DEFINE_MUTEX(mymutex);
@@ -91,6 +90,49 @@ int monitorResource(void *data)
 	SysResource totalResource;
 	while(!kthread_should_stop())
 	{
+		clearMonitorAPPName();
+		getAllMonitorAPPName();
+		currentMonitorAPPName = beginMonitorAPPName;
+		printk("\n\n\nuser layer program is: ");
+		while(currentMonitorAPPName != NULL)
+		{
+			printk("%s\t", currentMonitorAPPName->name);
+			currentMonitorAPPName = currentMonitorAPPName->next;
+		}
+		printk("\n\n\n");
+
+		clearMonitorProgPid();
+		getAllMonitorProgPid();
+		currentMonitorProgPid = beginMonitorProgPid;
+		while(currentMonitorProgPid != NULL)
+		{
+			printk("%s:", currentMonitorProgPid->name);
+			for(i = 0; i < MAX_CHILD_PROCESS_NUM; i++)
+			{
+				if(currentMonitorProgPid->pid[i] != 0)
+					printk("%d\t", currentMonitorProgPid->pid[i]);
+				else
+				{
+					printk("\n");
+					break;
+				}
+			}
+			currentMonitorProgPid = currentMonitorProgPid->next;
+		}
+
+		msleep(2000);
+	}
+
+	return 0;
+}
+
+/***监控用户自定义软件的资源冲突情况
+int monitorResource(void *data)
+{
+	int i;
+	SysResource totalResource;
+	while(!kthread_should_stop())
+	{
 		
 		getSysResourceInfo(&totalResource);
 		if(judgeSysResConflict(totalResource))
@@ -148,6 +190,7 @@ int monitorResource(void *data)
 
 	return 0;
 }
+*/
 
 /* 获取系统的资源使用清空
 int monitorResource(void *data)

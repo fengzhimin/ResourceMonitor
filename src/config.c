@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-07 12:27
-* Last modified: 2017-02-14 13:20
+* Last modified: 2017-06-20 20:28
 * Email        : 374648064@qq.com
 * Filename     : config.c
 * Description  : 用于定义全局变量
@@ -48,3 +48,22 @@ int max_IOUSE = 80;
 int max_NETUSE = 70;
 
 int monitorNum = 0; 
+
+MonitorAPPName *beginMonitorAPPName = NULL;     //用户层APP列表头
+MonitorAPPName *endMonitorAPPName = NULL;       //用户层APP列表尾
+MonitorAPPName *currentMonitorAPPName = NULL;   //当前操作的用户层APP
+
+//系统用户层APP个数
+int MonitorAPPNameNum = 0;
+
+ResUtilization *beginMonitorAPP = NULL;
+ResUtilization *endMonitorAPP = NULL;
+ResUtilization *currentMonitorAPP = NULL;
+
+//record current operate ResUtilization array index
+int currentRecordResIndex = 0;
+
+ProgAllPid *beginMonitorProgPid = NULL;
+ProgAllPid *endMonitorProgPid = NULL;
+ProgAllPid *currentMonitorProgPid = NULL;
+

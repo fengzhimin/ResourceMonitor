@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-06 00:44
-* Last modified: 2017-05-07 22:08
+* Last modified: 2017-06-20 20:27
 * Email        : 374648064@qq.com
 * Filename     : config.h
 * Descrip:q
@@ -49,6 +49,9 @@
 #define MONITOR_LABEL         "monitor"  //用于标识监控软件的label
 #define MONITOR_KEY           "software" //用于标识监控软件的key
 #define MAX_SCHEDINFOARRAY         60    //存放60*CALC_CPU_TIME毫秒内的程序sched数据
+
+#define MAX_RECORD_LENGTH          5     //during MAX_RECORD_LENGTH*CALC_CPU_TIME ms, Process Resource utilization
+#define MAX_CHILD_PROCESS_NUM      10    //A program has the maximum number of processes
 
 extern char config_type[][20];    //配置文件的类型
 
@@ -120,6 +123,44 @@ typedef struct ProcessInfo
 	unsigned long long downloadBytes;   //下载字节数
 	unsigned long long totalBytes;      //上传字节数+下载字节数
 } ProcInfo;
+
+/***********************************
+ * function: record process's resource utilization
+ * @para name: process's name
+ * @para flag: mark process whether exist or not(true = existence   false = non-existence)
+ * @para processNum: A program has processNum process
+ * @para cpuUsed: record process CPU utilization
+ * @para memUsed: record process memory utilization
+ * @para schedInfo: record process sched infomation
+ * @para ioDataBytes: record process io read and write bytes
+ * @para netTotalBytes: record process network send receive bytes
+***********************************/
+typedef struct ResourceUtilization
+{
+	char name[MAX_INFOLENGTH];
+	bool flag;
+	int processNum;
+	int cpuUsed[MAX_RECORD_LENGTH];
+	int memUsed[MAX_RECORD_LENGTH];
+	ProcSchedInfo schedInfo[MAX_RECORD_LENGTH];
+	unsigned long long ioDataBytes[MAX_RECORD_LENGTH];
+	unsigned long long netTotalBytes[MAX_RECORD_LENGTH];
+	struct ResourceUtilization *pre;
+	struct ResourceUtilization *next;
+} ResUtilization;
+
+/************************************
+ * function: process resource
+************************************/ 
+typedef struct ProcessResource
+{
+	char name[MAX_INFOLENGTH];
+	int cpuUsed;
+	int memUsed;
+	ProcSchedInfo schedInfo;
+	unsigned long long ioDataBytes;
+	unsigned long long netTotalBytes;
+} ProcRes;
 
 /*******************************************
  * function: 存放磁盘的使用状态
@@ -349,6 +390,44 @@ extern int max_NETUSE;
 
 //系统监控软件的个数
 extern int monitorNum;
+
+/**********************************
+ * function: 监控软件的名称列表
+**********************************/
+typedef struct MonitorProgramName
+{
+	char name[MAX_INFOLENGTH];
+	struct MonitorProgramName *next;
+} MonitorAPPName;
+
+/**********************************
+ * function: A program's all pid
+**********************************/
+typedef struct ProgramAllPid
+{
+	char name[MAX_INFOLENGTH];
+	int pid[MAX_CHILD_PROCESS_NUM];
+	struct ProgramAllPid *next;
+} ProgAllPid;
+
+//用户层的APP列表
+extern MonitorAPPName *beginMonitorAPPName;     //用户层APP列表头
+extern MonitorAPPName *endMonitorAPPName;       //用户层APP列表尾
+extern MonitorAPPName *currentMonitorAPPName;   //当前操作的用户层APP
+
+//系统用户层APP个数
+extern int MonitorAPPNameNum;
+
+extern ResUtilization *beginMonitorAPP;
+extern ResUtilization *endMonitorAPP;
+extern ResUtilization *currentMonitorAPP;
+
+//record current operate ResUtilization array index
+extern int currentRecordResIndex;
+
+extern ProgAllPid *beginMonitorProgPid;
+extern ProgAllPid *endMonitorProgPid;
+extern ProgAllPid *currentMonitorProgPid;
 
 #endif
 
