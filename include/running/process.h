@@ -12,6 +12,11 @@
 
 #include "config.h"
 #include "log/logOper.h"
+#include "resource/CPU/CPUResource.h"
+#include "resource/memeory/memResource.h"
+#include "resource/device/DevResource.h"
+#include "resource/network/netResource.h"
+#include "running/schedTime.h"
 #include <linux/string.h>
 #include <linux/init.h>
 #include <linux/sched.h>
@@ -37,5 +42,43 @@ ProgAllPid getAllPidDebug(char *name, const char *file, const char *function, co
  * return: void
 ************************************************/
 void getAllMonitorProgPid();
+
+/***********************************************
+ * func: get a program all VmRSS
+ * return: return program all VmRSS   -1 = failure
+ * @para pidArray: The pid Array of a program
+************************************************/
+unsigned int getProgramVmRSS(int *pidArray);
+
+/***********************************************
+ * func: get a program all CPU time
+ * return: return ProgAllRes object and set ProgAllRes cpuTime and flags
+ * @para progName: program name
+ * @para pidArray: The pid Array of a program
+************************************************/
+ProgAllRes getProgramCPU(char *progName, int *pidArray);
+
+/***********************************************
+ * func: get a program all IO data
+ * return: return ProgAllRes object and set ProgAllRes ioDataBytes and flags
+ * @para progName: program name
+ * @para pidArray: The pid Array of a program
+************************************************/
+ProgAllRes getProgramIOData(char *progName, int *pidArray);
+
+/***********************************************
+ * func: get a program all Sched info
+ * return: return ProgAllRes object and set ProgAllRes shcedInfo and flags
+ * @para progName: program name
+ * @para pidArray: The pid Array of a program
+************************************************/
+ProgAllRes getProgramSched(char *progName, int *pidArray);
+
+/***********************************************
+ * func: get a program all net data
+ * return: return netTotalBytes  -1 = failure
+ * @para pidArray: The pid Array of a program
+************************************************/
+unsigned long long getProgramNetData(int *pidArray);
 
 #endif

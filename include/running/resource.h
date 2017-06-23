@@ -18,6 +18,7 @@
 #include "log/logOper.h"
 #include "running/schedTime.h"
 #include "running/monitorSoftWare.h"
+#include "running/process.h"
 #include "resource/memeory/memResource.h"
 #include "resource/CPU/CPUResource.h"
 #include "resource/device/DevResource.h"
@@ -93,5 +94,11 @@ void getSysResourceInfo(SysResource *totalResource);
  * return: void
  * *********************************************/
 void getMonitorProgressInfo();
+
+/***********************************************
+ * func: get all user layer APP
+ * return: void
+***********************************************/
+void getUserLayerAPP();
 
 #endif

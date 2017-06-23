@@ -408,9 +408,11 @@ bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *
 			int retLink = vfs_readlink(path, buflinkInfo, LINK_MAX_NUM);
 			if(retLink < 0 || retLink > LINK_MAX_NUM)
 			{
+				/*
 				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 				sprintf(error_info, "%s%s%s%s%s", "读取符号链接: ", path, " 失败！ 错误信息： ", "    ", "\n");
 				RecordLog(error_info);	
+				*/
 			}
 			else
 			{

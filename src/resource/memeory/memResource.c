@@ -56,3 +56,28 @@ bool getTotalPMDebug(MemInfo *totalMem, const char *file, const char *function, 
 	return true;
 }
 
+int getProcessVmRSS(char *status)
+{
+	int ret = -1;
+	memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	struct file *fp = KOpenFile(status, O_RDONLY);
+	char subStr[2][MAX_SUBSTR];
+	if(fp == NULL)
+	{
+		return ret;
+	}
+	while(KReadLine(fp, lineData) == -1)
+	{
+		cutStrByLabel(lineData, ':', subStr, 2);
+		if(strcasecmp(subStr[0], "VmRSS") == 0)
+		{
+			ret = ExtractNumFromStr(subStr[1]);
+			KCloseFile(fp);
+			return ret;
+		}
+		memset(lineData, 0, LINE_CHAR_MAX_NUM);
+	}
+
+	KCloseFile(fp);
+	return ret;
+}

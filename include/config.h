@@ -108,8 +108,8 @@ typedef struct ProcessInfo
 	char name[MAX_INFOLENGTH];   //进程的名称
 	int pid;
 	int ppid;
-	int cpuUsed;      //CPU使用率
-	int memUsed;      //MEM使用率
+	unsigned int cpuUsed;      //CPU使用率
+	unsigned int memUsed;      //MEM使用率
 	ProcSchedInfo schedInfo;
 	char VmPeak[MAX_INFOLENGTH];   //进程虚拟内存大小(单位: KB)
 	char VmRSS[MAX_INFOLENGTH];    //进程物理内存大小(单位: KB)
@@ -138,7 +138,7 @@ typedef struct ProcessInfo
 typedef struct ResourceUtilization
 {
 	char name[MAX_INFOLENGTH];
-	bool flag;
+	bool flags;
 	int processNum;
 	int cpuUsed[MAX_RECORD_LENGTH];
 	int memUsed[MAX_RECORD_LENGTH];
@@ -151,12 +151,15 @@ typedef struct ResourceUtilization
 
 /************************************
  * function: process resource
+ * @para flag: mark process whether exist or not(true = existence   false = non-existence)
 ************************************/ 
 typedef struct ProcessResource
 {
 	char name[MAX_INFOLENGTH];
-	int cpuUsed;
-	int memUsed;
+	bool flags;
+	int processNum;
+	unsigned int VmRss;
+	unsigned int cpuTime;
 	ProcSchedInfo schedInfo;
 	unsigned long long ioDataBytes;
 	unsigned long long netTotalBytes;
@@ -409,6 +412,21 @@ typedef struct ProgramAllPid
 	int pid[MAX_CHILD_PROCESS_NUM];
 	struct ProgramAllPid *next;
 } ProgAllPid;
+
+/*********************************
+ * function: per process user resource info
+ * @para flags: mark current process whether validity or not
+ *				true = valid
+ *				false = invalid
+**********************************/
+typedef struct ProgramAllRes
+{
+	char name[MAX_INFOLENGTH];
+	bool flags[MAX_CHILD_PROCESS_NUM];
+	unsigned int cpuTime[MAX_CHILD_PROCESS_NUM];
+	ProcSchedInfo schedInfo[MAX_CHILD_PROCESS_NUM];
+	unsigned long long ioDataBytes[MAX_CHILD_PROCESS_NUM];
+} ProgAllRes;
 
 //用户层的APP列表
 extern MonitorAPPName *beginMonitorAPPName;     //用户层APP列表头

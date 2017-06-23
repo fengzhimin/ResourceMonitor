@@ -12,6 +12,7 @@ static char error_info[200];
 static char status[MAX_PROCPATH], stat[MAX_PROCPATH], lineData[LINE_CHAR_MAX_NUM];
 static char io[MAX_PROCPATH];
 static char sched[MAX_PROCPATH];
+static char procPath[MAX_PROCPATH];   //example: /proc/1234
 
 
 /*
@@ -92,6 +93,7 @@ int getProcAll(ProcPIDPath *path)
 		memset(temp->path, 0, MAX_PROCPATH);
 		sprintf(temp->path, "%s/%d", "/proc", p->pid);
 		temp = temp->next = vmalloc(sizeof(ProcPIDPath));
+		temp->next = NULL;
 		count++;
 	}
 
@@ -318,6 +320,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 				infoPre[i].uploadBytes = PortPackageData->outDataBytes;
 				infoPre[i].downloadBytes = PortPackageData->inDataBytes;
 				infoPre[i].totalBytes = infoPre[i].uploadBytes + infoPre[i].downloadBytes;
+				//assume a port just map a process
+				break;
 			}
 		}
 		PortPackageData = PortPackageData->next;
@@ -788,6 +792,8 @@ void getMonitorProgressInfo()
 				MonitorProcInfo[monitorProcInfo_index].uploadBytes += PortPackageData->outDataBytes;
 				MonitorProcInfo[monitorProcInfo_index].downloadBytes += PortPackageData->inDataBytes;
 				MonitorProcInfo[monitorProcInfo_index].totalBytes += MonitorProcInfo[monitorProcInfo_index].uploadBytes + MonitorProcInfo[monitorProcInfo_index].downloadBytes;
+				//assume a port just map a process
+				break;
 			}
 		}
 		PortPackageData = PortPackageData->next;
@@ -892,4 +898,244 @@ void getMonitorProgressInfo()
 	
 	vfree(infoNext);
 	vfree(beginPath);
+}
+
+void getUserLayerAPP()
+{
+	/*
+	 * get all user layer application
+	 */
+	clearMonitorAPPName();
+	getAllMonitorAPPName();
+
+	/*
+	 * get monitor program's all process
+	 */
+	clearMonitorProgPid();
+	getAllMonitorProgPid();
+
+	//start hook data package
+	startHook();
+
+	ProcRes *beginProcRes = vmalloc(sizeof(ProcRes)*MonitorAPPNameNum);
+	memset(beginProcRes, 0, sizeof(ProcRes)*MonitorAPPNameNum);
+	ProgAllRes *beginProgAllRes = vmalloc(sizeof(ProgAllRes)*MonitorAPPNameNum);
+	memset(beginProgAllRes, 0, sizeof(ProgAllRes)*MonitorAPPNameNum);
+
+	currentMonitorProgPid = beginMonitorProgPid;
+	ProgAllRes programCPUTime;
+	ProgAllRes programIOData;
+	ProgAllRes programSched;
+	ProcSchedInfo programSchedInfo;
+	int i, j;
+	for(i = 0; i < MonitorAPPNameNum; i++)
+	{
+		strcpy(beginProcRes[i].name, currentMonitorProgPid->name);
+		beginProcRes[i].VmRss = getProgramVmRSS(currentMonitorProgPid->pid);
+
+		/*
+		 * set start record value
+		 */
+		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
+		{
+			beginProgAllRes[i].cpuTime[j] = programCPUTime.cpuTime[j];
+			beginProgAllRes[i].schedInfo[j] = programSched.schedInfo[j];
+			beginProgAllRes[i].ioDataBytes[j] = programIOData.ioDataBytes[j];
+			beginProgAllRes[i].flags[j] = programCPUTime.flags[j] && programSched.flags[j] && programIOData.flags[j];
+		}
+
+		currentMonitorProgPid = currentMonitorProgPid->next;
+	}
+	Total_Cpu_Occupy_t total_cpu_occupy1;
+	getTotalCPUTime(&total_cpu_occupy1);
+	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
+
+	//sleep CALC_CPU_TIME ms
+	msleep(CALC_CPU_TIME);
+
+	//stop hook data package
+	stopHook();
+
+	PortPackageData = PortPackageData->next;  //skip first object
+	while(PortPackageData != NULL)
+	{
+		currentMonitorProgPid = beginMonitorProgPid;
+		for(i = 0; i < MonitorAPPNameNum; i++)
+		{
+			for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
+			{
+				if(currentMonitorProgPid->pid[j] == 0)
+					break;
+				memset(procPath, 0, MAX_PROCPATH);
+				sprintf(procPath, "/proc/%d", currentMonitorProgPid->pid[j]);
+				if(mapProcessPort(procPath, *PortPackageData))
+				{
+					//find process by port
+					beginProcRes[i].netTotalBytes += (PortPackageData->outDataBytes + PortPackageData->inDataBytes);
+					//assume a port just map a process
+					goto next;
+				}
+			}
+
+			currentMonitorProgPid = currentMonitorProgPid->next;
+		}
+	next:
+		PortPackageData = PortPackageData->next;
+	}
+
+	bool processValid = false;
+	int processNum = 0;
+	currentMonitorProgPid = beginMonitorProgPid;
+	for(i = 0; i < MonitorAPPNameNum; i++)
+	{
+		processValid = false;
+		processNum = 0;
+		/*
+		 * set start record value
+		 */
+		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		/*
+		 * Calculated CPUTime,IOData,Sched different value
+		 */
+		for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
+		{
+			if(currentMonitorProgPid->pid[j] == 0)
+			{
+				beginProcRes[i].flags = processValid;
+				beginProcRes[i].processNum = processNum;
+				break;
+			}
+			if(beginProgAllRes[i].flags[j] && programCPUTime.flags[j] && programIOData.flags[j] && programSched.flags[j])
+			{
+				/*
+				 * There is at least one process
+				 */
+				processValid = true;
+				processNum++;
+				beginProcRes[i].cpuTime += (programCPUTime.cpuTime[j] - beginProgAllRes[i].cpuTime[j]);
+				beginProcRes[i].ioDataBytes += (programIOData.ioDataBytes[j] - beginProgAllRes[i].ioDataBytes[j]);
+				programSchedInfo = sub(programSched.schedInfo[j], beginProgAllRes[i].schedInfo[j]);
+				beginProcRes[i].schedInfo = add(beginProcRes[i].schedInfo, programSchedInfo);
+			}
+		}
+
+		currentMonitorProgPid = currentMonitorProgPid->next;
+	}
+
+	Total_Cpu_Occupy_t total_cpu_occupy2;
+	getTotalCPUTime(&total_cpu_occupy2);
+	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;	
+	MemInfo totalMem;
+	if(getTotalPM(&totalMem))
+	{
+		/*
+		 * init beginMonitorAPP flags is equal to false;
+		 */
+		currentMonitorAPP = beginMonitorAPP;
+		while(currentMonitorAPP != NULL)
+		{
+			currentMonitorAPP->flags = false;
+			currentMonitorAPP = currentMonitorAPP->next;
+		}
+		/*
+		 * update MonitorApp list
+		 */
+		for(i = 0; i < MonitorAPPNameNum; i++)
+		{
+			if(!beginProcRes[i].flags)
+				continue;
+
+			currentMonitorAPP = beginMonitorAPP;
+			while(currentMonitorAPP != NULL)
+			{
+				/*
+				 * find the program to be updated
+				 */
+				if(strcasecmp(currentMonitorAPP->name, beginProcRes[i].name) == 0)
+				{
+					currentMonitorAPP->flags = true;
+					currentMonitorAPP->processNum = beginProcRes[i].processNum;
+					currentMonitorAPP->memUsed[currentRecordResIndex] = 100*beginProcRes[i].VmRss/totalMem.memTotal;
+					currentMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(total_cpu2-total_cpu1);
+					currentMonitorAPP->schedInfo[currentRecordResIndex] = beginProcRes[i].schedInfo;
+					currentMonitorAPP->ioDataBytes[currentRecordResIndex] = beginProcRes[i].ioDataBytes;
+					currentMonitorAPP->netTotalBytes[currentRecordResIndex] = beginProcRes[i].netTotalBytes;
+
+					break;
+				}
+				currentMonitorAPP = currentMonitorAPP->next;
+			}
+
+			/*
+			 * new a Monitor program
+			 */
+			if(currentMonitorAPP == NULL)
+			{
+				if(beginMonitorAPP == NULL)
+				{
+					beginMonitorAPP = endMonitorAPP = currentMonitorAPP = vmalloc(sizeof(ResUtilization));
+					memset(endMonitorAPP, 0, sizeof(ResUtilization));
+				}
+				else
+				{
+					currentMonitorAPP = endMonitorAPP;
+					endMonitorAPP = endMonitorAPP->next = vmalloc(sizeof(ResUtilization));
+					memset(endMonitorAPP, 0, sizeof(ResUtilization));
+					endMonitorAPP->pre = currentMonitorAPP;
+				}
+
+				strcpy(endMonitorAPP->name, beginProcRes[i].name);
+				endMonitorAPP->processNum = beginProcRes[i].processNum;
+				endMonitorAPP->flags = true;
+				endMonitorAPP->memUsed[currentRecordResIndex] = 100*beginProcRes[i].VmRss/totalMem.memTotal;
+				endMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(total_cpu2-total_cpu1);
+				endMonitorAPP->schedInfo[currentRecordResIndex] = beginProcRes[i].schedInfo;
+				endMonitorAPP->ioDataBytes[currentRecordResIndex] = beginProcRes[i].ioDataBytes;
+				endMonitorAPP->netTotalBytes[currentRecordResIndex] = beginProcRes[i].netTotalBytes;
+			}
+		}
+
+		currentRecordResIndex++;
+		currentRecordResIndex %= MAX_RECORD_LENGTH;
+	}
+
+	/*
+	 * delete the exit program
+	 */
+	currentMonitorAPP = beginMonitorAPP;
+	while(currentMonitorAPP != NULL)
+	{
+		if(!currentMonitorAPP->flags)
+		{
+			if(currentMonitorAPP->pre == NULL)
+			{
+				//first object
+				if(currentMonitorAPP->next != NULL)
+					currentMonitorAPP->next->pre = NULL;
+				beginMonitorAPP = beginMonitorAPP->next;
+			}
+			else if(currentMonitorAPP->next != NULL)
+			{
+				//middle object
+				currentMonitorAPP->pre->next = currentMonitorAPP->next;
+				currentMonitorAPP->next->pre = currentMonitorAPP->pre;
+			}
+			else
+			{
+				//last object
+				endMonitorAPP = endMonitorAPP->pre;
+				endMonitorAPP->next = NULL;
+			}
+			vfree(currentMonitorAPP);
+		}
+		currentMonitorAPP = currentMonitorAPP->next;
+	}
+
+	vfree(beginProcRes);
+	vfree(beginProgAllRes);
 }

@@ -90,37 +90,20 @@ int monitorResource(void *data)
 	SysResource totalResource;
 	while(!kthread_should_stop())
 	{
-		clearMonitorAPPName();
-		getAllMonitorAPPName();
-		currentMonitorAPPName = beginMonitorAPPName;
-		printk("\n\n\nuser layer program is: ");
-		while(currentMonitorAPPName != NULL)
+		getSysResourceInfo(&totalResource);
+		if(judgeSysResConflict(totalResource))
 		{
-			printk("%s\t", currentMonitorAPPName->name);
-			currentMonitorAPPName = currentMonitorAPPName->next;
-		}
-		printk("\n\n\n");
-
-		clearMonitorProgPid();
-		getAllMonitorProgPid();
-		currentMonitorProgPid = beginMonitorProgPid;
-		while(currentMonitorProgPid != NULL)
-		{
-			printk("%s:", currentMonitorProgPid->name);
-			for(i = 0; i < MAX_CHILD_PROCESS_NUM; i++)
+			getUserLayerAPP();
+			currentMonitorAPP = beginMonitorAPP;
+			while(currentMonitorAPP != NULL)
 			{
-				if(currentMonitorProgPid->pid[i] != 0)
-					printk("%d\t", currentMonitorProgPid->pid[i]);
-				else
-				{
-					printk("\n");
-					break;
-				}
+				printk("%20s:", currentMonitorAPP->name);
+				for(i = 0; i < MAX_RECORD_LENGTH; i++)
+					printk("[%3d %3d]\t", currentMonitorAPP->cpuUsed[i], currentMonitorAPP->memUsed[i]);
+				printk("\n");
+				currentMonitorAPP = currentMonitorAPP->next;
 			}
-			currentMonitorProgPid = currentMonitorProgPid->next;
 		}
-
-		msleep(2000);
 	}
 
 	return 0;

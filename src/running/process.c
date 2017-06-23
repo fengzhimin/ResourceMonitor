@@ -10,6 +10,10 @@
 #include "running/process.h"
 
 static char error_info[200];
+static char status[MAX_PROCPATH], stat[MAX_PROCPATH];
+static char io[MAX_PROCPATH];
+static char sched[MAX_PROCPATH];
+static char procPID[MAX_PROCPATH];
 
 void clearMonitorProgPid()
 {
@@ -71,3 +75,113 @@ void getAllMonitorProgPid()
 		currentMonitorAPPName = currentMonitorAPPName->next;
 	}
 }
+
+unsigned int getProgramVmRSS(int *pidArray)
+{
+	int i = 0;
+	int VmRss = -1;
+	unsigned int ret = 0;
+
+	for(; i < MAX_CHILD_PROCESS_NUM; i++)
+	{
+		if(pidArray[i] == 0)
+			break;
+		memset(status, 0, MAX_PROCPATH);
+		sprintf(status, "/proc/%d/status", pidArray[i]);
+		VmRss = getProcessVmRSS(status);
+		if(VmRss > 0)
+		{
+			ret += VmRss;
+		}
+	}
+
+	return ret;
+}
+
+ProgAllRes getProgramCPU(char *progName, int *pidArray)
+{
+	int i = 0;
+	int ret_temp = -1;
+	Process_Cpu_Occupy_t procCpuTime;
+	ProgAllRes ret;
+	memset(&ret, 0, sizeof(ProgAllRes));
+	strcpy(ret.name, progName);
+
+	for(; i < MAX_CHILD_PROCESS_NUM; i++)
+	{
+		if(pidArray[i] == 0)
+			break;
+		memset(stat, 0, MAX_PROCPATH);
+		sprintf(stat, "/proc/%d/stat", pidArray[i]);
+		ret_temp = getProcessCPUTime(stat, &procCpuTime);
+		if(ret_temp == 1)
+		{
+			//valid
+			ret.cpuTime[i] = procCpuTime.utime + procCpuTime.stime + procCpuTime.cutime + procCpuTime.cstime;
+			ret.flags[i] = true;
+		}
+		else
+			ret.flags[i] = false;   //invalid
+	}
+
+	return ret;
+}
+
+ProgAllRes getProgramIOData(char *progName, int *pidArray)
+{
+	int i = 0;
+	bool ret_temp = false;
+	Process_IO_Data procIOData;
+	ProgAllRes ret;
+	memset(&ret, 0, sizeof(ProgAllRes));
+	strcpy(ret.name, progName);
+
+	for(; i < MAX_CHILD_PROCESS_NUM; i++)
+	{
+		if(pidArray[i] == 0)
+			break;
+		memset(io, 0, MAX_PROCPATH);
+		sprintf(io, "/proc/%d/io", pidArray[i]);
+		ret_temp = getProcessIOData(io, &procIOData);
+		if(ret_temp)
+		{
+			//valid
+			ret.ioDataBytes[i] = procIOData.read_bytes + procIOData.write_bytes;
+			ret.flags[i] = true;
+		}
+		else
+			ret.flags[i] = false;   //invalid
+	}
+
+	return ret;
+}
+
+ProgAllRes getProgramSched(char *progName, int *pidArray)
+{
+	int i = 0;
+	ProcSchedInfo procSched;
+	ProgAllRes ret;
+	memset(&ret, 0, sizeof(ProgAllRes));
+	strcpy(ret.name, progName);
+
+	for(; i < MAX_CHILD_PROCESS_NUM; i++)
+	{
+		if(pidArray[i] == 0)
+			break;
+		memset(sched, 0, MAX_PROCPATH);
+		sprintf(sched, "/proc/%d/sched", pidArray[i]);
+		procSched = getProcSchedInfo(sched);
+		if(procSched.sum_exec_runtime != 0 || procSched.wait_sum != 0 || procSched.iowait_sum != 0)
+		{
+			//valid
+			ret.schedInfo[i] = procSched;
+			ret.flags[i] = true;
+		}
+		else
+			ret.flags[i] = false;   //invalid
+	}
+
+	return ret;
+}
+
+//unsigned long long getProgramNetData(int *pidArray)

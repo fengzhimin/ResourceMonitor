@@ -43,6 +43,8 @@ void clearMonitorAPPName()
 	}
 
 	endMonitorAPPName = NULL;
+	//clear MonitorAPPNameNum 
+	MonitorAPPNameNum = 0;
 }
 
 bool insertMonitorAPPName(MonitorAPPName obj)
