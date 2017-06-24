@@ -72,4 +72,11 @@ int KCloseFile(struct file *fd);
 ******************************/
 void RemoveNote(char *fileName, char *fileNameCopy);
 
+/*********************************
+ * function: judge whether file is empty
+ * return: 0 = empty   1 = non-empty   -1 = read file failure
+ * @para fileName: a file path
+*********************************/
+int IsEmpty(char *fileName);
+
 #endif

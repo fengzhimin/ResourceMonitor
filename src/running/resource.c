@@ -232,7 +232,7 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		infoPre[i].ioSyscallNum = processIOData.syscr + processIOData.syscw;
 		infoPre[i].ioDataBytes = processIOData.read_bytes + processIOData.write_bytes;
 		//获取进程的sched
-		infoPre[i].schedInfo = getProcSchedInfo(sched);
+		getProcSchedInfo(sched, &(infoPre[i].schedInfo));
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
@@ -362,7 +362,7 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		infoNext[i].ioSyscallNum = processIOData.syscr + processIOData.syscw;
 		infoNext[i].ioDataBytes = processIOData.read_bytes + processIOData.write_bytes;
 		//获取进程的sched
-		infoNext[i].schedInfo = getProcSchedInfo(sched);
+		getProcSchedInfo(sched, &(infoNext[i].schedInfo));
 		//不断的删除path
 		ProcPIDPath *temp = beginPath;
 		beginPath = beginPath->next;
@@ -732,7 +732,8 @@ void getMonitorProgressInfo()
 		MonitorProcInfo[monitorProcInfo_index].ioSyscallNum += processIOData.syscr + processIOData.syscw;
 		MonitorProcInfo[monitorProcInfo_index].ioDataBytes += processIOData.read_bytes + processIOData.write_bytes;
 		//获取进程的sched
-		ProcSchedInfo process_schedInfo = getProcSchedInfo(sched);
+		ProcSchedInfo process_schedInfo;
+		getProcSchedInfo(sched, &process_schedInfo);
 		MonitorProcInfo[monitorProcInfo_index].schedInfo = add(MonitorProcInfo[monitorProcInfo_index].schedInfo, process_schedInfo);
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy1;
@@ -864,7 +865,8 @@ void getMonitorProgressInfo()
 		infoNext[monitorProcInfo_index].ioSyscallNum += processIOData.syscr + processIOData.syscw;
 		infoNext[monitorProcInfo_index].ioDataBytes += processIOData.read_bytes + processIOData.write_bytes;
 		//获取进程的sched
-		ProcSchedInfo process_schedInfo = getProcSchedInfo(sched);
+		ProcSchedInfo process_schedInfo;
+		getProcSchedInfo(sched, &process_schedInfo);
 		infoNext[monitorProcInfo_index].schedInfo = add(infoNext[monitorProcInfo_index].schedInfo, process_schedInfo);
 		//不断的删除path
 		ProcPIDPath *temp = beginPath;

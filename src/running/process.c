@@ -71,7 +71,7 @@ void getAllMonitorProgPid()
 	{
 		endMonitorProgPid = endMonitorProgPid->next = vmalloc(sizeof(ProgAllPid));
 		memset(endMonitorProgPid, 0, sizeof(ProgAllPid));
-		*endMonitorProgPid = getAllPid(currentMonitorAPPName);
+		*endMonitorProgPid = getAllPid(currentMonitorAPPName->name);
 		currentMonitorAPPName = currentMonitorAPPName->next;
 	}
 }
@@ -114,7 +114,7 @@ ProgAllRes getProgramCPU(char *progName, int *pidArray)
 		memset(stat, 0, MAX_PROCPATH);
 		sprintf(stat, "/proc/%d/stat", pidArray[i]);
 		ret_temp = getProcessCPUTime(stat, &procCpuTime);
-		if(ret_temp == 1)
+		if(ret_temp)
 		{
 			//valid
 			ret.cpuTime[i] = procCpuTime.utime + procCpuTime.stime + procCpuTime.cutime + procCpuTime.cstime;
@@ -170,8 +170,7 @@ ProgAllRes getProgramSched(char *progName, int *pidArray)
 			break;
 		memset(sched, 0, MAX_PROCPATH);
 		sprintf(sched, "/proc/%d/sched", pidArray[i]);
-		procSched = getProcSchedInfo(sched);
-		if(procSched.sum_exec_runtime != 0 || procSched.wait_sum != 0 || procSched.iowait_sum != 0)
+		if(getProcSchedInfo(sched, &procSched))
 		{
 			//valid
 			ret.schedInfo[i] = procSched;

@@ -15,8 +15,9 @@ static char lineData[LINE_CHAR_MAX_NUM];
 
 static char error_info[200];
 
-int getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line)
+bool getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line)
 {
+	memset(processCpuTime, 0, sizeof(Process_Cpu_Occupy_t));
 	struct file *fp = KOpenFile(stat, O_RDONLY);
 	if(fp == NULL)
 	{
@@ -25,7 +26,7 @@ int getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, con
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", stat, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		*/
-		return -1;
+		return false;
 	}
 
 	memset(stat_data, 0, 1000);
@@ -41,7 +42,7 @@ int getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, con
 		processCpuTime->cutime = ExtractNumFromStr(subStr18[15]);
 		processCpuTime->cstime = ExtractNumFromStr(subStr18[16]);
 		KCloseFile(fp);
-		return 1;
+		return true;
 	}
 	else
 	{
@@ -49,12 +50,13 @@ int getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, con
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", stat, " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
-		return -1;
+		return false;
 	}
 }
 
-int getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, const char *function, const int line)
+bool getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, const char *function, const int line)
 {
+	memset(totalCpuTime, 0, sizeof(Total_Cpu_Occupy_t));
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	struct file *fp = KOpenFile("/proc/stat", O_RDONLY);
 	if(fp == NULL)
@@ -62,14 +64,14 @@ int getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, con
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/stat", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
-		return -1;
+		return false;
 	}
 	if(KReadLine(fp, lineData) == -1)
 	{
 		char name[30];
 		sscanf(lineData, "%s %u %u %u %u", name, &totalCpuTime->user, &totalCpuTime->nice, &totalCpuTime->system, &totalCpuTime->idle);
 		KCloseFile(fp);
-		return 1;
+		return true;
 	}
 	else
 	{
@@ -77,6 +79,6 @@ int getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, con
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/stat", " 失败！ 错误信息： ", "    ", "\n");
 		RecordLog(error_info);
 		KCloseFile(fp);
-		return -1;
+		return false;
 	}
 }

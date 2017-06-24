@@ -17,6 +17,7 @@ static char lineData[LINE_CHAR_MAX_NUM];
 
 bool getProcessIODataDebug(char *io, Process_IO_Data *processIOData, const char *file, const char *function, const int line)
 {
+	memset(processIOData, 0, sizeof(processIOData));
 	struct file *fp = KOpenFile(io, O_RDONLY);
 	if(fp == NULL)
 	{
@@ -55,6 +56,7 @@ bool getProcessIODataDebug(char *io, Process_IO_Data *processIOData, const char 
 
 bool getDiskStateDebug(char *diskPath, DiskStat *diskStatInfo, const char *file, const char *function, const int line)
 {
+	memset(diskStatInfo, 0, sizeof(DiskStat));
 	struct file *fp = KOpenFile(diskPath, O_RDONLY);
 	if(fp == NULL)
 	{

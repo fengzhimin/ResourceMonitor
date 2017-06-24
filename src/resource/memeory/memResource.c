@@ -15,6 +15,7 @@ static char error_info[200];
 
 bool getTotalPMDebug(MemInfo *totalMem, const char *file, const char *function, const int line)
 {
+	memset(totalMem, 0, sizeof(MemInfo));
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	int lineNum = 1;
 	struct file *fp = KOpenFile("/proc/meminfo", O_RDONLY);

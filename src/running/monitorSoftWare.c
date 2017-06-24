@@ -9,6 +9,8 @@
 
 #include "running/monitorSoftWare.h"
 
+static char cmdline[MAX_PROCPATH];
+
 void clearMonitor()
 {
 	currentRecordSchedIndex = 0;
@@ -86,8 +88,10 @@ void getAllMonitorAPPName()
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
-		//By judge process utimescaled to determine whether the program is user level or kernel level programm
-		if(p->utimescaled > 0)
+		memset(cmdline, 0, MAX_PROCPATH);
+		sprintf(cmdline, "/proc/%d/cmdline", p->pid);
+		//By judge process /proc/pid/cmdline whether space to determine whether the program is user level or kernel level programm
+		if(IsEmpty(cmdline) == 1)
 		{
 			memset(&temp, 0, sizeof(MonitorAPPName));
 			strcpy(temp.name, p->comm);
@@ -100,5 +104,4 @@ void getAllMonitorAPPName()
 	currentMonitorAPPName = beginMonitorAPPName;
 	beginMonitorAPPName = beginMonitorAPPName->next;
 	vfree(currentMonitorAPPName);
-	currentMonitorAPPName = beginMonitorAPPName;
 }

@@ -19,17 +19,17 @@
 
 /**********************************************
  * func: 获取CPU使用时间
- * return: -1 = 失败   1 = 成功
+ * return true = 成功　　　false = 失败
  * @para totalCpuTime: 存放CPU使用时间
 **********************************************/
-int getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, const char *function, const int line);
+bool getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, const char *function, const int line);
 
 /*********************************************
  * func: 获取程序CPU使用时间
- * return: -1 = 失败   1 = 成功
+ * return true = 成功　　　false = 失败
  * @para stat: 程序的stat路径
  * @para processCpuTime: 存放程序使用CPU时间
 *********************************************/
-int getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line);
+bool getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line);
 
 #endif

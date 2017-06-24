@@ -67,7 +67,11 @@ int KReadLineDebug(struct file *fd, char *data, const char *file, const char *fu
 		data[n++] = _ch;
 	}
 
-	return 0;
+	//read file last line
+	if(n == 0)
+		return 0;
+	else
+		return -1;
 }
 
 int KCloseFile(struct file *fd)
@@ -104,3 +108,21 @@ void RemoveNote(char *fileName, char *fileNameCopy)
 
 }
 
+int IsEmpty(char *fileName)
+{
+	int ret = -1;
+
+	struct file *fp = KOpenFile(fileName, O_RDONLY);
+	if(fp != NULL)
+	{
+		char _ch;
+		if(KReadFile(fp, &_ch, 1) == 1)
+			ret = 1;    //non-empty
+		else
+			ret = 0;    //empty
+
+		KCloseFile(fp);
+	}
+
+	return ret;
+}

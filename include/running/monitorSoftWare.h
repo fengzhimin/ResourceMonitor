@@ -11,6 +11,7 @@
 #define __MONITORSOFTWARE_H__
 
 #include "config.h"
+#include "common/fileOper.h"
 #include <linux/string.h>
 #include <linux/init.h>
 #include <linux/sched.h>

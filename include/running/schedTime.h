@@ -15,15 +15,16 @@
 #include "common/strOper.h"
 #include "log/logOper.h"
 
-#define getProcSchedInfo(sched) getProcSchedInfoDebug(sched, __FILE__, __FUNCTION__, __LINE__)
+#define getProcSchedInfo(schedPath, schedInfo) getProcSchedInfoDebug(schedPath, schedInfo, __FILE__, __FUNCTION__, __LINE__)
 
 
 /**************************************
  * func: 获取一个进程的ProcSchedInfo结构体数据
- * return: 返回ProcSchedInfo结构体
- * @para sched: 进程的sched路径
+ * return true = 成功　　　false = 失败
+ * @para schedPath: 进程的sched路径
+ * @para schedInfo: 存放SchedInfo
 **************************************/
-ProcSchedInfo getProcSchedInfoDebug(char *sched, const char *file, const char *function, const int line);
+bool getProcSchedInfoDebug(char *schedPath, ProcSchedInfo *schedInfo, const char *file, const char *function, const int line);
 
 /**************************************
  * func: 将两个ProcSchedInfo类型的对象相加
