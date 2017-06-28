@@ -79,26 +79,27 @@ bool judgeSysResConflict(SysResource sysResource)
 
 bool judgeSoftWareConflict()
 {
-	getMonitorProgressInfo();
+	getUserLayerAPP();
 	int i, j;
 	int aveWait_sum = 0;
 	int aveIOWait_sum = 0;
-	for(i = 0; i < monitorNum; i++)
+	currentMonitorAPP = beginMonitorAPP;
+	for(i = 0; i < MonitorAPPNameNum; i++)
 	{
-		printk("%s %d %d %d %d %d %d %d %s\n", MonitorProcInfo[i].name, MonitorProcInfo[i].pid, MonitorProcInfo[i].ppid, MonitorProcInfo[i].cpuUsed, MonitorProcInfo[i].memUsed, MonitorProcInfo[i].schedInfo.sum_exec_runtime, MonitorProcInfo[i].schedInfo.wait_sum, MonitorProcInfo[i].schedInfo.iowait_sum, MonitorProcInfo[i].State);
-		if(MonitorProcInfo[i].pid != 0)
+		if(currentMonitorAPP->flags)
 		{
-			for(j = 0; j < MAX_SCHEDINFOARRAY; j++)
+			for(j = 0; j < MAX_RECORD_LENGTH; j++)
 			{
-				aveWait_sum += MonitorProcInfoArray[i].procSchedInfo[j].wait_sum;
-				aveIOWait_sum += MonitorProcInfoArray[i].procSchedInfo[j].iowait_sum;
+				aveWait_sum += currentMonitorAPP->schedInfo[j].wait_sum;
+				aveIOWait_sum += currentMonitorAPP->schedInfo[j].iowait_sum;
 			}
-			aveWait_sum /= MAX_SCHEDINFOARRAY;
-			aveIOWait_sum /= MAX_SCHEDINFOARRAY;
+			aveWait_sum /= MAX_RECORD_LENGTH;
+			aveIOWait_sum /= MAX_RECORD_LENGTH;
 			//当1s内的等待时间大于500ms时认为软件有冲突
 			if(aveWait_sum >= 500 || aveIOWait_sum >= 500)
 				return true;
 		}
+		currentMonitorAPP = currentMonitorAPP->next;
 	}
 
 	return false;

@@ -41,7 +41,7 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 
 int WriteLog(const char* logName, const char* logInfo, const char *file, const char* function, const int line)
 {
-#if OPENLOG
+#if (OPENLOG == 1)
 	struct file * _fd = KOpenFile(logName, O_APPEND | O_WRONLY);
 	if(NULL == _fd)
 		return -1;

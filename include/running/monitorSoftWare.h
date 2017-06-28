@@ -17,20 +17,6 @@
 #include <linux/sched.h>
 #include <linux/vmalloc.h>
 
-
-/***********************************************
- * func: 清空MonitorProcInfo数组
- * return: void
-***********************************************/
-void clearMonitor();
-
-/**********************************************
- * func: 清空MonitorProcInfo数组中除了Name字段外的数据
- * return: void
- * @para monitorNum: MonitorProcInfo数据的前monitorNum项
-**********************************************/
-void clearMonitorExceptName(int monitorNum);
-
 /**********************************************
  * func: clear MonitorAPPName object
  * return: void

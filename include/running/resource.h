@@ -90,12 +90,6 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource);
 void getSysResourceInfo(SysResource *totalResource);
 
 /***********************************************
- * func: 获取要监控软件的资源使用情况
- * return: void
- * *********************************************/
-void getMonitorProgressInfo();
-
-/***********************************************
  * func: get all user layer APP
  * return: void
 ***********************************************/

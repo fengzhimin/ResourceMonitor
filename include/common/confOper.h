@@ -14,6 +14,7 @@
 #include "strOper.h"
 #include "config.h"
 #include "log/logOper.h"
+#include "running/monitorSoftWare.h"
 
 #define getConfValueByLabelAndKey(label, key, value) getConfValueByLabelAndKeyDebug(label, key, value, __FILE__, __FUNCTION__, __LINE__)
 

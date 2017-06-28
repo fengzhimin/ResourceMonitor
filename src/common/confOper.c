@@ -78,6 +78,10 @@ int getMonitorSoftWareDebug(const char *file, const char *function, const int li
 		RecordLog(error_info);
 		return 0;
 	}
+	MonitorAPPName temp;
+	//associate list header and tail
+	beginMonitorAPPName = endMonitorAPPName = currentMonitorAPPName = vmalloc(sizeof(MonitorAPPName));
+	memset(currentMonitorAPPName, 0, sizeof(MonitorAPPName));
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	bool point = false;
 	int retMonitorNum = 0;
@@ -110,16 +114,11 @@ int getMonitorSoftWareDebug(const char *file, const char *function, const int li
 				//判断是否为要被提取的配置项
 				if(strcasecmp(MONITOR_KEY, subStr2[0]) == 0)
 				{
-					if(retMonitorNum == MAX_MONITOR_SOFTWARE_NUM)
-					{
-						WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-						RecordLog("配置文件中的监控软件个数大于预定义监控软件个数(MAX_MONITOR_SOFTWARE_NUM)\n");
-						break;
-					}
 					removeChar(subStr2[1], ' ');
-					strcpy(MonitorProcInfoArray[retMonitorNum].procName, subStr2[1]);
-					strcpy(MonitorProcInfo[retMonitorNum].name, subStr2[1]);
-					retMonitorNum++;
+					memset(&temp, 0, sizeof(MonitorAPPName));
+					strcpy(temp.name, subStr2[1]);
+					if(insertMonitorAPPName(temp))
+						retMonitorNum++;
 				}
 			}
 		}
@@ -127,6 +126,14 @@ int getMonitorSoftWareDebug(const char *file, const char *function, const int li
 	}
 
 	KCloseFile(fd);
+	//in order to improve efficiency
+	currentMonitorAPPName = beginMonitorAPPName;
+	beginMonitorAPPName = beginMonitorAPPName->next;
+	vfree(currentMonitorAPPName);
+
+	//set global variable
+	MonitorAPPNameNum = retMonitorNum;
+
 	return retMonitorNum;
 }
 

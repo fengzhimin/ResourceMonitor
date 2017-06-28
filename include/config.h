@@ -16,6 +16,12 @@
 
 #define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
+/*
+ * 1: automatic monitor all user layer app
+ * 0: monitor user specify app
+ */
+#define MONITOR_TYPE    1  
+
 #define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
 
 #define FILE_PATH_MAX_LENGTH   256    //一个文件的路径最大长度
@@ -45,10 +51,8 @@
 //定义KCode配置文件存放的路径
 #define KCODE_CONFIG_PATH     "/etc/KCode.conf"
 #define KCODE_CONFIG_NOTESYMBOL    '#'
-#define MAX_MONITOR_SOFTWARE_NUM   10    //监控软件的最大个数
 #define MONITOR_LABEL         "monitor"  //用于标识监控软件的label
 #define MONITOR_KEY           "software" //用于标识监控软件的key
-#define MAX_SCHEDINFOARRAY         60    //存放60*CALC_CPU_TIME毫秒内的程序sched数据
 
 #define MAX_RECORD_LENGTH          5     //during MAX_RECORD_LENGTH*CALC_CPU_TIME ms, Process Resource utilization
 #define MAX_CHILD_PROCESS_NUM      10    //A program has the maximum number of processes
@@ -90,15 +94,6 @@ typedef struct ProcessSchedInfo
 	int wait_sum;     //在就绪队列里的等待时间
 	int iowait_sum;   //io等待时间
 } ProcSchedInfo;
-
-/*************************************
- * function: 存放一段时间内的进程sched信息
-**************************************/
-typedef struct ProcessSchedInfoArray
-{
-	char procName[MAX_INFOLENGTH];   //进程名
-	ProcSchedInfo procSchedInfo[MAX_SCHEDINFOARRAY];    //每个阶段的ProcSchedInfo数据
-} ProcSchedInfoArray;
 
 /***********************************
  * function: 存放进程使用的系统资源数据
@@ -375,24 +370,11 @@ extern ConflictProcInfo *currentConflictProcess; //当前的冲突信息
 //冲突信息互斥锁
 extern struct mutex ConflictProcess_Mutex;
 
-//要监控的软件资源使用情况
-extern ProcInfo MonitorProcInfo[MAX_MONITOR_SOFTWARE_NUM];
-
-//记录当前操作的proSchedInfo数组下标(把结构体ProcSchedInfoArray中的procSchedInfo数组看做为一个循环列表来操作)
-//currentRecordSchedIndex的值介于0 ~ MAX_SCHEDINFOARRAY-1之间
-extern int currentRecordSchedIndex;
-
-//要监控的软件的一段时间内的sched数据
-extern ProcSchedInfoArray MonitorProcInfoArray[MAX_MONITOR_SOFTWARE_NUM];
-
 //系统资源使用率临界值
 extern int max_CPUUSE;
 extern int max_MEMUSE;
 extern int max_IOUSE;
 extern int max_NETUSE;
-
-//系统监控软件的个数
-extern int monitorNum;
 
 /**********************************
  * function: 监控软件的名称列表

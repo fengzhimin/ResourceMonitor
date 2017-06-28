@@ -11,29 +11,6 @@
 
 static char cmdline[MAX_PROCPATH];
 
-void clearMonitor()
-{
-	currentRecordSchedIndex = 0;
-	int i;
-	for(i = 0; i < MAX_MONITOR_SOFTWARE_NUM; i++)
-	{
-		memset(&MonitorProcInfo[i], 0, sizeof(ProcInfo));
-		memset(&MonitorProcInfoArray[i], 0, sizeof(ProcSchedInfoArray));
-	}
-}
-
-void clearMonitorExceptName(int monitorNum)
-{
-	int i;
-	char tempName[MAX_INFOLENGTH];
-	for(i = 0; i < monitorNum; i++)
-	{
-		strcpy(tempName, MonitorProcInfo[i].name);
-		memset(&MonitorProcInfo[i], 0, sizeof(ProcInfo));
-		strcpy(MonitorProcInfo[i].name, tempName);
-	}
-}
-
 void clearMonitorAPPName()
 {
 	currentMonitorAPPName = beginMonitorAPPName;

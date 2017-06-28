@@ -28,8 +28,7 @@ int monitorResource(void *data);
 int Code_init(void)
 {
 	printk("success\n");
-	clearMonitor();
-	monitorNum = getMonitorSoftWare();
+	getMonitorSoftWare();
 	//从配置文件中提取CPU和MEM的最大临界值
 	char max_CPUUSE_Str[CONFIG_VALUE_MAX_NUM];
 	char max_MEMUSE_Str[CONFIG_VALUE_MAX_NUM];
