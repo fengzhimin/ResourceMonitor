@@ -85,9 +85,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource);
 /***********************************************
  * func: 获取系统的资源使用情况
  * return: void
- * @para totalResource: 系统的资源使用情况
 ***********************************************/
-void getSysResourceInfo(SysResource *totalResource);
+void getSysResourceInfo();
 
 /***********************************************
  * func: get all user layer APP

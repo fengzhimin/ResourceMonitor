@@ -39,39 +39,74 @@ void solveProcessRelate(ProcInfo info[], int processNum)
 	}
 }
 
-bool judgeSysResConflict(SysResource sysResource)
+bool judgeSysResConflict()
 {
 	//合并磁盘数据
 	char ioUsedInfo[100] = { 0 };
 	char netUsedInfo[100] = { 0 };
 	IOUsedInfo *diskUsed = NULL;
 	NetUsedInfo *netUsed = NULL;
-	while(sysResource.ioUsed != NULL)
+	int avgCPUUsed = 0;
+	int avgMEMUsed = 0;
+	int i;
+	for(i = 0; i < MAX_RECORD_LENGTH; i++)
 	{
-		diskUsed = sysResource.ioUsed;
-		sysResource.ioUsed = sysResource.ioUsed->next;
-		sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
-		vfree(diskUsed);
-	}
-	while(sysResource.netUsed != NULL)
-	{
-		netUsed = sysResource.netUsed;
-		sysResource.netUsed = sysResource.netUsed->next;
-		//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
-		if(strcasecmp(netUsed->netCardName, "lo") != 0)
+		diskUsed = sysResArray[i].ioUsed;
+		netUsed = sysResArray[i].netUsed;
+		strcat(ioUsedInfo, "[");
+		while(diskUsed != NULL)
 		{
-			int speed = getNetCardSpeed(netUsed->netCardName);
-			//计算出来的是百分比
-			if(speed != 0)
-				sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
-			else
-				sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
+			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
+			diskUsed = diskUsed->next;
 		}
-		vfree(netUsed);
+		strcat(ioUsedInfo, "] ");
+		strcat(netUsedInfo, "[");
+		while(netUsed != NULL)
+		{
+			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
+			if(strcasecmp(netUsed->netCardName, "lo") != 0)
+			{
+				int speed = getNetCardSpeed(netUsed->netCardName);
+				//计算出来的是百分比
+				if(speed != 0)
+					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
+				else
+					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
+			}
+			netUsed = netUsed->next;
+		}
+		strcat(netUsedInfo, "] ");
 	}
-	printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t NET使用率: %s\n", sysResource.cpuUsed, sysResource.memUsed, ioUsedInfo, netUsedInfo);
-
-	if(sysResource.cpuUsed >= SYS_MAX_CPU || sysResource.memUsed >= SYS_MAX_MEM)
+	int count = 0;
+	int sum = 0;
+	printk("总CPU使用率为: ");
+	for(i = 0; i < MAX_RECORD_LENGTH; i++)
+	{
+		if(sysResArray[i].cpuUsed >= 0)
+		{
+			sum += sysResArray[i].cpuUsed;
+			count++;
+		}
+		printk("[%d] ", sysResArray[i].cpuUsed);
+	}
+	printk("\n");
+	avgCPUUsed = sum/count;
+	sum = count = 0;
+	printk("总MEM使用率为: ");
+	for(i = 0; i < MAX_RECORD_LENGTH; i++)
+	{
+		if(sysResArray[i].memUsed > 0)
+		{
+			sum += sysResArray[i].memUsed;
+			count++;
+		}
+		printk("[%d] ", sysResArray[i].memUsed);
+	}
+	printk("\n");
+	avgMEMUsed = sum/count;
+	printk("IO使用率: %s\n NET使用率: %s\n", ioUsedInfo, netUsedInfo);
+	printk("CPU 平均使用率: %d\t内存平均使用率: %d\n", avgCPUUsed, avgMEMUsed);
+	if(avgCPUUsed >= SYS_MAX_CPU || avgMEMUsed >= SYS_MAX_MEM)
 		return true;
 	else
 		return false;

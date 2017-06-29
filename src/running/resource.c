@@ -477,7 +477,7 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	return retValue;
 }
 
-void getSysResourceInfo(SysResource *totalResource)
+void getSysResourceInfo()
 {
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
@@ -499,14 +499,21 @@ void getSysResourceInfo(SysResource *totalResource)
 	{
 		int handle_IO_time = 0;
 		IOUsedInfo *tailIOUsedInfo;
-		totalResource->ioUsed = tailIOUsedInfo = NULL;
+		//free invalid object
+		while(sysResArray[currentRecordSysResIndex].ioUsed != NULL)
+		{
+			tailIOUsedInfo = sysResArray[currentRecordSysResIndex].ioUsed;
+			sysResArray[currentRecordSysResIndex].ioUsed = sysResArray[currentRecordSysResIndex].ioUsed->next;
+			vfree(tailIOUsedInfo);
+		}
+		sysResArray[currentRecordSysResIndex].ioUsed = tailIOUsedInfo = NULL;
 		while(curDiskInfo1 != NULL)
 		{
 			handle_IO_time = (curDiskInfo2->diskInfo.ticks - curDiskInfo1->diskInfo.ticks);
 			//计算每个磁盘的使用率
 			if(tailIOUsedInfo == NULL)
 			{
-				totalResource->ioUsed = tailIOUsedInfo = vmalloc(sizeof(IOUsedInfo));
+				sysResArray[currentRecordSysResIndex].ioUsed = tailIOUsedInfo = vmalloc(sizeof(IOUsedInfo));
 			}
 			else
 			{
@@ -533,7 +540,6 @@ void getSysResourceInfo(SysResource *totalResource)
 	else
 	{
 		//针对前后两次磁盘的个数不一致的情况，直接忽略这次检测
-		totalResource->ioUsed = NULL;
 		//释放列表资源
 		while(totalDiskInfo1 != NULL)
 		{
@@ -554,12 +560,12 @@ void getSysResourceInfo(SysResource *totalResource)
 	//计算总CPU使用率
 	int totalcpu = total_cpu2 - total_cpu1;
 	int totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
-	totalResource->cpuUsed = 100*(totalcpu-totalidle)/totalcpu;
+	sysResArray[currentRecordSysResIndex].cpuUsed = 100*(totalcpu-totalidle)/totalcpu;
 	MemInfo totalMem;
 	if(getTotalPM(&totalMem))
 	{
 		//计算内存使用率
-		totalResource->memUsed = 100*(totalMem.memTotal-totalMem.memAvailable)/totalMem.memTotal;
+		sysResArray[currentRecordSysResIndex].memUsed = 100*(totalMem.memTotal-totalMem.memAvailable)/totalMem.memTotal;
 	}
 	//获取系统的网络实时情况
 	NetInfo *totalNet2;
@@ -569,13 +575,20 @@ void getSysResourceInfo(SysResource *totalResource)
 	if(totalNetInfoNum1 == totalNetInfoNum2 && totalNetInfoNum1 != 0)
 	{
 		NetUsedInfo *tailNetUsedInfo;
-		totalResource->netUsed = tailNetUsedInfo = NULL;
+		//free invalid object
+		while(sysResArray[currentRecordSysResIndex].netUsed != NULL)
+		{
+			tailNetUsedInfo = sysResArray[currentRecordSysResIndex].netUsed;
+			sysResArray[currentRecordSysResIndex].netUsed = sysResArray[currentRecordSysResIndex].netUsed->next;
+			vfree(tailNetUsedInfo);
+		}
+		sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = NULL;
 		while(curNetInfo1 != NULL)
 		{
 			//计算每个网卡的使用率
 			if(tailNetUsedInfo == NULL)
 			{
-				totalResource->netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
+				sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
 			}
 			else
 			{
@@ -607,7 +620,6 @@ void getSysResourceInfo(SysResource *totalResource)
 	else
 	{
 		//当前后两次网卡数量不一致的时，直接忽略
-		totalResource->netUsed = NULL;
 		//释放列表资源
 		while(totalNet1 != NULL)
 		{
@@ -622,6 +634,9 @@ void getSysResourceInfo(SysResource *totalResource)
 			vfree(curNetInfo2);
 		}
 	}
+
+	currentRecordSysResIndex++;
+	currentRecordSysResIndex %= MAX_RECORD_LENGTH;
 }
 
 void getUserLayerAPP()

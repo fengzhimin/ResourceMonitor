@@ -13,7 +13,6 @@ static char error_info[200];
 static char status[MAX_PROCPATH], stat[MAX_PROCPATH];
 static char io[MAX_PROCPATH];
 static char sched[MAX_PROCPATH];
-static char procPID[MAX_PROCPATH];
 
 void clearMonitorProgPid()
 {

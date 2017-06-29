@@ -33,7 +33,8 @@ int Code_init(void)
 	getMonitorSoftWare();
 #endif
 
-	loadConfig();
+	loadConfig();   //read config information from configuration file
+	memset(sysResArray, 0, sizeof(SysResource)*MAX_RECORD_LENGTH);    //clear sysResArray
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
 	if(IS_ERR(monitorTask))
 	{
@@ -68,11 +69,10 @@ module_exit(Code_exit);
 int monitorResource(void *data)
 {
 	int i;
-	SysResource totalResource;
 	while(!kthread_should_stop())
 	{
-		getSysResourceInfo(&totalResource);
-		if(judgeSysResConflict(totalResource))
+		getSysResourceInfo();
+		if(judgeSysResConflict())
 		{
 			getUserLayerAPP();
 			currentMonitorAPP = beginMonitorAPP;
@@ -94,12 +94,11 @@ int monitorResource(void *data)
 int monitorResource(void *data)
 {
 	int i;
-	SysResource totalResource;
 	while(!kthread_should_stop())
 	{
 		
-		getSysResourceInfo(&totalResource);
-		if(judgeSysResConflict(totalResource))
+		getSysResourceInfo();
+		if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{
@@ -150,49 +149,6 @@ int monitorResource(void *data)
 				mutex_unlock(&ConflictProcess_Mutex);
 			}
 		}
-	}
-
-	return 0;
-}
-*/
-
-/* 获取系统的资源使用清空
-int monitorResource(void *data)
-{
-	while(!kthread_should_stop())
-	{
-		
-		SysResource totalResource;
-		getSysResourceInfo(&totalResource);
-		//合并磁盘数据
-		char ioUsedInfo[100] = { 0 };
-		char netUsedInfo[100] = { 0 };
-		IOUsedInfo *diskUsed = NULL;
-		NetUsedInfo *netUsed = NULL;
-		while(totalResource.ioUsed != NULL)
-		{
-			diskUsed = totalResource.ioUsed;
-			totalResource.ioUsed = totalResource.ioUsed->next;
-			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
-			vfree(diskUsed);
-		}
-		while(totalResource.netUsed != NULL)
-		{
-			netUsed = totalResource.netUsed;
-			totalResource.netUsed = totalResource.netUsed->next;
-			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
-			if(strcasecmp(netUsed->netCardName, "lo") != 0)
-			{
-				int speed = getNetCardSpeed(netUsed->netCardName);
-				//计算出来的是百分比
-				if(speed != 0)
-					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
-				else
-					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
-			}
-			vfree(netUsed);
-		}
-		printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t NET使用率: %s\n", totalResource.cpuUsed, totalResource.memUsed, ioUsedInfo, netUsedInfo);
 	}
 
 	return 0;
