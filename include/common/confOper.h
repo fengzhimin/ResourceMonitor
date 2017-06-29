@@ -16,9 +16,17 @@
 #include "log/logOper.h"
 #include "running/monitorSoftWare.h"
 
+#define loadConfig() loadConfigDebug(__FILE__, __FUNCTION__, __LINE__)
+
 #define getConfValueByLabelAndKey(label, key, value) getConfValueByLabelAndKeyDebug(label, key, value, __FILE__, __FUNCTION__, __LINE__)
 
 #define getMonitorSoftWare() getMonitorSoftWareDebug(__FILE__, __FUNCTION__, __LINE__)
+
+/****************************************
+ * func: load configuration from config file to initial the max value of Resource unilization
+ * return: void
+****************************************/
+void loadConfigDebug(const char *file, const char *function, const int line);
 
 /***************************************
  * func: 读取配置项的值

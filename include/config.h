@@ -371,10 +371,20 @@ extern ConflictProcInfo *currentConflictProcess; //当前的冲突信息
 extern struct mutex ConflictProcess_Mutex;
 
 //系统资源使用率临界值
-extern int max_CPUUSE;
-extern int max_MEMUSE;
-extern int max_IOUSE;
-extern int max_NETUSE;
+extern int SYS_MAX_CPU;
+extern int SYS_MAX_MEM;
+extern int SYS_MAX_IO;
+extern int SYS_MAX_NET;
+
+/*
+ * the max value of process resource unilization
+ * PROC_MAX_SCHED: the max value of process sched
+ */
+extern int PROC_MAX_CPU;
+extern int PROC_MAX_MEM;
+extern unsigned long long PROC_MAX_IO;
+extern unsigned long long PROC_MAX_NET;
+extern ProcSchedInfo PROC_MAX_SCHED;
 
 /**********************************
  * function: 监控软件的名称列表
@@ -409,6 +419,12 @@ typedef struct ProgramAllRes
 	ProcSchedInfo schedInfo[MAX_CHILD_PROCESS_NUM];
 	unsigned long long ioDataBytes[MAX_CHILD_PROCESS_NUM];
 } ProgAllRes;
+
+//system resouces unilization list
+extern SysResource sysResArray[MAX_RECORD_LENGTH];
+
+//record current system resource unilization index
+extern int currentRecordSysResIndex;
 
 //用户层的APP列表
 extern MonitorAPPName *beginMonitorAPPName;     //用户层APP列表头

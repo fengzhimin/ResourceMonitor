@@ -13,6 +13,128 @@ static char subStr2[2][MAX_SUBSTR];
 static char lineData[LINE_CHAR_MAX_NUM];
 static char error_info[200];
 
+void loadConfigDebug(const char *file, const char *function, const int line)
+{
+	/*
+	 * load system configuration
+	 */
+	char temp[CONFIG_VALUE_MAX_NUM];
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("SYSRESINFO", "CPU", temp))
+	{
+		SYS_MAX_CPU = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load SYSRESINFO-CPU value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("SYSRESINFO", "MEM", temp))
+	{
+		SYS_MAX_MEM = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load SYSRESINFO-MEM value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("SYSRESINFO", "IO", temp))
+	{
+		SYS_MAX_IO = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load SYSRESINFO-IO value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("SYSRESINFO", "NET", temp))
+	{
+		SYS_MAX_NET = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load SYSRESINFO-NET value is failure!\n");
+	}
+
+	/*
+	 * load process configuration
+	 */
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "CPU", temp))
+	{
+		PROC_MAX_CPU = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-CPU value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "MEM", temp))
+	{
+		PROC_MAX_MEM = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-MEM value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "IO", temp))
+	{
+		PROC_MAX_IO = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-IO value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "NET", temp))
+	{
+		PROC_MAX_NET = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-NET value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "SCHED_SUM_EXEC_RUNTIME", temp))
+	{
+		PROC_MAX_SCHED.sum_exec_runtime = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-SCHED.sum_exec_runtime value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "SCHED_WAIT_SUM", temp))
+	{
+		PROC_MAX_SCHED.wait_sum = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-SCHED.wait_sum value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "SCHED_IOWAIT_SUM", temp))
+	{
+		PROC_MAX_SCHED.iowait_sum = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-SCHED.iowait_sum value is failure!\n");
+	}
+}
+
 bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const char *file, const char *function, const int line)
 {
 	struct file *fd = KOpenFile(KCODE_CONFIG_PATH, O_RDONLY);

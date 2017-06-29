@@ -71,7 +71,7 @@ bool judgeSysResConflict(SysResource sysResource)
 	}
 	printk("总CPU使用率为: %d\t总内存使用率为: %d\t IO使用率: %s\t NET使用率: %s\n", sysResource.cpuUsed, sysResource.memUsed, ioUsedInfo, netUsedInfo);
 
-	if(sysResource.cpuUsed >= max_CPUUSE || sysResource.memUsed >= max_MEMUSE)
+	if(sysResource.cpuUsed >= SYS_MAX_CPU || sysResource.memUsed >= SYS_MAX_MEM)
 		return true;
 	else
 		return false;

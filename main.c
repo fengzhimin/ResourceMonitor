@@ -28,30 +28,12 @@ int monitorResource(void *data);
 int Code_init(void)
 {
 	printk("success\n");
+
+#if (MONITOR_TYPE == 0)
 	getMonitorSoftWare();
-	//从配置文件中提取CPU和MEM的最大临界值
-	char max_CPUUSE_Str[CONFIG_VALUE_MAX_NUM];
-	char max_MEMUSE_Str[CONFIG_VALUE_MAX_NUM];
-	memset(max_CPUUSE_Str, 0, CONFIG_VALUE_MAX_NUM);
-	memset(max_MEMUSE_Str, 0, CONFIG_VALUE_MAX_NUM);
-	if(getConfValueByLabelAndKey("CPUINFO", "CPU", max_CPUUSE_Str))
-	{
-		max_CPUUSE = ExtractNumFromStr(max_CPUUSE_Str);
-	}
-	else
-	{
-		printk("提取配置项CPU的值失败!\n");
-	}
+#endif
 
-	if(getConfValueByLabelAndKey("MEMINFO", "MEM", max_MEMUSE_Str))
-	{
-		max_MEMUSE = ExtractNumFromStr(max_MEMUSE_Str);
-	}
-	else
-	{
-		printk("提取配置项MEM的值失败!\n");
-	}
-
+	loadConfig();
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
 	if(IS_ERR(monitorTask))
 	{

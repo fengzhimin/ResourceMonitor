@@ -36,10 +36,25 @@ ConflictProcInfo *currentConflictProcess = NULL; //当前的冲突信息
 
 struct mutex ConflictProcess_Mutex;
 
-int max_CPUUSE = 70;
-int max_MEMUSE = 70;
-int max_IOUSE = 80;
-int max_NETUSE = 70;
+int PROC_MAX_CPU = 30;
+int PROC_MAX_MEM = 40;
+unsigned long long PROC_MAX_IO = 102400000;   //10 M
+unsigned long long PROC_MAX_NET = 1024000;   //1 M
+ProcSchedInfo PROC_MAX_SCHED = 
+{
+	.sum_exec_runtime = 500,   //500 ms
+	.wait_sum = 500,    //500 ms
+	.iowait_sum = 500,  //500 ms
+};
+
+int SYS_MAX_CPU = 70;
+int SYS_MAX_MEM = 70;
+int SYS_MAX_IO = 80;
+int SYS_MAX_NET = 70;
+
+SysResource sysResArray[MAX_RECORD_LENGTH];
+
+int currentRecordSysResIndex = 0;
 
 MonitorAPPName *beginMonitorAPPName = NULL;     //用户层APP列表头
 MonitorAPPName *endMonitorAPPName = NULL;       //用户层APP列表尾
