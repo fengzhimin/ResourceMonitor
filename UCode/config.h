@@ -48,13 +48,13 @@ typedef struct ProcessInfo
 
 /**********************************
  * function: 存放资源冲突的进程信息
- * processInfo: 进程的资源使用情况
+ * name: process name
  * conflictType: 冲突的类型
  * next: 下一个地址
 **********************************/
 typedef struct ConflictProcess
 {
-	ProcInfo processInfo;
+	char name[MAX_INFOLENGTH];   //进程的名称
 	int conflictType;
 	struct ConflictProcess *next;
 } ConflictProcInfo;

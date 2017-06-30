@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 			}
 			if(info.conflictInfo.conflictType == 0)
 				break;
-			printf("conflict type = %d\t conflict process = %s\n", info.conflictInfo.conflictType, info.conflictInfo.processInfo.name);
+			printf("conflict type = %d\t conflict process = %s\n", info.conflictInfo.conflictType, info.conflictInfo.name);
 		}
 	    usleep(100000);
     }

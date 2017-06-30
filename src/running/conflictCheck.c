@@ -131,7 +131,7 @@ bool judgeSoftWareConflict()
 			aveWait_sum /= MAX_RECORD_LENGTH;
 			aveIOWait_sum /= MAX_RECORD_LENGTH;
 			//当1s内的等待时间大于500ms时认为软件有冲突
-			if(aveWait_sum >= 500 || aveIOWait_sum >= 500)
+			if(aveWait_sum >= PROC_MAX_SCHED.wait_sum || aveIOWait_sum >= PROC_MAX_SCHED.iowait_sum)
 				return true;
 		}
 		currentMonitorAPP = currentMonitorAPP->next;

@@ -349,14 +349,14 @@ extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作
 
 /**********************************
  * function: 存放资源冲突的进程信息
- * processInfo: 进程的资源使用情况
+ * name: conflict process name
  * conflictType: 冲突的类型
  * conflictInfo: 存放冲突的信息
  * next: 下一个地址
 **********************************/
 typedef struct ConflictProcess
 {
-	ProcInfo processInfo;
+	char name[MAX_INFOLENGTH];
 	int conflictType;
 	char conflictInfo[MAX_CONFLICTINFO];
 	struct ConflictProcess *next;

@@ -66,6 +66,7 @@ void Code_exit(void)
 module_init(Code_init);  
 module_exit(Code_exit);
 
+/***print history resource unilization
 int monitorResource(void *data)
 {
 	int i;
@@ -89,14 +90,16 @@ int monitorResource(void *data)
 
 	return 0;
 }
+*/
 
-/***监控用户自定义软件的资源冲突情况
+
 int monitorResource(void *data)
 {
 	int i;
 	while(!kthread_should_stop())
 	{
-		
+		int avgCPU, avgMEM;
+		unsigned long long avgIOData, avgNetData;
 		getSysResourceInfo();
 		if(judgeSysResConflict())
 		{
@@ -114,37 +117,60 @@ int monitorResource(void *data)
 					currentConflictProcess = beginConflictProcess;
 				}
 
-				for(i = 0; i < monitorNum; i++)
+				currentMonitorAPP = beginMonitorAPP;
+				while(currentMonitorAPP != NULL)
 				{
-					//判断是那个进程占用资源多
-					if(MonitorProcInfo[i].cpuUsed > 30 || MonitorProcInfo[i].memUsed > 30 || MonitorProcInfo[i].ioDataBytes > 1000 || MonitorProcInfo[i].totalBytes > 2000000)
+					avgCPU = avgMEM = 0;
+					avgIOData = avgNetData = 0;
+					for(i = 0; i < MAX_RECORD_LENGTH; i++)
 					{
-						int conflictType = 0;
-						if(MonitorProcInfo[i].cpuUsed > 30)
-							conflictType |= CPU_CONFLICT;
-						if(MonitorProcInfo[i].memUsed > 30)
-							conflictType |= MEM_CONFLICT;
-						if(MonitorProcInfo[i].ioDataBytes > 2000000)
-							conflictType |= IO_CONFLICT;
-						if(MonitorProcInfo[i].totalBytes > 2000000)
-							conflictType |= NET_CONFLICT;
-
+						avgCPU += currentMonitorAPP->cpuUsed[i];
+						avgMEM += currentMonitorAPP->memUsed[i];
+						avgIOData += currentMonitorAPP->ioDataBytes;
+						avgNetData += currentMonitorAPP->netTotalBytes;
+					}
+					int conflictType = 0;
+					bool conflictPoint = false;
+					if(avgCPU > PROC_MAX_CPU)
+					{
+						conflictType |= CPU_CONFLICT;
+						conflictPoint = true;
+					}
+					if(avgMEM > PROC_MAX_MEM)
+					{
+						conflictType |= MEM_CONFLICT;
+						conflictPoint = true;
+					}
+					if(avgCPU > PROC_MAX_IO)
+					{
+						conflictType |= IO_CONFLICT;
+						conflictPoint = true;
+					}
+					if(avgCPU > PROC_MAX_NET)
+					{
+						conflictType |= NET_CONFLICT;
+						conflictPoint = true;
+					}
+					if(conflictPoint)
+					{
 						if(beginConflictProcess == NULL)
 						{
 							beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
-							beginConflictProcess->processInfo = MonitorProcInfo[i];
+							strcpy(beginConflictProcess->name, currentMonitorAPP->name);
 							beginConflictProcess->conflictType = conflictType;
 							beginConflictProcess->next = NULL;
 						}
 						else
 						{
 							endConflictProcess = endConflictProcess->next = vmalloc(sizeof(ConflictProcInfo));
-							endConflictProcess->processInfo = MonitorProcInfo[i];
+							strcpy(endConflictProcess->name, currentMonitorAPP->name);
 							endConflictProcess->conflictType = conflictType;
 							endConflictProcess->next = NULL;
 						}
 					}
+					currentMonitorAPP = currentMonitorAPP->next;
 				}
+
 				//释放锁
 				mutex_unlock(&ConflictProcess_Mutex);
 			}
@@ -153,7 +179,7 @@ int monitorResource(void *data)
 
 	return 0;
 }
-*/
+
 
 /* 同时获取系统的资源以及每个进程的资源使用
 int monitorResource(void *data)
