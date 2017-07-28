@@ -10,7 +10,8 @@
 #include "running/process.h"
 
 static char error_info[200];
-static char status[MAX_PROCPATH], stat[MAX_PROCPATH];
+static char status[MAX_PROCPATH];
+//static char stat[MAX_PROCPATH];
 static char io[MAX_PROCPATH];
 static char sched[MAX_PROCPATH];
 
@@ -119,9 +120,9 @@ ProgAllRes getProgramCPU(char *progName, int *pidArray)
 	{
 		if(pidArray[i] == 0)
 			break;
-		memset(stat, 0, MAX_PROCPATH);
-		sprintf(stat, "/proc/%d/stat", pidArray[i]);
-		ret_temp = getProcessCPUTime(stat, &procCpuTime);
+		//memset(stat, 0, MAX_PROCPATH);
+		//sprintf(stat, "/proc/%d/stat", pidArray[i]);
+		ret_temp = getProcessCPUTime(pidArray[i], &procCpuTime);
 		if(ret_temp)
 		{
 			//valid

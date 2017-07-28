@@ -13,8 +13,9 @@
 #include "common/fileOper.h"
 #include "common/strOper.h"
 #include "log/logOper.h"
+#include <linux/sched.h>
 
-#define getProcessCPUTime(stat, processCpuTime)  getProcessCPUTimeDebug(stat, processCpuTime, __FILE__, __FUNCTION__, __LINE__)
+#define getProcessCPUTime(pid, processCpuTime)  getProcessCPUTimeDebug(pid, processCpuTime, __FILE__, __FUNCTION__, __LINE__)
 #define getTotalCPUTime(totalCpuTime)            getTotalCPUTimeDebug(totalCpuTime, __FILE__, __FUNCTION__, __LINE__)
 
 /**********************************************
@@ -29,7 +30,16 @@ bool getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, co
  * return true = 成功　　　false = 失败
  * @para stat: 程序的stat路径
  * @para processCpuTime: 存放程序使用CPU时间
-*********************************************/
+*********************************************
 bool getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line);
+*/
+
+/*********************************************
+ * func: 获取程序CPU使用时间
+ * return true = 成功　　　false = 失败
+ * @para pid: process id
+ * @para processCpuTime: 存放程序使用CPU时间
+*********************************************/
+bool getProcessCPUTimeDebug(pid_t pid, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line);
 
 #endif

@@ -9,23 +9,19 @@
 
 #include "resource/CPU/CPUResource.h"
 
-static char stat_data[1000];
-static char subStr18[18][MAX_SUBSTR];
+//static char stat_data[1000];
+//static char subStr18[18][MAX_SUBSTR];
 static char lineData[LINE_CHAR_MAX_NUM];
 
 static char error_info[200];
 
+/*
 bool getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line)
 {
 	memset(processCpuTime, 0, sizeof(Process_Cpu_Occupy_t));
 	struct file *fp = KOpenFile(stat, O_RDONLY);
 	if(fp == NULL)
 	{
-		/*
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", stat, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		*/
 		return false;
 	}
 
@@ -52,6 +48,35 @@ bool getProcessCPUTimeDebug(char *stat, Process_Cpu_Occupy_t *processCpuTime, co
 		KCloseFile(fp);
 		return false;
 	}
+}
+*/
+
+bool getProcessCPUTimeDebug(pid_t pid, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line)
+{
+	memset(processCpuTime, 0, sizeof(Process_Cpu_Occupy_t));
+	struct task_struct *p = pid_task(find_vpid(pid), PIDTYPE_PID);
+	if(p == NULL)
+		return false;
+	else
+	{
+		processCpuTime->pid = pid;
+		task_lock(p);
+		struct task_struct *t = p;
+		cputime_t utime, stime;
+		do
+		{
+			task_cputime(t, &utime, &stime);
+			processCpuTime->utime += utime;
+			processCpuTime->stime += stime;
+		}while_each_thread(p, t);
+		processCpuTime->cutime = cputime_to_clock_t(p->signal->cutime);
+		processCpuTime->cstime = cputime_to_clock_t(p->signal->cstime);
+		processCpuTime->utime = cputime_to_clock_t(processCpuTime->utime);
+		processCpuTime->stime = cputime_to_clock_t(processCpuTime->stime);
+		task_unlock(p);
+	}
+
+	return true;
 }
 
 bool getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, const char *function, const int line)

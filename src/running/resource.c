@@ -9,7 +9,9 @@
 #include "running/resource.h"
 
 //static char error_info[200];
-static char status[MAX_PROCPATH], stat[MAX_PROCPATH], lineData[LINE_CHAR_MAX_NUM];
+static char status[MAX_PROCPATH];
+static char lineData[LINE_CHAR_MAX_NUM];
+//static char stat[MAX_PROCPATH];
 static char io[MAX_PROCPATH];
 static char sched[MAX_PROCPATH];
 static char procPath[MAX_PROCPATH];   //example: /proc/1234
@@ -90,11 +92,14 @@ int getProcAll(ProcPIDPath *path)
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
+		task_lock(p);
 		memset(temp->path, 0, MAX_PROCPATH);
 		sprintf(temp->path, "%s/%d", "/proc", p->pid);
+		temp->pid = p->pid;
 		temp = temp->next = vmalloc(sizeof(ProcPIDPath));
 		temp->next = NULL;
 		count++;
+		task_unlock(p);
 	}
 
 	return count;
@@ -168,12 +173,12 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	for(i = 0; i < runningProcNum; i++, currentPath = currentPath->next)
 	{
 		memset(status, 0, MAX_PROCPATH);
-		memset(stat, 0, MAX_PROCPATH);
+		//memset(stat, 0, MAX_PROCPATH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 		memset(io, 0, MAX_PROCPATH);
 		memset(sched, 0, MAX_PROCPATH);
 		sprintf(status, "%s/%s", currentPath->path, "status");
-		sprintf(stat, "%s/%s", currentPath->path, "stat");
+		//sprintf(stat, "%s/%s", currentPath->path, "stat");
 		sprintf(io, "%s/%s", currentPath->path, "io");
 		sprintf(sched, "%s/%s", currentPath->path, "sched");
 		struct file *fp = KOpenFile(status, O_RDONLY);
@@ -224,7 +229,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		KCloseFile(fp);
 		//获取进程使用CPU信息
 		Process_Cpu_Occupy_t process_cpu_occupy;
-		getProcessCPUTime(stat, &process_cpu_occupy);
+		//getProcessCPUTime(stat, &process_cpu_occupy);
+		getProcessCPUTime(currentPath->pid, &process_cpu_occupy);
 		infoPre[i].cpuUsed = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
 		//获取进程read、write系统调用信息
 		Process_IO_Data processIOData;
@@ -330,12 +336,12 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 	for(i = 0; i < runningProcNum; i++)
 	{
 		memset(status, 0, MAX_PROCPATH);
-		memset(stat, 0, MAX_PROCPATH);
+		//memset(stat, 0, MAX_PROCPATH);
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 		memset(io, 0, MAX_PROCPATH);
 		memset(sched, 0, MAX_PROCPATH);
 		sprintf(status, "%s/%s", beginPath->path, "status");
-		sprintf(stat, "%s/%s", beginPath->path, "stat");
+		//sprintf(stat, "%s/%s", beginPath->path, "stat");
 		sprintf(io, "%s/%s", beginPath->path, "io");
 		sprintf(sched, "%s/%s", beginPath->path, "sched");
 		struct file *fp = KOpenFile(status, O_RDONLY);
@@ -354,7 +360,8 @@ int getProgressInfo(ProcInfo **info, SysResource *totalResource)
 		KCloseFile(fp);
 		//获取进程使用CPU信息
 		Process_Cpu_Occupy_t process_cpu_occupy;
-		getProcessCPUTime(stat, &process_cpu_occupy);
+		//getProcessCPUTime(stat, &process_cpu_occupy);
+		getProcessCPUTime(beginPath->pid, &process_cpu_occupy);
 		infoNext[i].cpuUsed = process_cpu_occupy.utime + process_cpu_occupy.stime + process_cpu_occupy.cutime + process_cpu_occupy.cstime;
 		//获取进程read、write系统调用信息
 		Process_IO_Data processIOData;

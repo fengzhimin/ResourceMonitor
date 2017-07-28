@@ -235,6 +235,7 @@ typedef struct SystemResource
 typedef struct ProcPID
 {
 	char path[MAX_PROCPATH];
+	pid_t pid;
 	struct ProcPID *next;
 } ProcPIDPath;
 
