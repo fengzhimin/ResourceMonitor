@@ -32,7 +32,8 @@ bool insertMonitorAPPName(MonitorAPPName obj)
 	currentMonitorAPPName = beginMonitorAPPName;
 	while(currentMonitorAPPName != NULL)
 	{
-		if(strcasecmp(obj.name, currentMonitorAPPName->name) == 0)
+		//judge whether a process has be monitored or not
+		if(strcasecmp(obj.name, currentMonitorAPPName->name) == 0 && obj.pgid == currentMonitorAPPName->pgid)
 		{
 			insertPoint = false;
 			break;
@@ -65,16 +66,21 @@ void getAllMonitorAPPName()
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
+		//task_lock(p);
+		pid_t pgid = getPgid(p);
 		memset(cmdline, 0, MAX_PROCPATH);
 		sprintf(cmdline, "/proc/%d/cmdline", p->pid);
 		//By judge process /proc/pid/cmdline whether space to determine whether the program is user level or kernel level programm
-		if(IsEmpty(cmdline) == 1)
+		//a main process's pid and pgid is equal
+		if(IsEmpty(cmdline) == 1 && p->pid == pgid)
 		{
 			memset(&temp, 0, sizeof(MonitorAPPName));
 			strcpy(temp.name, p->comm);
+			temp.pgid = p->pid;
 			if(insertMonitorAPPName(temp))
 				MonitorAPPNameNum++;
 		}
+		//task_unlock(p);
 	}
 
 	//in order to improve efficiency

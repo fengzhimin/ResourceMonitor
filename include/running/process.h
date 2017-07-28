@@ -22,7 +22,14 @@
 #include <linux/sched.h>
 #include <linux/vmalloc.h>
 
-#define getAllPid(name) getAllPidDebug(name, __FILE__, __FUNCTION__, __LINE__)
+#define getAllPid(name, pgid) getAllPidDebug(name, pgid, __FILE__, __FUNCTION__, __LINE__)
+
+/**************************************************
+  * func: get a process's pgid
+  * return: pgid
+  * @para p: process task_struct point
+**************************************************/
+pid_t getPgid(struct task_struct *p);
 
 /*************************************************
  * func: clear beginMonitorProgPid data
@@ -34,8 +41,9 @@ void clearMonitorProgPid();
  * func: get a program all child process id
  * return: return ProgAllPid object
  * @para name: program name
+ * @para pgid: process group id
 *****************************************************/
-ProgAllPid getAllPidDebug(char *name, const char *file, const char *function, const int line);
+ProgAllPid getAllPidDebug(char *name, pid_t pgid, const char *file, const char *function, const int line);
 
 /************************************************
  * func: get All monitor program pid

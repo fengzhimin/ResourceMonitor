@@ -12,6 +12,7 @@
 
 #include "config.h"
 #include "common/fileOper.h"
+#include "running/process.h"
 #include <linux/string.h>
 #include <linux/init.h>
 #include <linux/sched.h>

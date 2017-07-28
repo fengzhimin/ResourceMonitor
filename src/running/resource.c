@@ -672,6 +672,7 @@ void getUserLayerAPP()
 	for(i = 0; i < MonitorAPPNameNum; i++)
 	{
 		strcpy(beginProcRes[i].name, currentMonitorProgPid->name);
+		beginProcRes[i].pgid = currentMonitorProgPid->pgid;
 		beginProcRes[i].VmRss = getProgramVmRSS(currentMonitorProgPid->pid);
 
 		/*
@@ -797,7 +798,7 @@ void getUserLayerAPP()
 				/*
 				 * find the program to be updated
 				 */
-				if(strcasecmp(currentMonitorAPP->name, beginProcRes[i].name) == 0)
+				if(strcasecmp(currentMonitorAPP->name, beginProcRes[i].name) == 0 && currentMonitorAPP->pgid == beginProcRes[i].pgid)
 				{
 					currentMonitorAPP->flags = true;
 					currentMonitorAPP->processNum = beginProcRes[i].processNum;
@@ -831,6 +832,7 @@ void getUserLayerAPP()
 				}
 
 				strcpy(endMonitorAPP->name, beginProcRes[i].name);
+				endMonitorAPP->pgid = beginProcRes[i].pgid;
 				endMonitorAPP->processNum = beginProcRes[i].processNum;
 				endMonitorAPP->flags = true;
 				endMonitorAPP->memUsed[currentRecordResIndex] = 100*beginProcRes[i].VmRss/totalMem.memTotal;
@@ -848,31 +850,35 @@ void getUserLayerAPP()
 	/*
 	 * delete the exit program
 	 */
+	ResUtilization *delete_point = NULL;
 	currentMonitorAPP = beginMonitorAPP;
 	while(currentMonitorAPP != NULL)
 	{
 		if(!currentMonitorAPP->flags)
 		{
+			delete_point = currentMonitorAPP;
 			if(currentMonitorAPP->pre == NULL)
 			{
 				//first object
 				if(currentMonitorAPP->next != NULL)
 					currentMonitorAPP->next->pre = NULL;
-				beginMonitorAPP = beginMonitorAPP->next;
+				currentMonitorAPP = beginMonitorAPP = beginMonitorAPP->next;
 			}
 			else if(currentMonitorAPP->next != NULL)
 			{
 				//middle object
 				currentMonitorAPP->pre->next = currentMonitorAPP->next;
 				currentMonitorAPP->next->pre = currentMonitorAPP->pre;
+				currentMonitorAPP = currentMonitorAPP->next;
 			}
 			else
 			{
 				//last object
 				endMonitorAPP = endMonitorAPP->pre;
-				endMonitorAPP->next = NULL;
+				currentMonitorAPP = endMonitorAPP->next = NULL;
 			}
-			vfree(currentMonitorAPP);
+			vfree(delete_point);
+			continue;
 		}
 		currentMonitorAPP = currentMonitorAPP->next;
 	}

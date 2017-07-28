@@ -115,11 +115,30 @@ bool judgeSysResConflict()
 bool judgeSoftWareConflict()
 {
 	getUserLayerAPP();
+	currentMonitorAPP = beginMonitorAPP;
+	/*
+	int index = 0;
+	printk("-----------MonitorAPP--------------\n");
+	while(currentMonitorAPP != NULL)
+	{
+		printk("%s\n", currentMonitorAPP->name);
+		currentMonitorAPP = currentMonitorAPP->next;
+		index++;
+	}
+	printk("-----------MonitorAPPName--------------------\n");
+	currentMonitorAPPName = beginMonitorAPPName;
+	while(currentMonitorAPPName != NULL)
+	{
+		printk("%s\n", currentMonitorAPPName->name);
+		currentMonitorAPPName = currentMonitorAPPName->next;
+	}
+	printk("index = %d\tMonitorAPPNameNum = %d\n", index, MonitorAPPNameNum);
+	*/
 	int i, j;
 	int aveWait_sum = 0;
 	int aveIOWait_sum = 0;
 	currentMonitorAPP = beginMonitorAPP;
-	for(i = 0; i < MonitorAPPNameNum; i++)
+	while(currentMonitorAPP != NULL)
 	{
 		if(currentMonitorAPP->flags)
 		{

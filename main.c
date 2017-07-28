@@ -18,6 +18,8 @@
 static struct task_struct *monitorTask = NULL;
 static DEFINE_MUTEX(mymutex);
 
+MODULE_LICENSE("Dual BSD/GPL");
+
 /**********************************
  * func: 创建内核线程用于监控资源使用情况
  * return: void
@@ -126,9 +128,13 @@ int monitorResource(void *data)
 					{
 						avgCPU += currentMonitorAPP->cpuUsed[i];
 						avgMEM += currentMonitorAPP->memUsed[i];
-						avgIOData += currentMonitorAPP->ioDataBytes;
-						avgNetData += currentMonitorAPP->netTotalBytes;
+						avgIOData += currentMonitorAPP->ioDataBytes[i];
+						avgNetData += currentMonitorAPP->netTotalBytes[i];
 					}
+					avgCPU /= MAX_RECORD_LENGTH;
+					avgMEM /= MAX_RECORD_LENGTH;
+					avgIOData /= MAX_RECORD_LENGTH;
+					avgNetData /= MAX_RECORD_LENGTH;
 					int conflictType = 0;
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU)
@@ -141,12 +147,12 @@ int monitorResource(void *data)
 						conflictType |= MEM_CONFLICT;
 						conflictPoint = true;
 					}
-					if(avgCPU > PROC_MAX_IO)
+					if(avgIOData > PROC_MAX_IO)
 					{
 						conflictType |= IO_CONFLICT;
 						conflictPoint = true;
 					}
-					if(avgCPU > PROC_MAX_NET)
+					if(avgNetData > PROC_MAX_NET)
 					{
 						conflictType |= NET_CONFLICT;
 						conflictPoint = true;

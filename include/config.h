@@ -13,6 +13,7 @@
 
 #include <linux/stddef.h>
 #include <linux/mutex.h>
+#include <linux/types.h>
 
 #define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
@@ -55,7 +56,7 @@
 #define MONITOR_KEY           "software" //用于标识监控软件的key
 
 #define MAX_RECORD_LENGTH          5     //during MAX_RECORD_LENGTH*CALC_CPU_TIME ms, Process Resource utilization
-#define MAX_CHILD_PROCESS_NUM      10    //A program has the maximum number of processes
+#define MAX_CHILD_PROCESS_NUM      21    //A program has the maximum number of processes(MAX_CHILD_PROCESS_NUM-1)
 
 extern char config_type[][20];    //配置文件的类型
 
@@ -122,6 +123,7 @@ typedef struct ProcessInfo
 /***********************************
  * function: record process's resource utilization
  * @para name: process's name
+ * @para pgid: process group id
  * @para flag: mark process whether exist or not(true = existence   false = non-existence)
  * @para processNum: A program has processNum process
  * @para cpuUsed: record process CPU utilization
@@ -133,6 +135,7 @@ typedef struct ProcessInfo
 typedef struct ResourceUtilization
 {
 	char name[MAX_INFOLENGTH];
+	pid_t pgid;
 	bool flags;
 	int processNum;
 	int cpuUsed[MAX_RECORD_LENGTH];
@@ -151,6 +154,7 @@ typedef struct ResourceUtilization
 typedef struct ProcessResource
 {
 	char name[MAX_INFOLENGTH];
+	pid_t pgid;
 	bool flags;
 	int processNum;
 	unsigned int VmRss;
@@ -350,6 +354,7 @@ extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作
 /**********************************
  * function: 存放资源冲突的进程信息
  * name: conflict process name
+ * pgid: process group id
  * conflictType: 冲突的类型
  * conflictInfo: 存放冲突的信息
  * next: 下一个地址
@@ -357,6 +362,7 @@ extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作
 typedef struct ConflictProcess
 {
 	char name[MAX_INFOLENGTH];
+	pid_t pgid;
 	int conflictType;
 	char conflictInfo[MAX_CONFLICTINFO];
 	struct ConflictProcess *next;
@@ -388,10 +394,13 @@ extern ProcSchedInfo PROC_MAX_SCHED;
 
 /**********************************
  * function: 监控软件的名称列表
+ * @para name: program name
+ * @para pgid: program group id
 **********************************/
 typedef struct MonitorProgramName
 {
 	char name[MAX_INFOLENGTH];
+	pid_t pgid;
 	struct MonitorProgramName *next;
 } MonitorAPPName;
 
@@ -401,6 +410,7 @@ typedef struct MonitorProgramName
 typedef struct ProgramAllPid
 {
 	char name[MAX_INFOLENGTH];
+	pid_t pgid;
 	int pid[MAX_CHILD_PROCESS_NUM];
 	struct ProgramAllPid *next;
 } ProgAllPid;
@@ -414,6 +424,7 @@ typedef struct ProgramAllPid
 typedef struct ProgramAllRes
 {
 	char name[MAX_INFOLENGTH];
+	pid_t pgid;
 	bool flags[MAX_CHILD_PROCESS_NUM];
 	unsigned int cpuTime[MAX_CHILD_PROCESS_NUM];
 	ProcSchedInfo schedInfo[MAX_CHILD_PROCESS_NUM];

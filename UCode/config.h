@@ -10,6 +10,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include <linux/types.h>
+
 #define MAX_INFOLENGTH           50    //获取应用程序占用系统每个资源数据的最大长度
 
 /*************************************
@@ -49,12 +51,14 @@ typedef struct ProcessInfo
 /**********************************
  * function: 存放资源冲突的进程信息
  * name: process name
+ * pgid: process group id
  * conflictType: 冲突的类型
  * next: 下一个地址
 **********************************/
 typedef struct ConflictProcess
 {
 	char name[MAX_INFOLENGTH];   //进程的名称
+	pid_t pgid;
 	int conflictType;
 	struct ConflictProcess *next;
 } ConflictProcInfo;

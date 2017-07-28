@@ -14,6 +14,11 @@ static char status[MAX_PROCPATH], stat[MAX_PROCPATH];
 static char io[MAX_PROCPATH];
 static char sched[MAX_PROCPATH];
 
+pid_t getPgid(struct task_struct *p)
+{
+	return pid_vnr(p->group_leader->pids[PIDTYPE_PGID].pid);
+}
+
 void clearMonitorProgPid()
 {
 	currentMonitorProgPid = beginMonitorProgPid;
@@ -27,11 +32,12 @@ void clearMonitorProgPid()
 	endMonitorProgPid = NULL;
 }
 
-ProgAllPid getAllPidDebug(char *name, const char *file, const char *function, const int line)
+ProgAllPid getAllPidDebug(char *name, pid_t pgid, const char *file, const char *function, const int line)
 {
 	ProgAllPid ret;
 	memset(&ret, 0, sizeof(ProgAllPid));
 	strcpy(ret.name, name);
+	ret.pgid = pgid;
 	int recordPidIndex = 0;
 
 	struct task_struct *task, *p;
@@ -40,18 +46,21 @@ ProgAllPid getAllPidDebug(char *name, const char *file, const char *function, co
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
-		if(strcasecmp(p->comm, name) == 0)
+		task_lock(p);
+		//judge whether a process belong to program's child process by process group id or not
+		if(getPgid(p) == pgid)
 		{
 			if(recordPidIndex == MAX_CHILD_PROCESS_NUM)
 			{
 				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 				sprintf(error_info, "%s%s", "程序(%s)的进程个数超过了预定义最大进程个数\n", name);
 				RecordLog(error_info);
-				
+				task_unlock(p);
 				return ret;
 			}
 			ret.pid[recordPidIndex++] = p->pid;
 		}
+		task_unlock(p);
 	}
 
 	return ret;
@@ -63,14 +72,14 @@ void getAllMonitorProgPid()
 		return ;
 	beginMonitorProgPid = endMonitorProgPid = currentMonitorProgPid = vmalloc(sizeof(ProgAllPid));
 	memset(beginMonitorProgPid, 0, sizeof(ProgAllPid));
-	*beginMonitorProgPid = getAllPid(beginMonitorAPPName->name);
+	*beginMonitorProgPid = getAllPid(beginMonitorAPPName->name, beginMonitorAPPName->pgid);
 
 	currentMonitorAPPName = beginMonitorAPPName->next;
 	while(currentMonitorAPPName != NULL)
 	{
 		endMonitorProgPid = endMonitorProgPid->next = vmalloc(sizeof(ProgAllPid));
 		memset(endMonitorProgPid, 0, sizeof(ProgAllPid));
-		*endMonitorProgPid = getAllPid(currentMonitorAPPName->name);
+		*endMonitorProgPid = getAllPid(currentMonitorAPPName->name, currentMonitorAPPName->pgid);
 		currentMonitorAPPName = currentMonitorAPPName->next;
 	}
 }
