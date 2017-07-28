@@ -135,7 +135,7 @@ int monitorResource(void *data)
 					avgMEM /= MAX_RECORD_LENGTH;
 					avgIOData /= MAX_RECORD_LENGTH;
 					avgNetData /= MAX_RECORD_LENGTH;
-					//printk("%s: %d\n", currentMonitorAPP->name, avgCPU);
+					printk("%s: %d\n", currentMonitorAPP->name, avgMEM);
 					int conflictType = 0;
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU)

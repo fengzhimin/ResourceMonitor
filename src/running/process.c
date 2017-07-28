@@ -10,7 +10,7 @@
 #include "running/process.h"
 
 static char error_info[200];
-static char status[MAX_PROCPATH];
+//static char status[MAX_PROCPATH];
 //static char stat[MAX_PROCPATH];
 static char io[MAX_PROCPATH];
 static char sched[MAX_PROCPATH];
@@ -95,9 +95,9 @@ unsigned int getProgramVmRSS(int *pidArray)
 	{
 		if(pidArray[i] == 0)
 			break;
-		memset(status, 0, MAX_PROCPATH);
-		sprintf(status, "/proc/%d/status", pidArray[i]);
-		VmRss = getProcessVmRSS(status);
+		//memset(status, 0, MAX_PROCPATH);
+		//sprintf(status, "/proc/%d/status", pidArray[i]);
+		VmRss = getProcessVmRSS(pidArray[i]);
 		if(VmRss > 0)
 		{
 			ret += VmRss;

@@ -56,7 +56,7 @@ bool getTotalPMDebug(MemInfo *totalMem, const char *file, const char *function, 
 	KCloseFile(fp);
 	return true;
 }
-
+/*
 int getProcessVmRSS(char *status)
 {
 	int ret = -1;
@@ -80,5 +80,20 @@ int getProcessVmRSS(char *status)
 	}
 
 	KCloseFile(fp);
+	return ret;
+}
+*/
+
+int getProcessVmRSS(pid_t pid)
+{
+	struct task_struct *p = pid_task(find_vpid(pid), PIDTYPE_PID);
+	int ret = -1;
+	if(p != NULL)
+	{
+		task_lock(p);
+		ret = get_mm_rss(p->mm) << (PAGE_SHIFT - 10);
+		task_unlock(p);
+	}
+
 	return ret;
 }

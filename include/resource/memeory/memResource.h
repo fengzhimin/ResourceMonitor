@@ -14,6 +14,8 @@
 #include "common/fileOper.h"
 #include "common/strOper.h"
 #include "log/logOper.h"
+#include <linux/sched.h>
+#include <linux/mm.h>
 
 #define getTotalPM(totalMem) getTotalPMDebug(totalMem, __FILE__, __FUNCTION__, __LINE__)
 
@@ -29,7 +31,15 @@ bool getTotalPMDebug(MemInfo *totalMem, const char *file, const char *function, 
  * func: get process VmRSS value
  * return: VmRss >0 = success  -1 = failure
  * @para status: process status path
+**********************************************
+int getProcessVmRSS(char *status)
+*/
+
+/**********************************************
+ * func: get process VmRSS value
+ * return: VmRss >0 = success  -1 = failure
+ * @para pid: process id
 **********************************************/
-int getProcessVmRSS(char *status);
+int getProcessVmRSS(pid_t pid);
 
 #endif
