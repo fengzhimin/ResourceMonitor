@@ -16,6 +16,15 @@ pid_t getPgid(struct task_struct *p)
 	return pid_vnr(p->group_leader->pids[PIDTYPE_PGID].pid);
 }
 
+bool getProcessCmdline(struct task_struct *p, char *buffer)
+{
+	int ret = get_cmdline(p, buffer, PAGE_SIZE);
+	if(ret > 0)
+		return true;
+	else		
+		return false;
+}
+
 void clearMonitorProgPid()
 {
 	currentMonitorProgPid = beginMonitorProgPid;

@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-04 10:23
-* Last modified: 2017-03-17 16:52
+* Last modified: 2017-07-29 10:53
 * Email        : 374648064@qq.com
 * Filename     : fileOper.h
 * Description  : 文件操作的头文件
@@ -62,12 +62,5 @@ int KReadLineDebug(struct file *fd, char *data, const char *file, const char *fu
  * @oara fd: 要关闭文件的指针
 *********************************/
 int KCloseFile(struct file *fd);
-
-/*********************************
- * function: judge whether file is empty
- * return: 0 = empty   1 = non-empty   -1 = read file failure
- * @para fileName: a file path
-*********************************/
-int IsEmpty(char *fileName);
 
 #endif

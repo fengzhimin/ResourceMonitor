@@ -20,6 +20,7 @@
 #include <linux/string.h>
 #include <linux/init.h>
 #include <linux/sched.h>
+#include <linux/mm.h>
 #include <linux/vmalloc.h>
 
 #define getAllPid(name, pgid) getAllPidDebug(name, pgid, __FILE__, __FUNCTION__, __LINE__)
@@ -30,6 +31,14 @@
   * @para p: process task_struct point
 **************************************************/
 pid_t getPgid(struct task_struct *p);
+
+/**************************************************
+  * func: get a process's cmdline
+  * return: false = failure    true = success
+  * @para p: process task_struct point
+  * @para buffer: save cmdline data(the size of buffer must be PAGE_SIZE)
+**************************************************/
+bool getProcessCmdline(struct task_struct *p, char *buffer);
 
 /*************************************************
  * func: clear beginMonitorProgPid data

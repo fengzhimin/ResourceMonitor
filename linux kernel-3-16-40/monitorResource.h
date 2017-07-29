@@ -219,4 +219,5 @@ extern long vfs_socketClose(unsigned int sockfd);
  * @para arg: 补充参数
 *****************************************/
 extern long vfs_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg);
+
 #endif

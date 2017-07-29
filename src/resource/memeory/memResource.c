@@ -63,9 +63,11 @@ int getProcessVmRSS(pid_t pid)
 	int ret = -1;
 	if(p != NULL)
 	{
-		task_lock(p);
-		ret = get_mm_rss(p->mm) << (PAGE_SHIFT - 10);
-		task_unlock(p);
+		//task_lock(p);
+		struct mm_struct *mm = get_task_mm(p);
+		if(mm)
+			ret = get_mm_rss(p->mm) << (PAGE_SHIFT - 10);
+		//task_unlock(p);
 	}
 
 	return ret;

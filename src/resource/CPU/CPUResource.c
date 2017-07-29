@@ -25,12 +25,16 @@ bool getProcessCPUTimeDebug(pid_t pid, Process_Cpu_Occupy_t *processCpuTime, con
 		task_lock(p);
 		struct task_struct *t = p;
 		cputime_t utime, stime;
+		processCpuTime->utime = p->signal->utime;
+		processCpuTime->stime = p->signal->stime;
+		rcu_read_lock();
 		do
 		{
 			task_cputime(t, &utime, &stime);
 			processCpuTime->utime += utime;
 			processCpuTime->stime += stime;
 		}while_each_thread(p, t);
+		rcu_read_unlock();
 		processCpuTime->cutime = cputime_to_clock_t(p->signal->cutime);
 		processCpuTime->cstime = cputime_to_clock_t(p->signal->cstime);
 		processCpuTime->utime = cputime_to_clock_t(processCpuTime->utime);

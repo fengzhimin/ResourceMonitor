@@ -9,8 +9,6 @@
 
 #include "running/monitorSoftWare.h"
 
-static char cmdline[MAX_PROCPATH];
-
 void clearMonitorAPPName()
 {
 	currentMonitorAPPName = beginMonitorAPPName;
@@ -63,16 +61,18 @@ void getAllMonitorAPPName()
 	struct task_struct *task, *p;
 	struct list_head *ps;
 	task = &init_task;
+	int ret_cmdlineSize = 0;
+	char buffer[PAGE_SIZE];
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
 		//task_lock(p);
 		pid_t pgid = getPgid(p);
-		memset(cmdline, 0, MAX_PROCPATH);
-		sprintf(cmdline, "/proc/%d/cmdline", p->pid);
-		//By judge process /proc/pid/cmdline whether space to determine whether the program is user level or kernel level programm
+		memset(buffer, 0, PAGE_SIZE);
+	    ret_cmdlineSize = get_cmdline(p, buffer, PAGE_SIZE);
+		//By judge process cmdline whether space to determine whether the program is user level or kernel level programm
 		//a main process's pid and pgid is equal
-		if(IsEmpty(cmdline) == 1 && p->pid == pgid)
+		if(ret_cmdlineSize > 0 && p->pid == pgid)
 		{
 			memset(&temp, 0, sizeof(MonitorAPPName));
 			strcpy(temp.name, p->comm);

@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-04 12:35
-* Last modified: 2017-03-17 16:52
+* Last modified: 2017-07-29 10:54
 * Email        : 374648064@qq.com
 * Filename     : fileOper.c
 * Description  : 
@@ -74,23 +74,4 @@ int KReadLineDebug(struct file *fd, char *data, const char *file, const char *fu
 int KCloseFile(struct file *fd)
 {
 	return filp_close(fd, NULL);
-}
-
-int IsEmpty(char *fileName)
-{
-	int ret = -1;
-
-	struct file *fp = KOpenFile(fileName, O_RDONLY);
-	if(fp != NULL)
-	{
-		char _ch;
-		if(KReadFile(fp, &_ch, 1) == 1)
-			ret = 1;    //non-empty
-		else
-			ret = 0;    //empty
-
-		KCloseFile(fp);
-	}
-
-	return ret;
 }
