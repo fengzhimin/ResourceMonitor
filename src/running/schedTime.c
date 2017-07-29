@@ -9,38 +9,45 @@
 
 #include "running/schedTime.h"
 
-static char subStr2[2][MAX_SUBSTR];
-static char lineData[LINE_CHAR_MAX_NUM];
+long long nsec_high(unsigned long long nsec)
+{
+	if((long long)nsec < 0)
+	{
+		nsec = -nsec;
+		do_div(nsec, 1000000);
+		return -nsec;
+	}
+	do_div(nsec, 1000000);
 
-bool getProcSchedInfoDebug(char *schedPath, ProcSchedInfo *schedInfo, const char *file, const char *function, const int line)
+	return nsec;
+}
+
+unsigned long nsec_low(unsigned long long nsec)
+{
+	if((long long)nsec < 0)
+		nsec = -nsec;
+
+	return do_div(nsec, 1000000);
+}
+
+bool getProcSchedInfoDebug(pid_t pid, ProcSchedInfo *schedInfo, const char *file, const char *function, const int line)
 {
 	memset(schedInfo, 0, sizeof(ProcSchedInfo));
-	struct file *fp = KOpenFile(schedPath, O_RDONLY);
-	if(fp == NULL)
+	struct task_struct *p = pid_task(find_vpid(pid), PIDTYPE_PID);
+	if(p == NULL)
 	{
 		return false;
 	}
 	else
 	{
-		while(KReadLine(fp, lineData) == -1)
-		{
-			removeSpace(lineData);
-			cutStrByLabel(lineData, ':', subStr2, 2);
-			if(strcasecmp(subStr2[0], "se.sum_exec_runtime") == 0)
-				schedInfo->sum_exec_runtime = StrFloatToInt(subStr2[1]);
-			else if(strcasecmp(subStr2[0], "se.statistics.wait_sum") == 0)
-				schedInfo->wait_sum = StrFloatToInt(subStr2[1]);
-			else if(strcasecmp(subStr2[0], "se.statistics.iowait_sum") == 0)
-			{
-				schedInfo->iowait_sum = StrFloatToInt(subStr2[1]);
-				break;
-			}
-		}
-		KCloseFile(fp);
+		task_lock(p);
+		schedInfo->sum_exec_runtime = nsec_high((long long)p->se.sum_exec_runtime);
+		schedInfo->wait_sum = nsec_high((long long)p->se.statistics.wait_sum);
+		schedInfo->iowait_sum = nsec_high((long long)p->se.statistics.iowait_sum);
+		task_unlock(p);
+		
+		return true;
 	}
-
-
-	return true;
 }
 
 ProcSchedInfo add(ProcSchedInfo value1, ProcSchedInfo value2)

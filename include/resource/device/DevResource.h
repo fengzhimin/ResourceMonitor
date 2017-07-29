@@ -25,7 +25,7 @@
 /************************************************
  * func: 获取进程的IO数据
  * return true = 成功　　　false = 失败
- * @para pid: 进程的io文件路径
+ * @para pid: process id
  * @para processIOData: 存放进程IO数据
 ************************************************/
 bool getProcessIODataDebug(pid_t pid, Process_IO_Data *processIOData, const char *file, const char *function, const int line);

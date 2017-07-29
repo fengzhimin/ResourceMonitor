@@ -125,18 +125,24 @@ int monitorResource(void *data)
 				{
 					avgCPU = avgMEM = 0;
 					avgIOData = avgNetData = 0;
+					int aveWait_sum = 0;
+					int aveIOWait_sum = 0;
 					for(i = 0; i < MAX_RECORD_LENGTH; i++)
 					{
 						avgCPU += currentMonitorAPP->cpuUsed[i];
 						avgMEM += currentMonitorAPP->memUsed[i];
 						avgIOData += currentMonitorAPP->ioDataBytes[i];
 						avgNetData += currentMonitorAPP->netTotalBytes[i];
+						aveWait_sum += currentMonitorAPP->schedInfo[i].wait_sum;
+						aveIOWait_sum += currentMonitorAPP->schedInfo[i].iowait_sum;
 					}
 					avgCPU /= MAX_RECORD_LENGTH;
 					avgMEM /= MAX_RECORD_LENGTH;
 					avgIOData /= MAX_RECORD_LENGTH;
 					avgNetData /= MAX_RECORD_LENGTH;
-					printk("%20s: %8d\t%8d\t%8lld\t%8lld\n", currentMonitorAPP->name, avgCPU, avgMEM, avgIOData, avgNetData);
+					aveWait_sum /= MAX_RECORD_LENGTH;
+					aveIOWait_sum /= MAX_RECORD_LENGTH;
+					printk("%20s: %8d\t%8d\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
 					int conflictType = 0;
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU)

@@ -10,7 +10,6 @@
 #include "running/process.h"
 
 static char error_info[200];
-static char sched[MAX_PROCPATH];
 
 pid_t getPgid(struct task_struct *p)
 {
@@ -168,9 +167,7 @@ ProgAllRes getProgramSched(char *progName, int *pidArray)
 	{
 		if(pidArray[i] == 0)
 			break;
-		memset(sched, 0, MAX_PROCPATH);
-		sprintf(sched, "/proc/%d/sched", pidArray[i]);
-		if(getProcSchedInfo(sched, &procSched))
+		if(getProcSchedInfo(pidArray[i], &procSched))
 		{
 			//valid
 			ret.schedInfo[i] = procSched;
