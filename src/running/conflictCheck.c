@@ -39,7 +39,7 @@ bool judgeSysResConflict()
 				int speed = getNetCardSpeed(netUsed->netCardName);
 				//计算出来的是百分比
 				if(speed != 0)
-					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
+					sprintf(netUsedInfo, "%s %s:%lld", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
 				else
 					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
 			}

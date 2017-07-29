@@ -102,11 +102,12 @@ int monitorResource(void *data)
 	{
 		int avgCPU, avgMEM;
 		unsigned long long avgIOData, avgNetData;
-		getSysResourceInfo();
-		if(judgeSysResConflict())
+	//	getSysResourceInfo();
+		//if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{
+		printk("--------------------------start----------------------\n");
 				//系统资源冲突
 				//加锁
 				mutex_lock(&ConflictProcess_Mutex);
@@ -135,7 +136,7 @@ int monitorResource(void *data)
 					avgMEM /= MAX_RECORD_LENGTH;
 					avgIOData /= MAX_RECORD_LENGTH;
 					avgNetData /= MAX_RECORD_LENGTH;
-					printk("%s: %d\n", currentMonitorAPP->name, avgMEM);
+					printk("%20s: %8d\t%8d\t%8lld\t%8lld\n", currentMonitorAPP->name, avgCPU, avgMEM, avgIOData, avgNetData);
 					int conflictType = 0;
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU)
@@ -182,6 +183,7 @@ int monitorResource(void *data)
 				mutex_unlock(&ConflictProcess_Mutex);
 			}
 		}
+		printk("--------------------------end----------------------\n\n\n\n");
 	}
 
 	return 0;

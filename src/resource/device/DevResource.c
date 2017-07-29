@@ -9,48 +9,46 @@
 
 #include "resource/device/DevResource.h"
 
-static char io_data[512];
 static char error_info[200];
-static char subStr8[8][MAX_SUBSTR];
 static char subStr11[11][MAX_SUBSTR];
 static char lineData[LINE_CHAR_MAX_NUM];
 
-bool getProcessIODataDebug(char *io, Process_IO_Data *processIOData, const char *file, const char *function, const int line)
+bool getProcessIODataDebug(pid_t pid, Process_IO_Data *processIOData, const char *file, const char *function, const int line)
 {
 	memset(processIOData, 0, sizeof(processIOData));
-	struct file *fp = KOpenFile(io, O_RDONLY);
-	if(fp == NULL)
+	struct task_struct *p = pid_task(find_vpid(pid), PIDTYPE_PID);
+	if(p == NULL)
 	{
-		/*
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", io, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		*/
 		return false;
-	}
-
-	memset(io_data, 0, 512);
-	int size = KReadFile(fp, io_data, 512);
-	if(size > 0)
-	{
-		cutStrByLabel(io_data, ':', subStr8, 8);
-		processIOData->rchar = ExtractNumFromStr(subStr8[1]);
-		processIOData->wchar = ExtractNumFromStr(subStr8[2]);
-		processIOData->syscr = ExtractNumFromStr(subStr8[3]);
-		processIOData->syscw = ExtractNumFromStr(subStr8[4]);
-		processIOData->read_bytes = ExtractNumFromStr(subStr8[5]);
-		processIOData->write_bytes = ExtractNumFromStr(subStr8[6]);
-		processIOData->cancelled_write_bytes = ExtractNumFromStr(subStr8[7]);
-		KCloseFile(fp);
-		return true;
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", io, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		KCloseFile(fp);
-		return false;
+		task_lock(p);
+		struct task_io_accounting acct = p->ioac;
+		unsigned long flags;
+		int result = mutex_lock_killable(&p->signal->cred_guard_mutex);
+		if(result)
+		{
+			task_unlock(p);
+			return false;
+		}
+		struct task_struct *t = p;
+		task_io_accounting_add(&acct, &p->signal->ioac);
+		while_each_thread(p, t)
+			task_io_accounting_add(&acct, &t->ioac);
+
+		processIOData->rchar = (unsigned long long)acct.rchar;
+		processIOData->wchar = (unsigned long long)acct.wchar;
+		processIOData->syscr = (unsigned long long)acct.syscr;
+		processIOData->syscw = (unsigned long long)acct.syscw;
+		processIOData->read_bytes = (unsigned long long)acct.read_bytes;
+		processIOData->write_bytes = (unsigned long long)acct.write_bytes;
+		processIOData->cancelled_write_bytes = (unsigned long long)acct.cancelled_write_bytes;
+
+		mutex_unlock(&p->signal->cred_guard_mutex);
+		task_unlock(p);
+
+		return true;
 	}
 }
 

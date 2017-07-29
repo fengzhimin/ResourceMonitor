@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2017-04-27 15:03
-* Last modified: 2017-06-02 19:25
+* Last modified: 2017-07-29 05:49
 * Email        : 374648064@qq.com
 * Filename     : DevResource.h
 * Description  : 
@@ -11,22 +11,24 @@
 #define __DEVREOURCE_H__
 
 #include <linux/monitorResource.h>
+#include <linux/task_io_accounting_ops.h>
+#include <linux/sched.h>
 #include "config.h"
 #include "common/fileOper.h"
 #include "common/strOper.h"
 #include "log/logOper.h"
 
-#define getProcessIOData(io, processIOData)   getProcessIODataDebug(io, processIOData, __FILE__, __FUNCTION__, __LINE__)
+#define getProcessIOData(pid, processIOData)   getProcessIODataDebug(pid, processIOData, __FILE__, __FUNCTION__, __LINE__)
 #define getDiskState(diskPath, diskStatInfo)  getDiskStateDebug(diskPath, diskStatInfo, __FILE__, __FUNCTION__, __LINE__)
 #define getAllDiskState(beginDiskInfo)        getAllDiskStateDebug(beginDiskInfo, __FILE__, __FUNCTION__, __LINE__)
 
 /************************************************
  * func: 获取进程的IO数据
  * return true = 成功　　　false = 失败
- * @para io: 进程的io文件路径
+ * @para pid: 进程的io文件路径
  * @para processIOData: 存放进程IO数据
 ************************************************/
-bool getProcessIODataDebug(char *io, Process_IO_Data *processIOData, const char *file, const char *function, const int line);
+bool getProcessIODataDebug(pid_t pid, Process_IO_Data *processIOData, const char *file, const char *function, const int line);
 
 /***********************************************
  * func: 获取磁盘的状态
