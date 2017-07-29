@@ -177,6 +177,14 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const c
 				if(strcasecmp(key, subStr2[0]) == 0)
 				{
 					removeChar(subStr2[1], ' ');
+					if(strlen(subStr2[1]) >= CONFIG_VALUE_MAX_NUM)
+					{
+						WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+						sprintf(error_info, "%s%s%s%d%s", "config key: the value of", key, "greater than", CONFIG_VALUE_MAX_NUM, "\n");
+						RecordLog(error_info);
+						KCloseFile(fd);
+						return false;
+					}
 					strcpy(value, subStr2[1]);
 					KCloseFile(fd);
 					return true;

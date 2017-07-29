@@ -9,36 +9,6 @@
 
 #include "running/conflictCheck.h"
 
-void solveProcessRelate(ProcInfo info[], int processNum)
-{
-	int i, temp;
-	bool ret;
-	//char parentInfo[PROCESS_INFO_NUM][MAX_INFOLENGTH];
-	ProcInfo parentInfo;
-	for(i = processNum-1; i >= 0; i--)
-	{
-		temp = info[i].cpuUsed;
-		//当进程的CPU使用率符合需求时,查找其对应的父进程和父父进程的资源使用情况
-		if(temp >= PROCESSRELATECPUDOWN && temp <= PROCESSRELATECPUUP)
-		{
-			//获取其父进程的资源使用情况
-			ret = getInfoByID(info[i].ppid, &parentInfo, info, processNum);
-			if(ret)
-			{
-				info[i].cpuUsed += parentInfo.cpuUsed;
-				info[i].memUsed += parentInfo.memUsed;
-				//获取父父进程
-				ret = getInfoByID(parentInfo.ppid, &parentInfo, info, processNum);
-				if(ret)
-				{
-					info[i].cpuUsed += parentInfo.cpuUsed;
-					info[i].memUsed += parentInfo.memUsed;
-				}
-			}
-		}
-	}
-}
-
 bool judgeSysResConflict()
 {
 	//合并磁盘数据
@@ -116,25 +86,7 @@ bool judgeSoftWareConflict()
 {
 	getUserLayerAPP();
 	currentMonitorAPP = beginMonitorAPP;
-	/*
-	int index = 0;
-	printk("-----------MonitorAPP--------------\n");
-	while(currentMonitorAPP != NULL)
-	{
-		printk("%s\n", currentMonitorAPP->name);
-		currentMonitorAPP = currentMonitorAPP->next;
-		index++;
-	}
-	printk("-----------MonitorAPPName--------------------\n");
-	currentMonitorAPPName = beginMonitorAPPName;
-	while(currentMonitorAPPName != NULL)
-	{
-		printk("%s\n", currentMonitorAPPName->name);
-		currentMonitorAPPName = currentMonitorAPPName->next;
-	}
-	printk("index = %d\tMonitorAPPNameNum = %d\n", index, MonitorAPPNameNum);
-	*/
-	int i, j;
+	int j;
 	int aveWait_sum = 0;
 	int aveIOWait_sum = 0;
 	currentMonitorAPP = beginMonitorAPP;

@@ -12,9 +12,6 @@
 #include "log/logOper.h"
 #include "config.h"
 
-static char error_info[200];
-static char lineInfo[LINE_CHAR_MAX_NUM];
-
 struct file *KOpenFile(const char* fileName, int mode)
 {
 	struct file *fd = NULL;
@@ -77,35 +74,6 @@ int KReadLineDebug(struct file *fd, char *data, const char *file, const char *fu
 int KCloseFile(struct file *fd)
 {
 	return filp_close(fd, NULL);
-}
-
-void RemoveNote(char *fileName, char *fileNameCopy)
-{
-	struct file *fd = KOpenFile(fileName, O_RDONLY);
-	if(fd == NULL)
-	{
-		sprintf(error_info, "%s%s%s%s%s", "文件: ", fileName, " 打开失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		return ;
-	}
-	struct file *fdCopy = KOpenFile(fileNameCopy, O_APPEND | O_RDWR);
-	if(fd == NULL)
-	{
-		sprintf(error_info, "%s%s%s%s%s", "创建文件: ", fileNameCopy, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		return ;
-	}
-	memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
-	while(KReadLine(fd, lineInfo) == -1)
-	{
-		if(!JudgeNote(lineInfo))
-			KWriteFile(fdCopy, lineInfo);	
-		memset(lineInfo, 0, LINE_CHAR_MAX_NUM);
-	}
-
-	KCloseFile(fd);
-	KCloseFile(fdCopy);
-
 }
 
 int IsEmpty(char *fileName)

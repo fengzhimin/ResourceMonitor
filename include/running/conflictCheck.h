@@ -13,14 +13,6 @@
 #include "running/resource.h"
 
 /***********************************************
- * func: 解决进程之间关联的问题
- * return: void
- * @para info: 存放最终进程的资源数据
- * @para processNum: 进程的个数
-***********************************************/
-void solveProcessRelate(ProcInfo info[], int processNum);
-
-/***********************************************
  * func: 判断是否系统资源冲突
  * return: false = 不冲突   true = 冲突
 ***********************************************/

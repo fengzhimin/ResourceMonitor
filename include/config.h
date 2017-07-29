@@ -29,19 +29,9 @@
 
 #define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
 
-#define MAX_FUNCNAME          50    //函数名称的最大字符个数
-
 #define MAX_PROCPATH          30    //proc目录下进程的最大路径  例如/proc/1024
 
 #define CALC_CPU_TIME         1000    //计算CPU时间的间隔, 单位为ms
-
-//当进程的CPU使用率大于PROCESSRELATECPUDOWN小于PROCESSRELATECPUUP时,计算父进程和父父进程的资源使用情况
-#define PROCESSRELATECPUDOWN      10   
-#define PROCESSRELATECPUUP        20
-
-//当进程的MEM使用率大于PROCESSRELATEMEMDOWN小于PROCESSRELATEMEMUP时,计算父进程和父父进程的资源使用情况
-#define PROCESSRELATEMEMDOWN      20   
-#define PROCESSRELATEMEMUP        30
 
 //定义Netlink的类型
 #define NETLINK_USER_MSG  23
@@ -57,22 +47,6 @@
 
 #define MAX_RECORD_LENGTH          5     //during MAX_RECORD_LENGTH*CALC_CPU_TIME ms, Process Resource utilization
 #define MAX_CHILD_PROCESS_NUM      21    //A program has the maximum number of processes(MAX_CHILD_PROCESS_NUM-1)
-
-extern char config_type[][20];    //配置文件的类型
-
-/*****************************
- * function: 获取config_type的个数
- * return: 个数
-******************************/
-int GetConfig_TypeNum(void);
-
-extern char note_symbol[][10];    //注释符号
-
-/*****************************
- * function: 获取note_symbol的个数
- * return:　个数
-******************************/
-int GetNote_SymbolNum(void);
 
 #define CONFIG_KEY_MAX_NUM       50     //配置项key的最大值
 #define CONFIG_VALUE_MAX_NUM     30    //配置项value的最大值
@@ -95,30 +69,6 @@ typedef struct ProcessSchedInfo
 	int wait_sum;     //在就绪队列里的等待时间
 	int iowait_sum;   //io等待时间
 } ProcSchedInfo;
-
-/***********************************
- * function: 存放进程使用的系统资源数据
-***********************************/
-typedef struct ProcessInfo
-{
-	char name[MAX_INFOLENGTH];   //进程的名称
-	int pid;
-	int ppid;
-	unsigned int cpuUsed;      //CPU使用率
-	unsigned int memUsed;      //MEM使用率
-	ProcSchedInfo schedInfo;
-	char VmPeak[MAX_INFOLENGTH];   //进程虚拟内存大小(单位: KB)
-	char VmRSS[MAX_INFOLENGTH];    //进程物理内存大小(单位: KB)
-	char State[MAX_INFOLENGTH];    //进程状态
-	unsigned long long ioSyscallNum;    //read/pread和write/pwrite系统调用次数
-	unsigned long long ioDataBytes;     //read_write_bytes大小
-	int uploadPackage;   //上传数据包个数
-	int downloadPackage; //下载数据包个数
-	int totalPackage;    //上传数据包+下载数据包
-	unsigned long long uploadBytes;   //上传字节数
-	unsigned long long downloadBytes;   //下载字节数
-	unsigned long long totalBytes;      //上传字节数+下载字节数
-} ProcInfo;
 
 /***********************************
  * function: record process's resource utilization
@@ -238,15 +188,6 @@ typedef struct ProcPID
 	pid_t pid;
 	struct ProcPID *next;
 } ProcPIDPath;
-
-/***************************
- * function: 定义配置项结构体
-***************************/
-typedef struct ConfigInfo
-{
-	char key[CONFIG_KEY_MAX_NUM];
-	char value[CONFIG_VALUE_MAX_NUM];
-} ConfigInfo;
 
 /**********************************
  * function: 获取每个网卡的流量数据

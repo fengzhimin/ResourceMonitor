@@ -9,22 +9,6 @@
 
 #include "config.h"
 
-char config_type[][20] = {".conf", ".config", ".cnf", ".config.in", ".conf.in"};   //判断配置文件的类型,每个类型字符个数不超过20
-
-
-int GetConfig_TypeNum(void)
-{
-	return sizeof(config_type)/sizeof(config_type[0]);
-}
-
-//注释符号
-char note_symbol[][10] = {"#", "%", "\""};
-
-int GetNote_SymbolNum(void)
-{
-	return sizeof(note_symbol)/sizeof(note_symbol[0]);
-}
-
 Port_Map_Package *PortPackageData = NULL;
 Port_Map_Package *beginPortPackageData = NULL;    //PortPackageData 第一个元素
 Port_Map_Package *endPortPackageData = NULL;      //PortPackageData 最后一个元素

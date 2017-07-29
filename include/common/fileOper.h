@@ -63,15 +63,6 @@ int KReadLineDebug(struct file *fd, char *data, const char *file, const char *fu
 *********************************/
 int KCloseFile(struct file *fd);
 
-
-/******************************
- * function: 过滤注释行
- * return: void
- * @para fileName：要被过滤的文件名
- * @para fileNameCopy：过滤以后的数据存放的文件 
-******************************/
-void RemoveNote(char *fileName, char *fileNameCopy);
-
 /*********************************
  * function: judge whether file is empty
  * return: 0 = empty   1 = non-empty   -1 = read file failure

@@ -30,14 +30,6 @@ bool getTotalPMDebug(MemInfo *totalMem, const char *file, const char *function, 
 /**********************************************
  * func: get process VmRSS value
  * return: VmRss >0 = success  -1 = failure
- * @para status: process status path
-**********************************************
-int getProcessVmRSS(char *status)
-*/
-
-/**********************************************
- * func: get process VmRSS value
- * return: VmRss >0 = success  -1 = failure
  * @para pid: process id
 **********************************************/
 int getProcessVmRSS(pid_t pid);
