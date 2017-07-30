@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2017-04-02 19:38
-* Last modified: 2017-04-02 19:38
+* Last modified: 2017-07-30 05:59
 * Email        : 374648064@qq.com
 * Filename     : CPUResource.c
 * Description  : 
@@ -9,9 +9,21 @@
 
 #include "resource/CPU/CPUResource.h"
 
-static char lineData[LINE_CHAR_MAX_NUM];
+static u64 get_idle_time(int cpu)
+{
+	u64 idle, idle_time = -1ULL;
 
-static char error_info[200];
+	if (cpu_online(cpu))
+		idle_time = get_cpu_idle_time_us(cpu, NULL);
+
+	if (idle_time == -1ULL)
+		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
+		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
+	else
+		idle = usecs_to_cputime64(idle_time);
+
+	return idle;
+}
 
 bool getProcessCPUTimeDebug(pid_t pid, Process_Cpu_Occupy_t *processCpuTime, const char *file, const char *function, const int line)
 {
@@ -48,28 +60,23 @@ bool getProcessCPUTimeDebug(pid_t pid, Process_Cpu_Occupy_t *processCpuTime, con
 bool getTotalCPUTimeDebug(Total_Cpu_Occupy_t *totalCpuTime, const char *file, const char *function, const int line)
 {
 	memset(totalCpuTime, 0, sizeof(Total_Cpu_Occupy_t));
-	memset(lineData, 0, LINE_CHAR_MAX_NUM);
-	struct file *fp = KOpenFile("/proc/stat", O_RDONLY);
-	if(fp == NULL)
-	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/stat", " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		return false;
+
+	int i;
+	u64 user, nice, system, idle;
+
+	user = nice = system = idle  = 0;
+
+	for_each_possible_cpu(i) {
+		user += kcpustat_cpu(i).cpustat[CPUTIME_USER];
+		nice += kcpustat_cpu(i).cpustat[CPUTIME_NICE];
+		system += kcpustat_cpu(i).cpustat[CPUTIME_SYSTEM];
+		idle += get_idle_time(i);
 	}
-	if(KReadLine(fp, lineData) == -1)
-	{
-		char name[30];
-		sscanf(lineData, "%s %u %u %u %u", name, &totalCpuTime->user, &totalCpuTime->nice, &totalCpuTime->system, &totalCpuTime->idle);
-		KCloseFile(fp);
-		return true;
-	}
-	else
-	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/stat", " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		KCloseFile(fp);
-		return false;
-	}
+
+	totalCpuTime->user = cputime64_to_clock_t(user);
+	totalCpuTime->nice = cputime64_to_clock_t(nice);
+	totalCpuTime->system = cputime64_to_clock_t(system);
+	totalCpuTime->idle = cputime64_to_clock_t(idle);
+
+	return true;
 }

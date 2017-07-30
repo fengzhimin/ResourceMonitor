@@ -16,6 +16,8 @@
 #include "log/logOper.h"
 #include <linux/sched.h>
 #include <linux/mm.h>
+#include <linux/swap.h>
+#include <linux/mmzone.h>
 
 #define getTotalPM(totalMem) getTotalPMDebug(totalMem, __FILE__, __FUNCTION__, __LINE__)
 

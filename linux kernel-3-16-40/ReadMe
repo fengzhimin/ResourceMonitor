@@ -4,3 +4,8 @@ monitorResource.c: fs/
 Makefile: fs/
 注释掉源码中的include/linux/fs.h中的vfs_readdir声明
 export get_cmdline function(mm/util.c)
+export next_zone function(mm/mmzone.c)
+export first_online_pgdat(mm/mmzone.c)
+export si_swapinfo(mm/swapfile.c)
+export nsecs_to_jiffies64(kernel/time.c)
+

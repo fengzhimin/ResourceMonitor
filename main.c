@@ -102,8 +102,8 @@ int monitorResource(void *data)
 	{
 		int avgCPU, avgMEM;
 		unsigned long long avgIOData, avgNetData;
-	//	getSysResourceInfo();
-		//if(judgeSysResConflict())
+		getSysResourceInfo();
+		if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{
@@ -188,8 +188,8 @@ int monitorResource(void *data)
 				//释放锁
 				mutex_unlock(&ConflictProcess_Mutex);
 			}
+			printk("--------------------------end----------------------\n\n\n\n");
 		}
-		printk("--------------------------end----------------------\n\n\n\n");
 	}
 
 	return 0;

@@ -9,6 +9,8 @@
 
 #include "running/monitorSoftWare.h"
 
+static char buffer[PAGE_SIZE];
+
 void clearMonitorAPPName()
 {
 	currentMonitorAPPName = beginMonitorAPPName;
@@ -60,14 +62,14 @@ void getAllMonitorAPPName()
 	memset(currentMonitorAPPName, 0, sizeof(MonitorAPPName));
 	struct task_struct *task, *p;
 	struct list_head *ps;
-	task = &init_task;
 	int ret_cmdlineSize = 0;
-	char buffer[PAGE_SIZE];
+	pid_t pgid;
+	task = &init_task;
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
 		//task_lock(p);
-		pid_t pgid = getPgid(p);
+		pgid = getPgid(p);
 		memset(buffer, 0, PAGE_SIZE);
 	    ret_cmdlineSize = get_cmdline(p, buffer, PAGE_SIZE);
 		//By judge process cmdline whether space to determine whether the program is user level or kernel level programm

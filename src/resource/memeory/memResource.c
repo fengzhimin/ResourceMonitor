@@ -9,51 +9,46 @@
 
 #include "resource/memeory/memResource.h"
 
-static char lineData[LINE_CHAR_MAX_NUM];
-
-static char error_info[200];
-
 bool getTotalPMDebug(MemInfo *totalMem, const char *file, const char *function, const int line)
 {
 	memset(totalMem, 0, sizeof(MemInfo));
-	memset(lineData, 0, LINE_CHAR_MAX_NUM);
-	int lineNum = 1;
-	struct file *fp = KOpenFile("/proc/meminfo", O_RDONLY);
-	char subStr[2][MAX_SUBSTR];
-	if(fp == NULL)
-	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "   ", "\n");
-		RecordLog(error_info);
-		return false;
-	}
-	while(KReadLine(fp, lineData) == -1)
-	{
-		if(lineNum == 1)
-		{
-			//提取/proc/meminfo 中的第一行数据(MemTotal)
-			cutStrByLabel(lineData, ':', subStr, 2);
-			totalMem->memTotal = ExtractNumFromStr(subStr[1]);
-		}
-		else if(lineNum == 3)
-		{
-			//提取/proc/meminfo 中的第三行数据(MemAvailable)
-			cutStrByLabel(lineData, ':', subStr, 2);
-			totalMem->memAvailable = ExtractNumFromStr(subStr[1]);
-			break;
-		}
-		memset(lineData, 0, LINE_CHAR_MAX_NUM);
-		lineNum++;
-	}
-	if(lineNum == 1)
-	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/meminfo", " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		KCloseFile(fp);
-		return false;
-	}
-	KCloseFile(fp);
+	struct sysinfo i;
+	long available;
+	unsigned long pagecache;
+	unsigned long wmark_low = 0;
+	unsigned long pages[NR_LRU_LISTS];
+	struct zone *zone;
+	int lru;
+
+/*
+ * display in kilobytes.
+ */
+#define K(x) ((x) << (PAGE_SHIFT - 10))
+	si_meminfo(&i);
+	si_swapinfo(&i);
+
+	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
+		pages[lru] = global_page_state(NR_LRU_BASE + lru);
+
+	for_each_zone(zone)
+		wmark_low += zone->watermark[WMARK_LOW];
+
+	available = i.freeram - wmark_low;
+
+	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
+	pagecache -= min(pagecache / 2, wmark_low);
+	available += pagecache;
+
+	available += global_page_state(NR_SLAB_RECLAIMABLE) -
+		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
+
+	if (available < 0)
+		available = 0;
+
+	totalMem->memTotal = K(i.totalram);
+	totalMem->memAvailable = K(available);
+#undef K
+
 	return true;
 }
 

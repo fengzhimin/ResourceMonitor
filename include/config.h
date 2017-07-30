@@ -366,11 +366,11 @@ typedef struct ProgramAllPid
 typedef struct ProgramAllRes
 {
 	char name[MAX_INFOLENGTH];
-	pid_t pgid;
 	bool flags[MAX_CHILD_PROCESS_NUM];
+	pid_t pgid;
 	unsigned int cpuTime[MAX_CHILD_PROCESS_NUM];
-	ProcSchedInfo schedInfo[MAX_CHILD_PROCESS_NUM];
 	unsigned long long ioDataBytes[MAX_CHILD_PROCESS_NUM];
+	ProcSchedInfo schedInfo[MAX_CHILD_PROCESS_NUM];
 } ProgAllRes;
 
 //system resouces unilization list

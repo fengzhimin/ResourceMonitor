@@ -9,6 +9,10 @@
 #include "running/resource.h"
 
 static char procPath[MAX_PROCPATH];    //example: /proc/1234
+static ProgAllRes programCPUTime;
+static ProgAllRes programIOData;
+static ProgAllRes programSched;
+static ProcSchedInfo programSchedInfo;
 
 void getSysResourceInfo()
 {
@@ -197,10 +201,6 @@ void getUserLayerAPP()
 	memset(beginProgAllRes, 0, sizeof(ProgAllRes)*MonitorAPPNameNum);
 
 	currentMonitorProgPid = beginMonitorProgPid;
-	ProgAllRes programCPUTime;
-	ProgAllRes programIOData;
-	ProgAllRes programSched;
-	ProcSchedInfo programSchedInfo;
 	int i, j;
 	for(i = 0; i < MonitorAPPNameNum; i++)
 	{

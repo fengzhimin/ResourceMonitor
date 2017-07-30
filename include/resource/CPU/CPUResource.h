@@ -14,6 +14,8 @@
 #include "common/strOper.h"
 #include "log/logOper.h"
 #include <linux/sched.h>
+#include <linux/kernel_stat.h>
+#include <linux/tick.h>
 
 #define getProcessCPUTime(pid, processCpuTime)  getProcessCPUTimeDebug(pid, processCpuTime, __FILE__, __FUNCTION__, __LINE__)
 #define getTotalCPUTime(totalCpuTime)            getTotalCPUTimeDebug(totalCpuTime, __FILE__, __FUNCTION__, __LINE__)
