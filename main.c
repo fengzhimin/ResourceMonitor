@@ -102,8 +102,8 @@ int monitorResource(void *data)
 	{
 		int avgCPU, avgMEM;
 		unsigned long long avgIOData, avgNetData;
-		getSysResourceInfo();
-		if(judgeSysResConflict())
+		//getSysResourceInfo();
+		//if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{

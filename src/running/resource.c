@@ -13,6 +13,7 @@ static ProgAllRes programCPUTime;
 static ProgAllRes programIOData;
 static ProgAllRes programSched;
 static ProcSchedInfo programSchedInfo;
+static int _port[MAX_PORT_NUM];
 
 void getSysResourceInfo()
 {
@@ -234,24 +235,57 @@ void getUserLayerAPP()
 	//stop hook data package
 	stopHook();
 
+	//set sockflag value
+	currentMonitorProgPid = beginMonitorProgPid;
+	for(i = 0; i < MonitorAPPNameNum; i++)
+	{
+		for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
+		{
+			if(currentMonitorProgPid->pid[j] == 0)
+				break;
+			memset(procPath, 0, MAX_PROCPATH);
+			sprintf(procPath, "/proc/%d", currentMonitorProgPid->pid[j]);
+			if(IsSocketLink(procPath, _port))
+			{
+				currentMonitorProgPid->sockflag = true;
+				int n;
+				for(n = 0; n < MAX_PORT_NUM; n++)
+				{
+					if(_port[n] != 0)
+					{
+						if(currentMonitorProgPid->usePort_index == MAX_PORT_NUM)
+							break;
+						currentMonitorProgPid->usePort[currentMonitorProgPid->usePort_index++] = _port[n];
+					}
+				}
+				break;
+			}
+		}
+
+		currentMonitorProgPid = currentMonitorProgPid->next;
+	}
+	
 	PortPackageData = PortPackageData->next;  //skip first object
 	while(PortPackageData != NULL)
 	{
 		currentMonitorProgPid = beginMonitorProgPid;
+		int portinode = getInodeByPort(PortPackageData->port, PortPackageData->protocol);
 		for(i = 0; i < MonitorAPPNameNum; i++)
 		{
-			for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
+			if(currentMonitorProgPid->sockflag)
 			{
-				if(currentMonitorProgPid->pid[j] == 0)
-					break;
-				memset(procPath, 0, MAX_PROCPATH);
-				sprintf(procPath, "/proc/%d", currentMonitorProgPid->pid[j]);
-				if(mapProcessPort(procPath, *PortPackageData))
+				int n;
+				for(n = 0; n < currentMonitorProgPid->usePort_index; n++)
 				{
-					//find process by port
-					beginProcRes[i].netTotalBytes += (PortPackageData->outDataBytes + PortPackageData->inDataBytes);
-					//assume a port just map a process
-					goto next;
+					if(currentMonitorProgPid->usePort[n] == 0)
+						break;
+					if(currentMonitorProgPid->usePort[n] == portinode)
+					{
+						//find process by port
+						beginProcRes[i].netTotalBytes += (PortPackageData->outDataBytes + PortPackageData->inDataBytes);
+						//assume a port only map a process
+						goto next;
+					}	
 				}
 			}
 
@@ -260,6 +294,7 @@ void getUserLayerAPP()
 	next:
 		PortPackageData = PortPackageData->next;
 	}
+	
 
 	bool processValid = false;
 	int processNum = 0;

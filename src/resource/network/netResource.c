@@ -132,9 +132,15 @@ unsigned int filter_http(char *type, struct sk_buff *pskb)
 		if(currentPortPackageData != NULL)
 		{
 			if(strcmp(type, "in") == 0)
+			{
 				currentPortPackageData->inPackageSize++;
+				currentPortPackageData->inDataBytes += skb->len;
+			}
 			else
+			{
 				currentPortPackageData->outPackageSize++;
+				currentPortPackageData->outDataBytes += skb->len;
+			}
 		}
 		else
 		{
@@ -365,29 +371,16 @@ int judgeSocketLink(char *info)
 	}
 }*/
 
-bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *file, const char *function, const int line)
+bool IsSocketLink(char *ProcPath, int *port)
 {
-	int portinode = getInodeByPort(portInfo.port, portInfo.protocol);
-	if(portinode == -1)
-	{
-		/*
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%d%s", "获取端口: ", portInfo.port, " 的inode失败\n");
-		RecordLog(error_info);
-		*/
-		return false;
-	}
+	memset(port, 0, MAX_PORT_NUM*sizeof(int));
+	int index = 0;
 	char fdPath[MAX_PROCPATH];
 	memset(fdPath, 0, MAX_PROCPATH);
 	sprintf(fdPath, "%s/fd", ProcPath);
 	int fdDir = vfs_opendir(fdPath);
 	if(fdDir == -1)
 	{
-		/*
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "打开文件夹: ", fdPath, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		*/
 		return false;
 	}
 	
@@ -397,6 +390,7 @@ bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *
 	vfs_closedir(fdDir);
 	char buflinkInfo[LINK_MAX_NUM];
 	char path[MAX_PROCPATH];
+	bool ret = false;
 	while(cur != NULL)
 	{
 		//只处理符号链接
@@ -406,25 +400,19 @@ bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *
 			memset(path, 0, MAX_PROCPATH);
 			sprintf(path, "%s/%s", fdPath, cur->name);
 			int retLink = vfs_readlink(path, buflinkInfo, LINK_MAX_NUM);
-			if(retLink < 0 || retLink > LINK_MAX_NUM)
-			{
-				/*
-				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-				sprintf(error_info, "%s%s%s%s%s", "读取符号链接: ", path, " 失败！ 错误信息： ", "    ", "\n");
-				RecordLog(error_info);	
-				*/
-			}
-			else
+			if(retLink > 0 && retLink <= LINK_MAX_NUM)
 			{
 				buflinkInfo[retLink] = '\0';
-				//获取socket对应的inode
-				//这里有待优化   没有判断一个符号链接是否为socket链接
-				int inode = ExtractNumFromStr(buflinkInfo);
-				if(portinode == inode)
+				if(retLink > 7)
 				{
-					//释放读取文件夹资源
-					vfs_free_readdir(begin);
-					return true;
+					//judge whether buflinkInfo contain socket string or not
+					if(buflinkInfo[0] == 's' && buflinkInfo[1] == 'o' && buflinkInfo[2] == 'c' && buflinkInfo[3] == 'k')
+					{
+						if(index >= MAX_PORT_NUM)
+							break;
+						port[index++]  = ExtractNumFromStr(buflinkInfo);
+						ret = true;
+					}
 				}
 			}
 		}
@@ -433,7 +421,7 @@ bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *
 	}
 	//释放读取文件夹资源
 	vfs_free_readdir(begin);
-	return false;
+	return ret;
 }
 
 int getTotalNetDebug(NetInfo **totalNet, const char *file, const char *function, const int line)

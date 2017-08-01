@@ -17,6 +17,8 @@
 
 #define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
+#define MAX_PORT_NUM  200   //per program has max port number
+
 /*
  * 1: automatic monitor all user layer app
  * 0: monitor user specify app
@@ -348,10 +350,16 @@ typedef struct MonitorProgramName
 
 /**********************************
  * function: A program's all pid
+ * @para sockflag: whether /proc/pid/fd/ has socket link or not
+ * @para usePort: program port inode
+ * @para usePort_index: the max number of port inode
 **********************************/
 typedef struct ProgramAllPid
 {
+	bool sockflag;
 	char name[MAX_INFOLENGTH];
+	int usePort[MAX_PORT_NUM];
+	int usePort_index;
 	pid_t pgid;
 	int pid[MAX_CHILD_PROCESS_NUM];
 	struct ProgramAllPid *next;

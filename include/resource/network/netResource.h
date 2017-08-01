@@ -25,7 +25,6 @@
 
 #define startHook()                           startHookDebug(__FILE__, __FUNCTION__, __LINE__)
 #define getInodeByHexPort(path, hex)          getInodeByHexPortDebug(path, hex, __FILE__, __FUNCTION__, __LINE__)
-#define mapProcessPort(ProcPath, portInfo)    mapProcessPortDebug(ProcPath, portInfo, __FILE__, __FUNCTION__, __LINE__)
 #define getTotalNet(totalNet)                 getTotalNetDebug(totalNet, __FILE__, __FUNCTION__, __LINE__)
 #define getAllNetCardName(netCardName, size)  getAllNetCardNameDebug(netCardName, size, __FILE__, __FUNCTION__, __LINE__)
 #define getNetCardSpeed(netCardName)          getNetCardSpeedDebug(netCardName, __FILE__, __FUNCTION__, __LINE__)
@@ -126,13 +125,13 @@ int getInodeByPort(int port, char protocol);
 ****************************************/
 int judgeSocketLink(char *info);
 
-/******************************************
- * func: 映射端口和进程的关系
- * return: false = 该端口不属于这个进程    true = 该端口属于该进程
- * @para ProcPath: 要判断的进程/proc目录  例如/proc/1234
- * @para portInfo: 截取到的端口信息
-******************************************/
-bool mapProcessPortDebug(char *ProcPath, Port_Map_Package portInfo, const char *file, const char *function, const int line);
+/*******************************************
+  *func: whether /proc/pid/fd has socket link or not
+  *return: false = no socket link   true = exist socket link
+  *@para ProcPath: /proc/pid
+  *@para port: save a process socket inode
+*******************************************/
+bool IsSocketLink(char *ProcPath, int *port);
 
 /**********************************************
  * func: 获取系统网络数据
