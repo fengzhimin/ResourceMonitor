@@ -54,7 +54,7 @@ ProgAllPid getAllPidDebug(char *name, pid_t pgid, const char *file, const char *
 		p = list_entry(ps, struct task_struct, tasks);
 		task_lock(p);
 		//judge whether a process belong to program's child process by process group id or not
-		if(getPgid(p) == pgid)
+		if(strcasecmp(p->comm, name) == 0 && getPgid(p) == pgid)
 		{
 			if(recordPidIndex == MAX_CHILD_PROCESS_NUM)
 			{

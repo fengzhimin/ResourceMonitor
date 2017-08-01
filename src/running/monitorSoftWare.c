@@ -73,12 +73,11 @@ void getAllMonitorAPPName()
 		memset(buffer, 0, PAGE_SIZE);
 	    ret_cmdlineSize = get_cmdline(p, buffer, PAGE_SIZE);
 		//By judge process cmdline whether space to determine whether the program is user level or kernel level programm
-		//a main process's pid and pgid is equal
-		if(ret_cmdlineSize > 0 && p->pid == pgid)
+		if(ret_cmdlineSize > 0)
 		{
 			memset(&temp, 0, sizeof(MonitorAPPName));
 			strcpy(temp.name, p->comm);
-			temp.pgid = p->pid;
+			temp.pgid = pgid;
 			if(insertMonitorAPPName(temp))
 				MonitorAPPNameNum++;
 		}
