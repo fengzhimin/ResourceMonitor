@@ -25,7 +25,7 @@
 
 #define startHook()                           startHookDebug(__FILE__, __FUNCTION__, __LINE__)
 #define getInodeByHexPort(path, hex)          getInodeByHexPortDebug(path, hex, __FILE__, __FUNCTION__, __LINE__)
-#define getTotalNet(totalNet)                 getTotalNetDebug(totalNet, __FILE__, __FUNCTION__, __LINE__)
+#define getAllNetState(beginNetInfo)          getAllNetStateDebug(beginNetInfo, __FILE__, __FUNCTION__, __LINE__)
 #define getAllNetCardName(netCardName, size)  getAllNetCardNameDebug(netCardName, size, __FILE__, __FUNCTION__, __LINE__)
 #define getNetCardSpeed(netCardName)          getNetCardSpeedDebug(netCardName, __FILE__, __FUNCTION__, __LINE__)
 
@@ -138,7 +138,7 @@ bool IsSocketLink(char *ProcPath, int *port);
  * return: 0 = 失败   >0 = 网卡个数成功
  * @para totalNet: 存放获取后的数据
 **********************************************/
-int getTotalNetDebug(NetInfo **totalNet, const char *file, const char *function, const int line);
+int getAllNetStateDebug(NetInfo **beginNetInfo, const char *file, const char *function, const int line);
 
 /*********************************************
  * func: 获取系统的所有网卡

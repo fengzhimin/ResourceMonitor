@@ -22,7 +22,7 @@ void getSysResourceInfo()
 	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
 	//获取系统的网络使用情况
 	NetInfo *totalNet1;
-	int totalNetInfoNum1 = getTotalNet(&totalNet1);
+	int totalNetInfoNum1 = getAllNetState(&totalNet1);
 	DiskInfo *totalDiskInfo1;
 	int totalDiskInfoNum1 = getAllDiskState(&totalDiskInfo1);
 
@@ -107,9 +107,11 @@ void getSysResourceInfo()
 	}
 	//获取系统的网络实时情况
 	NetInfo *totalNet2;
-	int totalNetInfoNum2 = getTotalNet(&totalNet2);
+	int totalNetInfoNum2 = getAllNetState(&totalNet2);
 	NetInfo *curNetInfo1 = totalNet1;
 	NetInfo *curNetInfo2 = totalNet2;
+	unsigned long long totalPackage = 0;
+	unsigned long long totalBytes = 0;
 	if(totalNetInfoNum1 == totalNetInfoNum2 && totalNetInfoNum1 != 0)
 	{
 		NetUsedInfo *tailNetUsedInfo;
@@ -123,23 +125,31 @@ void getSysResourceInfo()
 		sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = NULL;
 		while(curNetInfo1 != NULL)
 		{
-			//计算每个网卡的使用率
-			if(tailNetUsedInfo == NULL)
+			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
+			if(strcasecmp(curNetInfo1->netCardName, "lo") != 0)
 			{
-				sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
+				int speed = getNetCardSpeed(curNetInfo1->netCardName);
+				//计算每个网卡的使用率
+				if(tailNetUsedInfo == NULL)
+				{
+					sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
+				}
+				else
+				{
+					tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
+				}
+				strcpy(tailNetUsedInfo->netCardName, curNetInfo1->netCardName);
+				tailNetUsedInfo->next = NULL;
+				//计算出来的是百分比
+				if(speed != 0)
+				{
+					totalPackage = curNetInfo2->netCardInfo.uploadPackage - curNetInfo1->netCardInfo.uploadPackage + curNetInfo2->netCardInfo.downloadPackage - curNetInfo1->netCardInfo.downloadPackage;
+					totalBytes = curNetInfo2->netCardInfo.uploadBytes - curNetInfo1->netCardInfo.uploadBytes + curNetInfo2->netCardInfo.downloadBytes - curNetInfo1->netCardInfo.downloadBytes;
+					tailNetUsedInfo->netUsed = totalBytes*8/(speed*10000);
+				}
+				else
+					tailNetUsedInfo->netUsed = 0;
 			}
-			else
-			{
-				tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
-			}
-			strcpy(tailNetUsedInfo->netCardName, curNetInfo1->netCardInfo.netCardName);
-			tailNetUsedInfo->next = NULL;
-			tailNetUsedInfo->uploadPackage = curNetInfo2->netCardInfo.uploadPackage - curNetInfo1->netCardInfo.uploadPackage;
-			tailNetUsedInfo->downloadPackage = curNetInfo2->netCardInfo.downloadPackage - curNetInfo1->netCardInfo.downloadPackage;
-			tailNetUsedInfo->totalPackage = tailNetUsedInfo->uploadPackage + tailNetUsedInfo->downloadPackage;
-			tailNetUsedInfo->uploadBytes = curNetInfo2->netCardInfo.uploadBytes - curNetInfo1->netCardInfo.uploadBytes;
-			tailNetUsedInfo->downloadBytes = curNetInfo2->netCardInfo.downloadBytes - curNetInfo1->netCardInfo.downloadBytes;
-			tailNetUsedInfo->totalBytes = tailNetUsedInfo->uploadBytes + tailNetUsedInfo->downloadBytes;
 
 			curNetInfo1 = curNetInfo1->next;
 			curNetInfo2 = curNetInfo2->next;

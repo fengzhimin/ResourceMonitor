@@ -33,16 +33,7 @@ bool judgeSysResConflict()
 		strcat(netUsedInfo, "[");
 		while(netUsed != NULL)
 		{
-			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
-			if(strcasecmp(netUsed->netCardName, "lo") != 0)
-			{
-				int speed = getNetCardSpeed(netUsed->netCardName);
-				//计算出来的是百分比
-				if(speed != 0)
-					sprintf(netUsedInfo, "%s %s:%lld", netUsedInfo, netUsed->netCardName, netUsed->totalBytes/(speed*10000));
-				else
-					sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, 0);
-			}
+			sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->netUsed);
 			netUsed = netUsed->next;
 		}
 		strcat(netUsedInfo, "] ");

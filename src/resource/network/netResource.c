@@ -424,7 +424,7 @@ bool IsSocketLink(char *ProcPath, int *port)
 	return ret;
 }
 
-int getTotalNetDebug(NetInfo **totalNet, const char *file, const char *function, const int line)
+int getAllNetStateDebug(NetInfo **beginNetInfo, const char *file, const char *function, const int line)
 {
 	int netCardNum = 0;
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
@@ -438,14 +438,14 @@ int getTotalNetDebug(NetInfo **totalNet, const char *file, const char *function,
 		return 0;
 	}
 	NetInfo *tailNetInfo = NULL;
-	(*totalNet) = NULL;
+	(*beginNetInfo) = NULL;
 	while(KReadLine(fp, lineData) == -1)
 	{
 		if(lineNum >= 3)
 		{
 			if(tailNetInfo == NULL)
 			{
-				(*totalNet) = tailNetInfo = vmalloc(sizeof(NetInfo));
+				(*beginNetInfo) = tailNetInfo = vmalloc(sizeof(NetInfo));
 			}
 			else
 			{
@@ -454,7 +454,7 @@ int getTotalNetDebug(NetInfo **totalNet, const char *file, const char *function,
 			memset(tailNetInfo, 0, sizeof(NetInfo));
 			cutStrByLabel(lineData, ' ', subStr, 17);
 			subStr[0][strlen(subStr[0])-1] = '\0';
-			strcpy(tailNetInfo->netCardInfo.netCardName, subStr[0]);
+			strcpy(tailNetInfo->netCardName, subStr[0]);
 			tailNetInfo->netCardInfo.downloadBytes = ExtractNumFromStr(subStr[1]);
 			tailNetInfo->netCardInfo.uploadBytes = ExtractNumFromStr(subStr[9]);
 			tailNetInfo->netCardInfo.downloadPackage = ExtractNumFromStr(subStr[2]);
@@ -497,7 +497,6 @@ int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *fi
 	{
 		if(lineNum >= 3)
 		{
-			//提取/proc/meminfo 中的第三行数据(MemAvailable)
 			memset(_netCardName, 0, MAX_NETCARDNAME_LENGTH+1);
 			for(i = 0; i < MAX_NETCARDNAME_LENGTH; i++)
 			{

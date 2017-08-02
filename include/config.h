@@ -160,12 +160,7 @@ typedef struct DiskUsedInfo
 typedef struct NetWorkUsedInfo
 {
 	char netCardName[MAX_NETCARDNAME_LENGTH];   //网卡名称
-	unsigned long long uploadPackage;     //系统的下载的数据包个数
-	unsigned long long downloadPackage;   //系统的上传的数据包个数
-	unsigned long long totalPackage;      //系统的总数据包个数(上传+下载)
-	unsigned long long uploadBytes;    //系统的上传字节
-	unsigned long long downloadBytes;  //系统的下载字节
-	unsigned long long totalBytes;     //系统的总网速(上传字节+下载字节)
+	int netUsed;
 	struct NetWorkUsedInfo *next;
 } NetUsedInfo;
 
@@ -194,22 +189,22 @@ typedef struct ProcPID
 /**********************************
  * function: 获取每个网卡的流量数据
 **********************************/
-struct NetCardInfo
+typedef struct NetCardStats
 {
-	char netCardName[MAX_NETCARDNAME_LENGTH];   //网卡名称
 	unsigned long long uploadPackage;     //系统的下载的数据包个数
 	unsigned long long downloadPackage;   //系统的上传的数据包个数
 	unsigned long long uploadBytes;    //系统的上传字节
 	unsigned long long downloadBytes;  //系统的下载字节
-};
+} NetCardStat;
 
 /************************************
  * function: 定义系统网络相关的信息(/proc/net/dev)  注意: 是系统中所有网卡的数据和
 ************************************/
-typedef struct TotalNetInfo
+typedef struct NetStateInfo
 {
-	struct NetCardInfo netCardInfo;
-	struct TotalNetInfo *next;
+	char netCardName[MAX_NETCARDNAME_LENGTH];   //网卡名称
+	NetCardStat netCardInfo;
+	struct NetStateInfo *next;
 } NetInfo;
 
 /**************************
