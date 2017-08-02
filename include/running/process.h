@@ -91,11 +91,4 @@ ProgAllRes getProgramIOData(char *progName, int *pidArray);
 ************************************************/
 ProgAllRes getProgramSched(char *progName, int *pidArray);
 
-/***********************************************
- * func: get a program all net data
- * return: return netTotalBytes  -1 = failure
- * @para pidArray: The pid Array of a program
-************************************************/
-unsigned long long getProgramNetData(int *pidArray);
-
 #endif

@@ -443,24 +443,28 @@ int getAllNetStateDebug(NetInfo **beginNetInfo, const char *file, const char *fu
 	{
 		if(lineNum >= 3)
 		{
-			if(tailNetInfo == NULL)
-			{
-				(*beginNetInfo) = tailNetInfo = vmalloc(sizeof(NetInfo));
-			}
-			else
-			{
-				tailNetInfo = tailNetInfo->next = vmalloc(sizeof(NetInfo));
-			}
-			memset(tailNetInfo, 0, sizeof(NetInfo));
 			cutStrByLabel(lineData, ' ', subStr, 17);
 			subStr[0][strlen(subStr[0])-1] = '\0';
-			strcpy(tailNetInfo->netCardName, subStr[0]);
-			tailNetInfo->netCardInfo.downloadBytes = ExtractNumFromStr(subStr[1]);
-			tailNetInfo->netCardInfo.uploadBytes = ExtractNumFromStr(subStr[9]);
-			tailNetInfo->netCardInfo.downloadPackage = ExtractNumFromStr(subStr[2]);
-			tailNetInfo->netCardInfo.uploadPackage = ExtractNumFromStr(subStr[10]);
-			tailNetInfo->next = NULL;
-			netCardNum++;
+			//except lo
+			if(strcasecmp(subStr[0], "lo") != 0)
+			{
+				if(tailNetInfo == NULL)
+				{
+					(*beginNetInfo) = tailNetInfo = vmalloc(sizeof(NetInfo));
+				}
+				else
+				{
+					tailNetInfo = tailNetInfo->next = vmalloc(sizeof(NetInfo));
+				}
+				memset(tailNetInfo, 0, sizeof(NetInfo));
+				strcpy(tailNetInfo->netCardName, subStr[0]);
+				tailNetInfo->netCardInfo.downloadBytes = ExtractNumFromStr(subStr[1]);
+				tailNetInfo->netCardInfo.uploadBytes = ExtractNumFromStr(subStr[9]);
+				tailNetInfo->netCardInfo.downloadPackage = ExtractNumFromStr(subStr[2]);
+				tailNetInfo->netCardInfo.uploadPackage = ExtractNumFromStr(subStr[10]);
+				tailNetInfo->next = NULL;
+				netCardNum++;
+			}
 		}
 		memset(lineData, 0, LINE_CHAR_MAX_NUM);
 		lineNum++;

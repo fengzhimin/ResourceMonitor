@@ -356,7 +356,7 @@ typedef struct ProgramAllPid
 	int usePort[MAX_PORT_NUM];
 	int usePort_index;
 	pid_t pgid;
-	int pid[MAX_CHILD_PROCESS_NUM];
+	int childPid[MAX_CHILD_PROCESS_NUM];
 	struct ProgramAllPid *next;
 } ProgAllPid;
 

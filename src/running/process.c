@@ -64,7 +64,7 @@ ProgAllPid getAllPidDebug(char *name, pid_t pgid, const char *file, const char *
 				task_unlock(p);
 				return ret;
 			}
-			ret.pid[recordPidIndex++] = p->pid;
+			ret.childPid[recordPidIndex++] = p->pid;
 		}
 		task_unlock(p);
 	}
@@ -188,5 +188,3 @@ ProgAllRes getProgramSched(char *progName, int *pidArray)
 
 	return ret;
 }
-
-//unsigned long long getProgramNetData(int *pidArray)
