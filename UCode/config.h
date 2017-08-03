@@ -44,6 +44,6 @@ typedef struct ConflictProcess
 #define MEM_CONFLICT    2    //MEM资源冲突(00000010)
 #define NET_CONFLICT    4    //NET资源冲突(00000100)
 #define IO_CONFLICT     8    //IO资源冲突 (00001000)
-#define PORT_CONFLICT   10   //端口资源冲突(00010000)
+#define PORT_CONFLICT   16   //端口资源冲突(00010000)
 
 #endif

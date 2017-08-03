@@ -288,7 +288,7 @@ extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作
 #define MEM_CONFLICT    2    //MEM资源冲突(00000010)
 #define NET_CONFLICT    4    //NET资源冲突(00000100)
 #define IO_CONFLICT     8    //IO资源冲突 (00001000)
-#define PORT_CONFLICT   10   //端口资源冲突(00010000)
+#define PORT_CONFLICT   16   //端口资源冲突(00010000)
 
 /**********************************
  * function: 存放资源冲突的进程信息
@@ -356,7 +356,7 @@ typedef struct ProgramAllPid
 	int usePort[MAX_PORT_NUM];
 	int usePort_index;
 	pid_t pgid;
-	int pid[MAX_CHILD_PROCESS_NUM];
+	int childPid[MAX_CHILD_PROCESS_NUM];
 	struct ProgramAllPid *next;
 } ProgAllPid;
 

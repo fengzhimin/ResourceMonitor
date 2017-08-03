@@ -112,6 +112,7 @@ void getSysResourceInfo()
 	NetInfo *curNetInfo2 = totalNet2;
 	unsigned long long totalPackage = 0;
 	unsigned long long totalBytes = 0;
+	int speed;
 	if(totalNetInfoNum1 == totalNetInfoNum2 && totalNetInfoNum1 != 0)
 	{
 		NetUsedInfo *tailNetUsedInfo;
@@ -125,31 +126,27 @@ void getSysResourceInfo()
 		sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = NULL;
 		while(curNetInfo1 != NULL)
 		{
-			//跳过lo网卡，因为在获取lo的带宽时会发生错误，导致内存不断的泄漏
-			if(strcasecmp(curNetInfo1->netCardName, "lo") != 0)
+			speed = getNetCardSpeed(curNetInfo1->netCardName);
+			//计算每个网卡的使用率
+			if(tailNetUsedInfo == NULL)
 			{
-				int speed = getNetCardSpeed(curNetInfo1->netCardName);
-				//计算每个网卡的使用率
-				if(tailNetUsedInfo == NULL)
-				{
-					sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
-				}
-				else
-				{
-					tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
-				}
-				strcpy(tailNetUsedInfo->netCardName, curNetInfo1->netCardName);
-				tailNetUsedInfo->next = NULL;
-				//计算出来的是百分比
-				if(speed != 0)
-				{
-					totalPackage = curNetInfo2->netCardInfo.uploadPackage - curNetInfo1->netCardInfo.uploadPackage + curNetInfo2->netCardInfo.downloadPackage - curNetInfo1->netCardInfo.downloadPackage;
-					totalBytes = curNetInfo2->netCardInfo.uploadBytes - curNetInfo1->netCardInfo.uploadBytes + curNetInfo2->netCardInfo.downloadBytes - curNetInfo1->netCardInfo.downloadBytes;
-					tailNetUsedInfo->netUsed = totalBytes*8/(speed*10000);
-				}
-				else
-					tailNetUsedInfo->netUsed = 0;
+				sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
 			}
+			else
+			{
+				tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
+			}
+			strcpy(tailNetUsedInfo->netCardName, curNetInfo1->netCardName);
+			tailNetUsedInfo->next = NULL;
+			//计算出来的是百分比
+			if(speed != 0)
+			{
+				totalPackage = curNetInfo2->netCardInfo.uploadPackage - curNetInfo1->netCardInfo.uploadPackage + curNetInfo2->netCardInfo.downloadPackage - curNetInfo1->netCardInfo.downloadPackage;
+				totalBytes = curNetInfo2->netCardInfo.uploadBytes - curNetInfo1->netCardInfo.uploadBytes + curNetInfo2->netCardInfo.downloadBytes - curNetInfo1->netCardInfo.downloadBytes;
+				tailNetUsedInfo->netUsed = totalBytes*8/(speed*10000);
+			}
+			else
+				tailNetUsedInfo->netUsed = 0;
 
 			curNetInfo1 = curNetInfo1->next;
 			curNetInfo2 = curNetInfo2->next;
@@ -217,14 +214,14 @@ void getUserLayerAPP()
 	{
 		strcpy(beginProcRes[i].name, currentMonitorProgPid->name);
 		beginProcRes[i].pgid = currentMonitorProgPid->pgid;
-		beginProcRes[i].VmRss = getProgramVmRSS(currentMonitorProgPid->pid);
+		beginProcRes[i].VmRss = getProgramVmRSS(currentMonitorProgPid->childPid);
 
 		/*
 		 * set start record value
 		 */
-		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->pid);
-		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->pid);
-		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
+		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
+		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
 		{
 			beginProgAllRes[i].cpuTime[j] = programCPUTime.cpuTime[j];
@@ -251,10 +248,10 @@ void getUserLayerAPP()
 	{
 		for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
 		{
-			if(currentMonitorProgPid->pid[j] == 0)
+			if(currentMonitorProgPid->childPid[j] == 0)
 				break;
 			memset(procPath, 0, MAX_PROCPATH);
-			sprintf(procPath, "/proc/%d", currentMonitorProgPid->pid[j]);
+			sprintf(procPath, "/proc/%d", currentMonitorProgPid->childPid[j]);
 			if(IsSocketLink(procPath, _port))
 			{
 				currentMonitorProgPid->sockflag = true;
@@ -316,15 +313,15 @@ void getUserLayerAPP()
 		/*
 		 * set start record value
 		 */
-		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->pid);
-		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->pid);
-		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->pid);
+		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
+		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
+		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		/*
 		 * Calculated CPUTime,IOData,Sched different value
 		 */
 		for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
 		{
-			if(currentMonitorProgPid->pid[j] == 0)
+			if(currentMonitorProgPid->childPid[j] == 0)
 			{
 				beginProcRes[i].flags = processValid;
 				beginProcRes[i].processNum = processNum;

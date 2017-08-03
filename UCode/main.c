@@ -58,7 +58,7 @@ void monitorPort()
 int main(int argc, char **argv)
 {
 	pthread_t thr;
-	if(pthread_create(&thr, NULL, monitorPort, NULL) != 0)
+	if(pthread_create(&thr, NULL, (void *)monitorPort, NULL) != 0)
 	{
 		printf("create thread failure!\n");
 	}
@@ -125,6 +125,18 @@ int main(int argc, char **argv)
 			}
 			if(info.conflictInfo.conflictType == 0)
 				break;
+			printf("[");
+			if(info.conflictInfo.conflictType & CPU_CONFLICT)
+				printf("CPU ");
+			else if(info.conflictInfo.conflictType & MEM_CONFLICT)
+				printf("MEM ");
+			else if(info.conflictInfo.conflictType & NET_CONFLICT)
+				printf("NET ");
+			else if(info.conflictInfo.conflictType & IO_CONFLICT)
+				printf("IO ");
+			else if(info.conflictInfo.conflictType & PORT_CONFLICT)
+				printf("PORT ");
+			printf("]");
 			printf("conflict type = %d\t conflict process = %s\n", info.conflictInfo.conflictType, info.conflictInfo.name);
 		}
 	    usleep(100000);

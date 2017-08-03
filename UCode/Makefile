@@ -5,4 +5,4 @@ $(EXE):main.c config.h
 	gcc -o $@  $< $(CFLAGS)
 
 clean:
-	rm *.o $(EXE)
+	@rm *.o $(EXE)
