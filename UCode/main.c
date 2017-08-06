@@ -125,19 +125,19 @@ int main(int argc, char **argv)
 			}
 			if(info.conflictInfo.conflictType == 0)
 				break;
+			printf("conflict type = %2d conflict process = %20s", info.conflictInfo.conflictType, info.conflictInfo.name);
 			printf("[");
 			if(info.conflictInfo.conflictType & CPU_CONFLICT)
 				printf("CPU ");
-			else if(info.conflictInfo.conflictType & MEM_CONFLICT)
+			if(info.conflictInfo.conflictType & MEM_CONFLICT)
 				printf("MEM ");
-			else if(info.conflictInfo.conflictType & NET_CONFLICT)
+			if(info.conflictInfo.conflictType & NET_CONFLICT)
 				printf("NET ");
-			else if(info.conflictInfo.conflictType & IO_CONFLICT)
+			if(info.conflictInfo.conflictType & IO_CONFLICT)
 				printf("IO ");
-			else if(info.conflictInfo.conflictType & PORT_CONFLICT)
+			if(info.conflictInfo.conflictType & PORT_CONFLICT)
 				printf("PORT ");
-			printf("]");
-			printf("conflict type = %d\t conflict process = %s\n", info.conflictInfo.conflictType, info.conflictInfo.name);
+			printf("]\n");
 		}
 	    usleep(100000);
     }
