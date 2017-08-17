@@ -90,21 +90,40 @@ void getAllMonitorProgPid()
 	}
 }
 
-unsigned int getProgramVmRSS(int *pidArray)
+bool getProgramMemInfo(int *pidArray, Process_Mem_Info *memInfo)
 {
 	int i = 0;
-	int VmRss = -1;
-	unsigned int ret = 0;
+	bool ret = false;
+	Process_Mem_Info temp;
+	memset(memInfo, 0, sizeof(Process_Mem_Info));
+	for(; i < MAX_CHILD_PROCESS_NUM; i++)
+	{
+		if(pidArray[i] == 0)
+			break;
+		memset(&temp, 0, sizeof(Process_Mem_Info));
+		if(getProcessMemInfo(pidArray[i], &temp))
+		{
+			ret = true;
+			memInfo->rss += temp.rss;
+			memInfo->swap += temp.swap;
+		}
+	}
+
+	return ret;
+}
+
+ProgAllRes getProgramMaj_flt(char *progName, int *pidArray)
+{
+	int i = 0;
+	ProgAllRes ret;
+	memset(&ret, 0, sizeof(ProgAllRes));
+	strcpy(ret.name, progName);
 
 	for(; i < MAX_CHILD_PROCESS_NUM; i++)
 	{
 		if(pidArray[i] == 0)
 			break;
-		VmRss = getProcessVmRSS(pidArray[i]);
-		if(VmRss > 0)
-		{
-			ret += VmRss;
-		}
+		ret.maj_flt[i] = getProcessMAJ_FLT(pidArray[i]);
 	}
 
 	return ret;

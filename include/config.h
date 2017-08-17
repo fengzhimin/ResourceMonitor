@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2016-11-06 00:44
-* Last modified: 2017-06-20 20:27
+* Last modified: 2017-08-16 05:32
 * Email        : 374648064@qq.com
 * Filename     : config.h
 * Descrip:q
@@ -92,6 +92,8 @@ typedef struct ResourceUtilization
 	int processNum;
 	int cpuUsed[MAX_RECORD_LENGTH];
 	int memUsed[MAX_RECORD_LENGTH];
+	int swapUsed[MAX_RECORD_LENGTH];
+	unsigned long maj_flt[MAX_RECORD_LENGTH];
 	ProcSchedInfo schedInfo[MAX_RECORD_LENGTH];
 	unsigned long long ioDataBytes[MAX_RECORD_LENGTH];
 	unsigned long long netTotalBytes[MAX_RECORD_LENGTH];
@@ -109,8 +111,10 @@ typedef struct ProcessResource
 	pid_t pgid;
 	bool flags;
 	int processNum;
-	unsigned int VmRss;
-	unsigned int cpuTime;
+	unsigned long VmRss;
+	unsigned long swap;
+	unsigned long maj_flt;
+	unsigned long cpuTime;
 	ProcSchedInfo schedInfo;
 	unsigned long long ioDataBytes;
 	unsigned long long netTotalBytes;
@@ -171,6 +175,7 @@ typedef struct SystemResource
 {
 	int cpuUsed;    //系统的CPU使用率
 	int memUsed;    //系统的mem使用率
+	int swapUsed;   
 	IOUsedInfo *ioUsed;     //系统的io使用率(在统计时间内所有处理io时间除以总共统计时间)
 	//以下都是针对单位时间内的变化，不会累计
 	NetUsedInfo *netUsed;   //系统的网卡使用率
@@ -212,8 +217,10 @@ typedef struct NetStateInfo
 **************************/
 typedef struct TotalMemInfo
 {
-	unsigned int memTotal;      //物理总内存大小
-	unsigned int memAvailable;  //可以物理内存大小
+	unsigned long memTotal;      //物理总内存大小
+	unsigned long memAvailable;  //可以物理内存大小
+	unsigned long totalswap;
+	unsigned long freeswap;
 } MemInfo;
 
 /***************************
@@ -222,10 +229,10 @@ typedef struct TotalMemInfo
 ***************************/
 typedef struct TotalCpuTime
 {
-	unsigned int user;
-	unsigned int nice;
-	unsigned int system;
-	unsigned int idle;
+	unsigned long long user;
+	unsigned long long nice;
+	unsigned long long system;
+	unsigned long long idle;
 } Total_Cpu_Occupy_t;
 
 /***************************
@@ -235,11 +242,22 @@ typedef struct TotalCpuTime
 typedef struct ProcessCpuTime
 {
 	int pid;
-	unsigned int utime;
-	unsigned int stime;
-	unsigned int cutime;
-	unsigned int cstime;
+	unsigned long utime;
+	unsigned long stime;
+	unsigned long cutime;
+	unsigned long cstime;
 } Process_Cpu_Occupy_t;
+
+/***************************
+ * function: process memory info
+ * @para rss: physical memory
+ * @para swap: virual memory
+***************************/
+typedef struct ProcessMemInfo
+{
+	unsigned long rss;
+	unsigned long swap;
+} Process_Mem_Info;
 
 /**************************
  * function: 定义进程IO数据
@@ -371,7 +389,8 @@ typedef struct ProgramAllRes
 	char name[MAX_INFOLENGTH];
 	bool flags[MAX_CHILD_PROCESS_NUM];
 	pid_t pgid;
-	unsigned int cpuTime[MAX_CHILD_PROCESS_NUM];
+	unsigned long cpuTime[MAX_CHILD_PROCESS_NUM];
+	unsigned long maj_flt[MAX_CHILD_PROCESS_NUM];
 	unsigned long long ioDataBytes[MAX_CHILD_PROCESS_NUM];
 	ProcSchedInfo schedInfo[MAX_CHILD_PROCESS_NUM];
 } ProgAllRes;

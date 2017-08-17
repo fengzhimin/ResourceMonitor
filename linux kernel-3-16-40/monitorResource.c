@@ -227,23 +227,23 @@ struct conflictProcess getConflictProcess(int port)
 				    d = (struct linux_dirent *) (buf + bpos);
 				    d_type = *(buf + bpos + d->d_reclen - 1);
 				    if(d_type == DT_LNK)
-				    {
-					memset(pathfd, 0, VFS_FILE_PATH_MAX_LENGTH);
-					sprintf(pathfd, "%s/%s", path, d->d_name);
-					//printk("pathfd = %s\n", pathfd);
-					char buflinkInfo[1024];
-					int linkSize = sys_readlink(pathfd, buflinkInfo, 1024);
-					if(linkSize < 0 || linkSize > 1024)
-						continue;
-					buflinkInfo[linkSize] = '\0';
-					if(judgeConflictID(buflinkInfo, inode))
 					{
-						ret.pid = p->pid;
-						memset(ret.ProcessName, 0, VFS_PROCESS_NAME_MAX_CHAR);
-						strcpy(ret.ProcessName, p->comm);
-						sys_close(fd);
-						goto end;
-					}
+						memset(pathfd, 0, VFS_FILE_PATH_MAX_LENGTH);
+						sprintf(pathfd, "%s/%s", path, d->d_name);
+						//printk("pathfd = %s\n", pathfd);
+						char buflinkInfo[1024];
+						int linkSize = sys_readlink(pathfd, buflinkInfo, 1024);
+						if(linkSize < 0 || linkSize > 1024)
+							continue;
+						buflinkInfo[linkSize] = '\0';
+						if(judgeConflictID(buflinkInfo, inode))
+						{
+							ret.pid = p->pid;
+							memset(ret.ProcessName, 0, VFS_PROCESS_NAME_MAX_CHAR);
+							strcpy(ret.ProcessName, p->comm);
+							sys_close(fd);
+							goto end;
+						}
 				    }
 				}
 			}
@@ -256,35 +256,14 @@ end:
 	return ret;
 }
 
-int vfs_opendir(const char *path)
+struct KCode_dirent* vfs_readdir(const char *path)
 {
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
-	int fd;
-	fd = sys_open(path, O_RDONLY | O_DIRECTORY, 0);
-	struct fd f;
-	f = fdget(fd);
-	//struct file *fil = f.file;
-	//printk("f.file.f_pos = %d\n", fil->f_pos);
-	set_fs(fs);
-	if (fd < 0)
-	{
-		//printk("open directory %s failure!\n", path);
-		return -1;
-	}
-	
-	return fd;
-}
-EXPORT_SYMBOL(vfs_opendir);
-
-struct KCode_dirent * vfs_readdir(const int fd)
-{
-	if(fd == -1)
+	int fd = sys_open(path, O_RDONLY | O_DIRECTORY, 0);
+	if(fd < 0)
 		return NULL;
-	mm_segment_t fs;
-	fs = get_fs();
-	set_fs(KERNEL_DS);
 	int nread;
 	char buf[VFS_BUF_SIZE];
 	struct linux_dirent *d;
@@ -327,6 +306,7 @@ struct KCode_dirent * vfs_readdir(const int fd)
 		    num++;
 		}
 	}
+	sys_close(fd);
 	set_fs(fs);
 	return begin;
 }
@@ -344,16 +324,6 @@ extern void vfs_free_readdir(struct KCode_dirent *dir)
 	vfree(dir);
 }
 EXPORT_SYMBOL(vfs_free_readdir);
-
-void vfs_closedir(const int fd)
-{
-	mm_segment_t fs;
-	fs = get_fs();
-	set_fs(KERNEL_DS);
-	sys_close(fd);
-	set_fs(fs);
-}
-EXPORT_SYMBOL(vfs_closedir);
 
 /*
 void vfs_readdir(const char *path)

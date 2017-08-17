@@ -48,11 +48,23 @@ static struct nf_hook_ops net_hooks[] = {
 	},
 };
 
+bool filter_ip(__be32 saddr, __be32 daddr)
+{
+	if(saddr ^ daddr)
+		return false;
+	else
+		return true;
+}
+
 unsigned int filter_http(char *type, struct sk_buff *pskb)
 {
 	int _port;
 	struct sk_buff *skb = pskb;
 	struct iphdr *iph = ip_hdr(skb);   //获取IP头
+	//filter lo
+	if(filter_ip(iph->saddr, iph->daddr))
+		return NF_ACCEPT;
+
 	//判断数据包类型
 	//过滤出tcp和udp协议的数据包
 	if(iph->protocol == IPPROTO_TCP)
@@ -176,7 +188,7 @@ unsigned int NET_HookLocalIn(unsigned int hook, struct sk_buff *pskb, const stru
 
 unsigned int NET_HookLocalOut(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
 {
-	return filter_http("out", pskb);
+	return NF_ACCEPT;
 }
 
 unsigned int NET_HookPreRouting(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
@@ -186,7 +198,7 @@ unsigned int NET_HookPreRouting(unsigned int hook, struct sk_buff *pskb, const s
 
 unsigned int NET_HookPostRouting(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
 {
-	return NF_ACCEPT;
+	return filter_http("out", pskb);
 }
 
 unsigned int NET_HookForward(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
@@ -378,16 +390,12 @@ bool IsSocketLink(char *ProcPath, int *port)
 	char fdPath[MAX_PROCPATH];
 	memset(fdPath, 0, MAX_PROCPATH);
 	sprintf(fdPath, "%s/fd", ProcPath);
-	int fdDir = vfs_opendir(fdPath);
-	if(fdDir == -1)
-	{
-		return false;
-	}
 	
 	struct KCode_dirent *begin;
 	struct KCode_dirent *cur;
-	begin = cur = vfs_readdir(fdDir);
-	vfs_closedir(fdDir);
+	begin = cur = vfs_readdir(fdPath);
+	if(begin == NULL)
+		return false;
 	char buflinkInfo[LINK_MAX_NUM];
 	char path[MAX_PROCPATH];
 	bool ret = false;

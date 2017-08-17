@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2017-06-21 19:30
-* Last modified: 2017-06-21 19:30
+* Last modified: 2017-08-16 05:48
 * Email        : 374648064@qq.com
 * Filename     : process.h
 * Description  : get a process info
@@ -62,10 +62,19 @@ void getAllMonitorProgPid();
 
 /***********************************************
  * func: get a program all VmRSS
- * return: return program all VmRSS   -1 = failure
+ * return: true = success   false = failure
+ * @para pidArray: The pid Array of a program
+ * @para memInfo: program memory info
+************************************************/
+bool getProgramMemInfo(int *pidArray, Process_Mem_Info *memInfo);
+
+/***********************************************
+ * func: get a program all maj_flt
+ * return: return ProgAllRes object and set ProgAllRes maj_flt
+ * @para progName: program name
  * @para pidArray: The pid Array of a program
 ************************************************/
-unsigned int getProgramVmRSS(int *pidArray);
+ProgAllRes getProgramMaj_flt(char *progName, int *pidArray);
 
 /***********************************************
  * func: get a program all CPU time

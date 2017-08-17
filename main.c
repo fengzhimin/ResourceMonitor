@@ -100,14 +100,15 @@ int monitorResource(void *data)
 	int i;
 	while(!kthread_should_stop())
 	{
-		int avgCPU, avgMEM;
+		int avgCPU, avgMEM, avgSWAP;
 		unsigned long long avgIOData, avgNetData;
-		getSysResourceInfo();
-		if(judgeSysResConflict())
+		unsigned long avgMaj_flt;
+		//getSysResourceInfo();
+		//if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{
-		printk("--------------------------start----------------------\n");
+				printk("--------------------------start----------------------\n");
 				//系统资源冲突
 				//加锁
 				mutex_lock(&ConflictProcess_Mutex);
@@ -123,14 +124,16 @@ int monitorResource(void *data)
 				currentMonitorAPP = beginMonitorAPP;
 				while(currentMonitorAPP != NULL)
 				{
-					avgCPU = avgMEM = 0;
-					avgIOData = avgNetData = 0;
+					avgCPU = avgMEM = avgSWAP = 0;
+					avgIOData = avgNetData = avgMaj_flt = 0;
 					int aveWait_sum = 0;
 					int aveIOWait_sum = 0;
 					for(i = 0; i < MAX_RECORD_LENGTH; i++)
 					{
 						avgCPU += currentMonitorAPP->cpuUsed[i];
 						avgMEM += currentMonitorAPP->memUsed[i];
+						avgSWAP += currentMonitorAPP->swapUsed[i];
+						avgMaj_flt += currentMonitorAPP->maj_flt[i];
 						avgIOData += currentMonitorAPP->ioDataBytes[i];
 						avgNetData += currentMonitorAPP->netTotalBytes[i];
 						aveWait_sum += currentMonitorAPP->schedInfo[i].wait_sum;
@@ -138,11 +141,13 @@ int monitorResource(void *data)
 					}
 					avgCPU /= MAX_RECORD_LENGTH;
 					avgMEM /= MAX_RECORD_LENGTH;
+					avgSWAP /= MAX_RECORD_LENGTH;
+					avgMaj_flt /= MAX_RECORD_LENGTH;
 					avgIOData /= MAX_RECORD_LENGTH;
 					avgNetData /= MAX_RECORD_LENGTH;
 					aveWait_sum /= MAX_RECORD_LENGTH;
 					aveIOWait_sum /= MAX_RECORD_LENGTH;
-					printk("%20s: %8d\t%8d\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
+					printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
 					int conflictType = 0;
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU)
@@ -187,8 +192,8 @@ int monitorResource(void *data)
 
 				//释放锁
 				mutex_unlock(&ConflictProcess_Mutex);
+				printk("--------------------------end----------------------\n\n\n\n");
 			}
-			printk("--------------------------end----------------------\n\n\n\n");
 		}
 	}
 

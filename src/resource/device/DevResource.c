@@ -94,19 +94,16 @@ bool getDiskStateDebug(char *diskPath, DiskStat *diskStatInfo, const char *file,
 
 int getAllDiskStateDebug(DiskInfo **beginDiskInfo, const char *file, const char *function, const int line)
 {
-	int fdDir = vfs_opendir("/sys/block");
-	if(fdDir == -1)
+	struct KCode_dirent *begin;
+	struct KCode_dirent *cur;
+	begin = cur = vfs_readdir("/sys/block");
+	if(begin == NULL)
 	{
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		sprintf(error_info, "打开文件夹: /sys/block  失败！\n");
 		RecordLog(error_info);
 		return 0;
 	}
-	
-	struct KCode_dirent *begin;
-	struct KCode_dirent *cur;
-	begin = cur = vfs_readdir(fdDir);
-	vfs_closedir(fdDir);
 	char direntName[MAX_DIRNAME_LENGTH];
 	char path[FILE_PATH_MAX_LENGTH];
 	int ret_num = 0;   //返回值(磁盘的个数)

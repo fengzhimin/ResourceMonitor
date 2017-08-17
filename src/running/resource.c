@@ -12,14 +12,16 @@ static char procPath[MAX_PROCPATH];    //example: /proc/1234
 static ProgAllRes programCPUTime;
 static ProgAllRes programIOData;
 static ProgAllRes programSched;
+static ProgAllRes programMaj_flt;
 static ProcSchedInfo programSchedInfo;
+static Process_Mem_Info programMemInfo;
 static int _port[MAX_PORT_NUM];
 
 void getSysResourceInfo()
 {
 	Total_Cpu_Occupy_t total_cpu_occupy1;
 	getTotalCPUTime(&total_cpu_occupy1);
-	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
+	unsigned long long total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
 	//获取系统的网络使用情况
 	NetInfo *totalNet1;
 	int totalNetInfoNum1 = getAllNetState(&totalNet1);
@@ -94,16 +96,17 @@ void getSysResourceInfo()
 	}
 	Total_Cpu_Occupy_t total_cpu_occupy2;
 	getTotalCPUTime(&total_cpu_occupy2);
-	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;	
+	unsigned long long total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;	
 	//计算总CPU使用率
-	int totalcpu = total_cpu2 - total_cpu1;
-	int totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
+	unsigned long long totalcpu = total_cpu2 - total_cpu1;
+	unsigned long long totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
 	sysResArray[currentRecordSysResIndex].cpuUsed = 100*(totalcpu-totalidle)/totalcpu;
 	MemInfo totalMem;
 	if(getTotalPM(&totalMem))
 	{
 		//计算内存使用率
 		sysResArray[currentRecordSysResIndex].memUsed = 100*(totalMem.memTotal-totalMem.memAvailable)/totalMem.memTotal;
+		sysResArray[currentRecordSysResIndex].swapUsed = 100*(totalMem.totalswap-totalMem.freeswap)/totalMem.totalswap;
 	}
 	//获取系统的网络实时情况
 	NetInfo *totalNet2;
@@ -214,7 +217,9 @@ void getUserLayerAPP()
 	{
 		strcpy(beginProcRes[i].name, currentMonitorProgPid->name);
 		beginProcRes[i].pgid = currentMonitorProgPid->pgid;
-		beginProcRes[i].VmRss = getProgramVmRSS(currentMonitorProgPid->childPid);
+		getProgramMemInfo(currentMonitorProgPid->childPid, &programMemInfo);
+		beginProcRes[i].VmRss = programMemInfo.rss;
+		beginProcRes[i].swap = programMemInfo.swap;
 
 		/*
 		 * set start record value
@@ -222,11 +227,13 @@ void getUserLayerAPP()
 		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
+		programMaj_flt = getProgramMaj_flt(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		for(j = 0; j < MAX_CHILD_PROCESS_NUM; j++)
 		{
 			beginProgAllRes[i].cpuTime[j] = programCPUTime.cpuTime[j];
 			beginProgAllRes[i].schedInfo[j] = programSched.schedInfo[j];
 			beginProgAllRes[i].ioDataBytes[j] = programIOData.ioDataBytes[j];
+			beginProgAllRes[i].maj_flt[j] = programMaj_flt.maj_flt[j];
 			beginProgAllRes[i].flags[j] = programCPUTime.flags[j] && programSched.flags[j] && programIOData.flags[j];
 		}
 
@@ -316,6 +323,7 @@ void getUserLayerAPP()
 		programCPUTime = getProgramCPU(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		programIOData = getProgramIOData(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		programSched = getProgramSched(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
+		programMaj_flt = getProgramMaj_flt(currentMonitorProgPid->name, currentMonitorProgPid->childPid);
 		/*
 		 * Calculated CPUTime,IOData,Sched different value
 		 */
@@ -336,6 +344,7 @@ void getUserLayerAPP()
 				processNum++;
 				beginProcRes[i].cpuTime += (programCPUTime.cpuTime[j] - beginProgAllRes[i].cpuTime[j]);
 				beginProcRes[i].ioDataBytes += (programIOData.ioDataBytes[j] - beginProgAllRes[i].ioDataBytes[j]);
+				beginProcRes[i].maj_flt += (programMaj_flt.maj_flt[j] - beginProgAllRes[i].maj_flt[j]);
 				programSchedInfo = sub(programSched.schedInfo[j], beginProgAllRes[i].schedInfo[j]);
 				beginProcRes[i].schedInfo = add(beginProcRes[i].schedInfo, programSchedInfo);
 			}
@@ -378,6 +387,8 @@ void getUserLayerAPP()
 					currentMonitorAPP->flags = true;
 					currentMonitorAPP->processNum = beginProcRes[i].processNum;
 					currentMonitorAPP->memUsed[currentRecordResIndex] = 100*beginProcRes[i].VmRss/totalMem.memTotal;
+					currentMonitorAPP->swapUsed[currentRecordResIndex] = 100*beginProcRes[i].swap/totalMem.totalswap;
+					currentMonitorAPP->maj_flt[currentRecordResIndex] = beginProcRes[i].maj_flt;
 					currentMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(total_cpu2-total_cpu1);
 					currentMonitorAPP->schedInfo[currentRecordResIndex] = beginProcRes[i].schedInfo;
 					currentMonitorAPP->ioDataBytes[currentRecordResIndex] = beginProcRes[i].ioDataBytes;
@@ -411,6 +422,8 @@ void getUserLayerAPP()
 				endMonitorAPP->processNum = beginProcRes[i].processNum;
 				endMonitorAPP->flags = true;
 				endMonitorAPP->memUsed[currentRecordResIndex] = 100*beginProcRes[i].VmRss/totalMem.memTotal;
+				endMonitorAPP->swapUsed[currentRecordResIndex] = 100*beginProcRes[i].swap/totalMem.totalswap;
+				endMonitorAPP->maj_flt[currentRecordResIndex] = beginProcRes[i].maj_flt;
 				endMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(total_cpu2-total_cpu1);
 				endMonitorAPP->schedInfo[currentRecordResIndex] = beginProcRes[i].schedInfo;
 				endMonitorAPP->ioDataBytes[currentRecordResIndex] = beginProcRes[i].ioDataBytes;

@@ -158,19 +158,12 @@ bool judgeConflictID(char *buf, int inode);
 ************************************************/
 struct conflictProcess getConflictProcess(int port);
 
-/*****************************************
- * func: 打开文件夹
- * return: -1 = 打开失败　　>0 =　文件夹句柄
- * @para path: 被打开的文件夹路径
-*****************************************/
-extern int vfs_opendir(const char *path);
-
 /*****************************************************
  * func: 读取文件夹的内容
- * return: 返回文件夹的内容(线性列表)
- * @para fd: 打开的文件夹句柄
+ * return: 返回文件夹的内容(线性列表)  failure = NULL
+ * @para path: directory path
 *****************************************************/
-extern struct KCode_dirent* vfs_readdir(const int fd);
+extern struct KCode_dirent* vfs_readdir(const char *path);
 
 /**************************************************
  * func: 释放存放文件夹内容的列表
@@ -178,13 +171,6 @@ extern struct KCode_dirent* vfs_readdir(const int fd);
  * @para dir: 存放内容的首地址
 **************************************************/
 extern void vfs_free_readdir(struct KCode_dirent *dir);
-
-/**********************************
- * func: 关闭打开的文件夹
- * return: void
- * @para fd: 打开的文件夹句柄
-**********************************/
-extern void vfs_closedir(const int fd);
 
 /*****************************************
  * func: 读取一个链接

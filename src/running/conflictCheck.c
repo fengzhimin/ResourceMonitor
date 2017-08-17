@@ -12,13 +12,16 @@
 bool judgeSysResConflict()
 {
 	//合并磁盘数据
+	/*
 	char ioUsedInfo[100] = { 0 };
 	char netUsedInfo[100] = { 0 };
 	IOUsedInfo *diskUsed = NULL;
 	NetUsedInfo *netUsed = NULL;
+	*/
 	int avgCPUUsed = 0;
 	int avgMEMUsed = 0;
 	int i;
+	/*
 	for(i = 0; i < MAX_RECORD_LENGTH; i++)
 	{
 		diskUsed = sysResArray[i].ioUsed;
@@ -38,9 +41,10 @@ bool judgeSysResConflict()
 		}
 		strcat(netUsedInfo, "] ");
 	}
+	*/
 	int count = 0;
 	int sum = 0;
-	printk("总CPU使用率为: ");
+	//printk("总CPU使用率为: ");
 	for(i = 0; i < MAX_RECORD_LENGTH; i++)
 	{
 		if(sysResArray[i].cpuUsed >= 0)
@@ -48,12 +52,12 @@ bool judgeSysResConflict()
 			sum += sysResArray[i].cpuUsed;
 			count++;
 		}
-		printk("[%d] ", sysResArray[i].cpuUsed);
+		//printk("[%d] ", sysResArray[i].cpuUsed);
 	}
-	printk("\n");
+	//printk("\n");
 	avgCPUUsed = sum/count;
 	sum = count = 0;
-	printk("总MEM使用率为: ");
+	//printk("总MEM使用率为: ");
 	for(i = 0; i < MAX_RECORD_LENGTH; i++)
 	{
 		if(sysResArray[i].memUsed > 0)
@@ -61,12 +65,12 @@ bool judgeSysResConflict()
 			sum += sysResArray[i].memUsed;
 			count++;
 		}
-		printk("[%d] ", sysResArray[i].memUsed);
+		//printk("[%d] ", sysResArray[i].memUsed);
 	}
-	printk("\n");
+	//printk("\n");
 	avgMEMUsed = sum/count;
-	printk("IO使用率: %s\n NET使用率: %s\n", ioUsedInfo, netUsedInfo);
-	printk("CPU 平均使用率: %d\t内存平均使用率: %d\n", avgCPUUsed, avgMEMUsed);
+	//printk("IO使用率: %s\n NET使用率: %s\n", ioUsedInfo, netUsedInfo);
+	//printk("CPU 平均使用率: %d\t内存平均使用率: %d\n", avgCPUUsed, avgMEMUsed);
 	if(avgCPUUsed >= SYS_MAX_CPU || avgMEMUsed >= SYS_MAX_MEM)
 		return true;
 	else

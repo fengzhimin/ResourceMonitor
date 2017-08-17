@@ -30,6 +30,15 @@
 #define getNetCardSpeed(netCardName)          getNetCardSpeedDebug(netCardName, __FILE__, __FUNCTION__, __LINE__)
 
 /****************************************
+ * func: filter lo package
+ * return: true = saddr is equal to daddr
+		   false = saddr is not equal to daddr
+ * @para saddr: source address
+ * @para daddr: dest address
+****************************************/
+bool filter_ip(__be32 saddr, __be32 daddr);
+
+/****************************************
  * func: 截取数据包函数，对数据包进行分析
  * return: int
  * @para type = 标识数据包是那个阶段的数据包
