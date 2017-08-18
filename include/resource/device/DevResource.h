@@ -45,4 +45,10 @@ bool getDiskStateDebug(char *diskPath, DiskStat *diskStatInfo, const char *file,
 ***********************************************/
 int getAllDiskStateDebug(DiskInfo **beginDiskInfo, const char *file, const char *function, const int line);
 
+/*************************************************
+ * func: get current disk used Info(average used), set global variable value(currentDiskNum, beginDiskUsedInfo)
+ * return: void
+**************************************************/
+void getSysDiskUsedInfo();
+
 #endif

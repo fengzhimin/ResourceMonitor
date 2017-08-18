@@ -580,3 +580,54 @@ int getNetCardSpeedDebug(char *netCardName, const char *file, const char *functi
 		return 0;
 	}
 }
+
+void getSysNetUsedInfo()
+{
+	//free invaild data
+	currentNetNum = 0;
+	currentNetUsedInfo = beginNetUsedInfo;
+	while(currentNetUsedInfo != NULL)
+	{
+		beginNetUsedInfo = beginNetUsedInfo->next;
+		vfree(currentNetUsedInfo);
+		currentNetUsedInfo = beginNetUsedInfo;
+	}
+	tailNetUsedInfo = beginNetUsedInfo = NULL;
+
+	NetUsedInfo *netUsed = NULL;
+	NetUsedInfo *curNetUsed = NULL;
+	int i, count;
+	//current record net info(except first recorder)
+	int pre_recordSysResIndex = currentRecordSysResIndex == 0? MAX_RECORD_LENGTH-1:currentRecordSysResIndex-1;
+	curNetUsed = sysResArray[pre_recordSysResIndex].netUsed;
+	int sumNetUsed = 0;
+	while(curNetUsed != NULL)
+	{
+		count = 0;
+		sumNetUsed = 0;
+		for(i = 0; i < MAX_RECORD_LENGTH; i++)
+		{
+			netUsed = sysResArray[i].netUsed;
+			while(netUsed != NULL)
+			{
+				if(strcasecmp(netUsed->netCardName, curNetUsed->netCardName) == 0)
+				{
+					sumNetUsed += netUsed->netUsed;
+					count++;
+					break;
+				}
+				netUsed = netUsed->next;
+			}
+		}
+		if(beginNetUsedInfo == NULL)
+			beginNetUsedInfo = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
+		else
+			tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
+		strcpy(tailNetUsedInfo->netCardName, curNetUsed->netCardName);
+		tailNetUsedInfo->netUsed = sumNetUsed / count;
+		tailNetUsedInfo->next = NULL;
+		currentNetNum++;
+
+		curNetUsed = curNetUsed->next;
+	}
+}

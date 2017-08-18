@@ -165,4 +165,10 @@ int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *fi
 ***********************************************/
 int getNetCardSpeedDebug(char *netCardName, const char *file, const char *function, const int line);
 
+/*************************************************
+ * func: get current net used Info(average used), set global variable value(currentNetNum, beginNetUsedInfo)
+ * return: void
+**************************************************/
+void getSysNetUsedInfo();
+
 #endif

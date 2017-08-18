@@ -1,0 +1,16 @@
+[2017-08-18 08:01:04]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 08:01:04]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数:  50]   操作：load SYSRESINFO-SWAP value is failure!
+[2017-08-18 08:01:04]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 08:01:04]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数: 104]   操作：load PROCRESINFO-MAJ_FLT value is failure!
+[2017-08-18 08:05:51]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 08:05:51]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数:  50]   操作：load SYSRESINFO-SWAP value is failure!
+[2017-08-18 08:05:51]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 08:05:51]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数: 104]   操作：load PROCRESINFO-MAJ_FLT value is failure!
+[2017-08-18 14:06:24]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 14:06:24]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数:  50]   操作：load SYSRESINFO-SWAP value is failure!
+[2017-08-18 14:06:24]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 14:06:24]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数: 104]   操作：load PROCRESINFO-MAJ_FLT value is failure!
+[2017-08-18 14:09:59]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 14:09:59]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数:  50]   操作：load SYSRESINFO-SWAP value is failure!
+[2017-08-18 14:09:59]  [文件:   /home/fzm/KCode/main.c]  [函数:           Code_init] [行数:  38]   操作：调用者信息
+[2017-08-18 14:09:59]  [文件:/home/fzm/KCode/src/common/confOper.c]  [函数:     loadConfigDebug] [行数: 104]   操作：load PROCRESINFO-MAJ_FLT value is failure!

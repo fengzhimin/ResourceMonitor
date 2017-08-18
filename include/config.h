@@ -336,6 +336,7 @@ extern struct mutex ConflictProcess_Mutex;
 //系统资源使用率临界值
 extern int SYS_MAX_CPU;
 extern int SYS_MAX_MEM;
+extern int SYS_MAX_SWAP;
 extern int SYS_MAX_IO;
 extern int SYS_MAX_NET;
 
@@ -345,6 +346,7 @@ extern int SYS_MAX_NET;
  */
 extern int PROC_MAX_CPU;
 extern int PROC_MAX_MEM;
+extern int PROC_MAX_MAJ_FLT;
 extern unsigned long long PROC_MAX_IO;
 extern unsigned long long PROC_MAX_NET;
 extern ProcSchedInfo PROC_MAX_SCHED;
@@ -419,6 +421,17 @@ extern int currentRecordResIndex;
 extern ProgAllPid *beginMonitorProgPid;
 extern ProgAllPid *endMonitorProgPid;
 extern ProgAllPid *currentMonitorProgPid;
+
+extern IOUsedInfo *beginDiskUsedInfo;
+extern IOUsedInfo *currentDiskUsedInfo;
+extern IOUsedInfo *tailDiskUsedInfo;
+extern int currentDiskNum;
+
+extern NetUsedInfo *beginNetUsedInfo;
+extern NetUsedInfo *currentNetUsedInfo;
+extern NetUsedInfo *tailNetUsedInfo;
+extern int currentNetNum;
+
 
 #endif
 

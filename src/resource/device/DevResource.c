@@ -183,3 +183,54 @@ int getAllDiskStateDebug(DiskInfo **beginDiskInfo, const char *file, const char 
 	vfs_free_readdir(begin);	
 	return ret_num;
 }
+
+void getSysDiskUsedInfo()
+{
+	//free invaild data
+	currentDiskNum = 0;
+	currentDiskUsedInfo = beginDiskUsedInfo;
+	while(currentDiskUsedInfo != NULL)
+	{
+		beginDiskUsedInfo = beginDiskUsedInfo->next;
+		vfree(currentDiskUsedInfo);
+		currentDiskUsedInfo = beginDiskUsedInfo;
+	}
+	tailDiskUsedInfo = beginDiskUsedInfo = NULL;
+
+	IOUsedInfo *diskUsed = NULL;
+	IOUsedInfo *curDiskUsed = NULL;
+	int i, count;
+	//current record disk info(except first recorder)
+	int pre_recordSysResIndex = currentRecordSysResIndex == 0? MAX_RECORD_LENGTH-1:currentRecordSysResIndex-1;
+	curDiskUsed = sysResArray[pre_recordSysResIndex].ioUsed;
+	int sumIOUsed = 0;
+	while(curDiskUsed != NULL)
+	{
+		count = 0;
+		sumIOUsed = 0;
+		for(i = 0; i < MAX_RECORD_LENGTH; i++)
+		{
+			diskUsed = sysResArray[i].ioUsed;
+			while(diskUsed != NULL)
+			{
+				if(strcasecmp(diskUsed->diskName, curDiskUsed->diskName) == 0)
+				{
+					sumIOUsed += diskUsed->ioUsed;
+					count++;
+					break;
+				}
+				diskUsed = diskUsed->next;
+			}
+		}
+		if(beginDiskUsedInfo == NULL)
+			beginDiskUsedInfo = tailDiskUsedInfo = vmalloc(sizeof(IOUsedInfo));
+		else
+			tailDiskUsedInfo = tailDiskUsedInfo->next = vmalloc(sizeof(IOUsedInfo));
+		strcpy(tailDiskUsedInfo->diskName, curDiskUsed->diskName);
+		tailDiskUsedInfo->ioUsed = sumIOUsed / count;
+		tailDiskUsedInfo->next = NULL;
+		currentDiskNum++;
+
+		curDiskUsed = curDiskUsed->next;
+	}
+}

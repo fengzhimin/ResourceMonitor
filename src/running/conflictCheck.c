@@ -11,67 +11,43 @@
 
 bool judgeSysResConflict()
 {
-	//合并磁盘数据
-	/*
-	char ioUsedInfo[100] = { 0 };
-	char netUsedInfo[100] = { 0 };
-	IOUsedInfo *diskUsed = NULL;
-	NetUsedInfo *netUsed = NULL;
-	*/
+	getSysResourceInfo();
 	int avgCPUUsed = 0;
 	int avgMEMUsed = 0;
+	int avgSwapUsed = 0;
 	int i;
-	/*
+	int sumCPU = 0, sumMem = 0, sumSwap = 0;
 	for(i = 0; i < MAX_RECORD_LENGTH; i++)
 	{
-		diskUsed = sysResArray[i].ioUsed;
-		netUsed = sysResArray[i].netUsed;
-		strcat(ioUsedInfo, "[");
-		while(diskUsed != NULL)
-		{
-			sprintf(ioUsedInfo, "%s %s:%d", ioUsedInfo, diskUsed->diskName, diskUsed->ioUsed);
-			diskUsed = diskUsed->next;
-		}
-		strcat(ioUsedInfo, "] ");
-		strcat(netUsedInfo, "[");
-		while(netUsed != NULL)
-		{
-			sprintf(netUsedInfo, "%s %s:%d", netUsedInfo, netUsed->netCardName, netUsed->netUsed);
-			netUsed = netUsed->next;
-		}
-		strcat(netUsedInfo, "] ");
+		sumCPU += sysResArray[i].cpuUsed;
+		sumMem += sysResArray[i].memUsed;
+		sumSwap += sysResArray[i].swapUsed;
 	}
-	*/
-	int count = 0;
-	int sum = 0;
-	//printk("总CPU使用率为: ");
-	for(i = 0; i < MAX_RECORD_LENGTH; i++)
+	avgCPUUsed = sumCPU/MAX_RECORD_LENGTH;
+	avgMEMUsed = sumMem/MAX_RECORD_LENGTH;
+	avgSwapUsed = sumSwap/MAX_RECORD_LENGTH;
+	getSysDiskUsedInfo();
+	getSysNetUsedInfo();
+	bool ret = false;
+	printk("CPU 平均使用率: %3d\t内存平均使用率: %3d\t", avgCPUUsed, avgMEMUsed);
+	currentDiskUsedInfo = beginDiskUsedInfo;
+	for(i = 0; i < currentDiskNum; i++)
 	{
-		if(sysResArray[i].cpuUsed >= 0)
-		{
-			sum += sysResArray[i].cpuUsed;
-			count++;
-		}
-		//printk("[%d] ", sysResArray[i].cpuUsed);
+		printk("%10s:%3d\t", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
+		if(currentDiskUsedInfo->ioUsed >= SYS_MAX_IO)
+			ret = true;
+		currentDiskUsedInfo = currentDiskUsedInfo->next;
 	}
-	//printk("\n");
-	avgCPUUsed = sum/count;
-	sum = count = 0;
-	//printk("总MEM使用率为: ");
-	for(i = 0; i < MAX_RECORD_LENGTH; i++)
+	currentNetUsedInfo = beginNetUsedInfo;
+	for(i = 0; i < currentNetNum; i++)
 	{
-		if(sysResArray[i].memUsed > 0)
-		{
-			sum += sysResArray[i].memUsed;
-			count++;
-		}
-		//printk("[%d] ", sysResArray[i].memUsed);
+		printk("%10s:%3d\t", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
+		if(currentNetUsedInfo->netUsed >= SYS_MAX_NET)
+			ret = true;
+		currentNetUsedInfo = currentNetUsedInfo->next;
 	}
-	//printk("\n");
-	avgMEMUsed = sum/count;
-	//printk("IO使用率: %s\n NET使用率: %s\n", ioUsedInfo, netUsedInfo);
-	//printk("CPU 平均使用率: %d\t内存平均使用率: %d\n", avgCPUUsed, avgMEMUsed);
-	if(avgCPUUsed >= SYS_MAX_CPU || avgMEMUsed >= SYS_MAX_MEM)
+	printk("\n");
+	if(avgCPUUsed >= SYS_MAX_CPU || avgMEMUsed >= SYS_MAX_MEM || avgSwapUsed >= SYS_MAX_SWAP || ret)
 		return true;
 	else
 		return false;
@@ -96,7 +72,7 @@ bool judgeSoftWareConflict()
 			aveWait_sum /= MAX_RECORD_LENGTH;
 			aveIOWait_sum /= MAX_RECORD_LENGTH;
 			//当1s内的等待时间大于500ms时认为软件有冲突
-			if(aveWait_sum >= PROC_MAX_SCHED.wait_sum || aveIOWait_sum >= PROC_MAX_SCHED.iowait_sum || true)
+			if(aveWait_sum >= PROC_MAX_SCHED.wait_sum || aveIOWait_sum >= PROC_MAX_SCHED.iowait_sum)
 				return true;
 		}
 		currentMonitorAPP = currentMonitorAPP->next;

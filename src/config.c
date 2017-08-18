@@ -22,6 +22,7 @@ struct mutex ConflictProcess_Mutex;
 
 int PROC_MAX_CPU = 30;
 int PROC_MAX_MEM = 40;
+int PROC_MAX_MAJ_FLT = 10;
 unsigned long long PROC_MAX_IO = 102400000;   //10 M
 unsigned long long PROC_MAX_NET = 1024000;   //1 M
 ProcSchedInfo PROC_MAX_SCHED = 
@@ -33,6 +34,7 @@ ProcSchedInfo PROC_MAX_SCHED =
 
 int SYS_MAX_CPU = 70;
 int SYS_MAX_MEM = 70;
+int SYS_MAX_SWAP = 40;
 int SYS_MAX_IO = 80;
 int SYS_MAX_NET = 70;
 
@@ -58,3 +60,14 @@ ProgAllPid *beginMonitorProgPid = NULL;
 ProgAllPid *endMonitorProgPid = NULL;
 ProgAllPid *currentMonitorProgPid = NULL;
 
+//record current disk info
+IOUsedInfo *beginDiskUsedInfo = NULL;
+IOUsedInfo *currentDiskUsedInfo = NULL;
+IOUsedInfo *tailDiskUsedInfo = NULL;
+int currentDiskNum = 0;
+
+//record current netcard info
+NetUsedInfo *beginNetUsedInfo = NULL;
+NetUsedInfo *currentNetUsedInfo = NULL;
+NetUsedInfo *tailNetUsedInfo = NULL;
+int currentNetNum = 0;

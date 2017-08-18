@@ -40,6 +40,16 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 		RecordLog("load SYSRESINFO-MEM value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("SYSRESINFO", "SWAP", temp))
+	{
+		SYS_MAX_SWAP = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load SYSRESINFO-SWAP value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("SYSRESINFO", "IO", temp))
 	{
 		SYS_MAX_IO = ExtractNumFromStr(temp);
@@ -82,6 +92,16 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	{
 		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
 		RecordLog("load PROCRESINFO-MEM value is failure!\n");
+	}
+	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
+	if(getConfValueByLabelAndKey("PROCRESINFO", "MAJ_FLT", temp))
+	{
+		PROC_MAX_MAJ_FLT = ExtractNumFromStr(temp);
+	}
+	else
+	{
+		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		RecordLog("load PROCRESINFO-MAJ_FLT value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "IO", temp))

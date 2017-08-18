@@ -68,33 +68,6 @@ void Code_exit(void)
 module_init(Code_init);  
 module_exit(Code_exit);
 
-/***print history resource unilization
-int monitorResource(void *data)
-{
-	int i;
-	while(!kthread_should_stop())
-	{
-		getSysResourceInfo();
-		if(judgeSysResConflict())
-		{
-			getUserLayerAPP();
-			currentMonitorAPP = beginMonitorAPP;
-			while(currentMonitorAPP != NULL)
-			{
-				printk("%20s:", currentMonitorAPP->name);
-				for(i = 0; i < MAX_RECORD_LENGTH; i++)
-					printk("[%3d %3d]\t", currentMonitorAPP->cpuUsed[i], currentMonitorAPP->memUsed[i]);
-				printk("\n");
-				currentMonitorAPP = currentMonitorAPP->next;
-			}
-		}
-	}
-
-	return 0;
-}
-*/
-
-
 int monitorResource(void *data)
 {
 	int i;
@@ -103,12 +76,42 @@ int monitorResource(void *data)
 		int avgCPU, avgMEM, avgSWAP;
 		unsigned long long avgIOData, avgNetData;
 		unsigned long avgMaj_flt;
-		//getSysResourceInfo();
-		//if(judgeSysResConflict())
+		if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{
 				printk("--------------------------start----------------------\n");
+				int avgSYSCPUUsed = 0;
+				int avgSYSMEMUsed = 0;
+				int avgSYSSwapUsed = 0;
+				int sumCPU = 0, sumMem = 0, sumSwap = 0;
+				for(i = 0; i < MAX_RECORD_LENGTH; i++)
+				{
+					sumCPU += sysResArray[i].cpuUsed;
+					sumMem += sysResArray[i].memUsed;
+					sumSwap += sysResArray[i].swapUsed;
+				}
+				avgSYSCPUUsed = sumCPU/MAX_RECORD_LENGTH;
+				avgSYSMEMUsed = sumMem/MAX_RECORD_LENGTH;
+				avgSYSSwapUsed = sumSwap/MAX_RECORD_LENGTH;
+				getSysDiskUsedInfo();
+				getSysNetUsedInfo();
+				bool IOConflict = false;
+				bool NetConflict = false;
+				currentDiskUsedInfo = beginDiskUsedInfo;
+				for(i = 0; i < currentDiskNum; i++)
+				{
+					if(currentDiskUsedInfo->ioUsed >= SYS_MAX_IO)
+						IOConflict = true;
+					currentDiskUsedInfo = currentDiskUsedInfo->next;
+				}
+				currentNetUsedInfo = beginNetUsedInfo;
+				for(i = 0; i < currentNetNum; i++)
+				{
+					if(currentNetUsedInfo->netUsed >= SYS_MAX_NET)
+						NetConflict = true;
+					currentNetUsedInfo = currentNetUsedInfo->next;
+				}
 				//系统资源冲突
 				//加锁
 				mutex_lock(&ConflictProcess_Mutex);
@@ -150,22 +153,22 @@ int monitorResource(void *data)
 					printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
 					int conflictType = 0;
 					bool conflictPoint = false;
-					if(avgCPU > PROC_MAX_CPU)
+					if(avgCPU > PROC_MAX_CPU && avgSYSCPUUsed >= SYS_MAX_CPU)
 					{
 						conflictType |= CPU_CONFLICT;
 						conflictPoint = true;
 					}
-					if(avgMEM > PROC_MAX_MEM)
+					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgSYSMEMUsed >= SYS_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT)
 					{
 						conflictType |= MEM_CONFLICT;
 						conflictPoint = true;
 					}
-					if(avgIOData > PROC_MAX_IO)
+					if(avgIOData > PROC_MAX_IO && IOConflict)
 					{
 						conflictType |= IO_CONFLICT;
 						conflictPoint = true;
 					}
-					if(avgNetData > PROC_MAX_NET)
+					if(avgNetData > PROC_MAX_NET && NetConflict)
 					{
 						conflictType |= NET_CONFLICT;
 						conflictPoint = true;
