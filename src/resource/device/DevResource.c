@@ -23,6 +23,34 @@ bool getProcessIODataDebug(pid_t pid, Process_IO_Data *processIOData, const char
 	}
 	else
 	{
+		struct task_io_accounting acct = p->ioac;
+		unsigned long flags;
+		int result = mutex_lock_killable(&p->signal->cred_guard_mutex);
+		if(result)
+		{
+			return false;
+		}
+		if(lock_task_sighand(p, &flags))
+		{
+			struct task_struct *t = p;
+			task_io_accounting_add(&acct, &p->signal->ioac);
+			while_each_thread(p, t)
+				task_io_accounting_add(&acct, &t->ioac);
+			unlock_task_sighand(p, &flags);
+		}
+
+		processIOData->rchar = (unsigned long long)acct.rchar;
+		processIOData->wchar = (unsigned long long)acct.wchar;
+		processIOData->syscr = (unsigned long long)acct.syscr;
+		processIOData->syscw = (unsigned long long)acct.syscw;
+		processIOData->read_bytes = (unsigned long long)acct.read_bytes;
+		processIOData->write_bytes = (unsigned long long)acct.write_bytes;
+		processIOData->cancelled_write_bytes = (unsigned long long)acct.cancelled_write_bytes;
+
+		mutex_unlock(&p->signal->cred_guard_mutex);
+
+		return true;
+		/*
 		task_lock(p);
 		struct task_io_accounting acct = p->ioac;
 		unsigned long flags;
@@ -49,6 +77,7 @@ bool getProcessIODataDebug(pid_t pid, Process_IO_Data *processIOData, const char
 		task_unlock(p);
 
 		return true;
+		*/
 	}
 }
 

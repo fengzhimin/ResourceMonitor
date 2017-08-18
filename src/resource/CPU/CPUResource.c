@@ -34,6 +34,20 @@ bool getProcessCPUTimeDebug(pid_t pid, Process_Cpu_Occupy_t *processCpuTime, con
 	else
 	{
 		processCpuTime->pid = pid;
+		unsigned long flags;
+		if(lock_task_sighand(p, &flags))
+		{
+			cputime_t utime = 0, stime = 0;
+			processCpuTime->cutime = cputime_to_clock_t(p->signal->cutime);
+			processCpuTime->cstime = cputime_to_clock_t(p->signal->cstime);
+			thread_group_cputime_adjusted(p, &utime, &stime);
+			processCpuTime->utime = cputime_to_clock_t(utime);
+			processCpuTime->stime = cputime_to_clock_t(stime);
+			unlock_task_sighand(p, &flags);
+		}
+		else
+			return false;
+		/*
 		task_lock(p);
 		struct task_struct *t = p;
 		cputime_t utime, stime;
@@ -52,6 +66,7 @@ bool getProcessCPUTimeDebug(pid_t pid, Process_Cpu_Occupy_t *processCpuTime, con
 		processCpuTime->utime = cputime_to_clock_t(processCpuTime->utime);
 		processCpuTime->stime = cputime_to_clock_t(processCpuTime->stime);
 		task_unlock(p);
+		*/
 	}
 
 	return true;

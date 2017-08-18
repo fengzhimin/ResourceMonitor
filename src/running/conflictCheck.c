@@ -80,7 +80,6 @@ bool judgeSysResConflict()
 bool judgeSoftWareConflict()
 {
 	getUserLayerAPP();
-	currentMonitorAPP = beginMonitorAPP;
 	int j;
 	int aveWait_sum = 0;
 	int aveIOWait_sum = 0;
