@@ -432,6 +432,9 @@ extern NetUsedInfo *currentNetUsedInfo;
 extern NetUsedInfo *tailNetUsedInfo;
 extern int currentNetNum;
 
+extern int avgSYSCpuUsed;
+extern int avgSYSMemUsed;
+extern int avgSYSSwapUsed;
 
 #endif
 

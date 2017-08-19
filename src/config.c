@@ -71,3 +71,10 @@ NetUsedInfo *beginNetUsedInfo = NULL;
 NetUsedInfo *currentNetUsedInfo = NULL;
 NetUsedInfo *tailNetUsedInfo = NULL;
 int currentNetNum = 0;
+
+//record current system CPU info
+int avgSYSCpuUsed = 0;
+//record current system MEM info
+int avgSYSMemUsed = 0;
+//record current system Swap info
+int avgSYSSwapUsed = 0;

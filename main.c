@@ -81,21 +81,6 @@ int monitorResource(void *data)
 			if(judgeSoftWareConflict())
 			{
 				printk("--------------------------start----------------------\n");
-				int avgSYSCPUUsed = 0;
-				int avgSYSMEMUsed = 0;
-				int avgSYSSwapUsed = 0;
-				int sumCPU = 0, sumMem = 0, sumSwap = 0;
-				for(i = 0; i < MAX_RECORD_LENGTH; i++)
-				{
-					sumCPU += sysResArray[i].cpuUsed;
-					sumMem += sysResArray[i].memUsed;
-					sumSwap += sysResArray[i].swapUsed;
-				}
-				avgSYSCPUUsed = sumCPU/MAX_RECORD_LENGTH;
-				avgSYSMEMUsed = sumMem/MAX_RECORD_LENGTH;
-				avgSYSSwapUsed = sumSwap/MAX_RECORD_LENGTH;
-				getSysDiskUsedInfo();
-				getSysNetUsedInfo();
 				bool IOConflict = false;
 				bool NetConflict = false;
 				currentDiskUsedInfo = beginDiskUsedInfo;
@@ -153,12 +138,12 @@ int monitorResource(void *data)
 					printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
 					int conflictType = 0;
 					bool conflictPoint = false;
-					if(avgCPU > PROC_MAX_CPU && avgSYSCPUUsed >= SYS_MAX_CPU)
+					if(avgCPU > PROC_MAX_CPU && avgSYSCpuUsed >= SYS_MAX_CPU)
 					{
 						conflictType |= CPU_CONFLICT;
 						conflictPoint = true;
 					}
-					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgSYSMEMUsed >= SYS_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT)
+					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgSYSMemUsed >= SYS_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT)
 					{
 						conflictType |= MEM_CONFLICT;
 						conflictPoint = true;

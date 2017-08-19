@@ -12,9 +12,6 @@
 bool judgeSysResConflict()
 {
 	getSysResourceInfo();
-	int avgCPUUsed = 0;
-	int avgMEMUsed = 0;
-	int avgSwapUsed = 0;
 	int i;
 	int sumCPU = 0, sumMem = 0, sumSwap = 0;
 	for(i = 0; i < MAX_RECORD_LENGTH; i++)
@@ -23,13 +20,13 @@ bool judgeSysResConflict()
 		sumMem += sysResArray[i].memUsed;
 		sumSwap += sysResArray[i].swapUsed;
 	}
-	avgCPUUsed = sumCPU/MAX_RECORD_LENGTH;
-	avgMEMUsed = sumMem/MAX_RECORD_LENGTH;
-	avgSwapUsed = sumSwap/MAX_RECORD_LENGTH;
+	avgSYSCpuUsed = sumCPU/MAX_RECORD_LENGTH;
+	avgSYSMemUsed = sumMem/MAX_RECORD_LENGTH;
+	avgSYSSwapUsed = sumSwap/MAX_RECORD_LENGTH;
 	getSysDiskUsedInfo();
 	getSysNetUsedInfo();
 	bool ret = false;
-	printk("CPU 平均使用率: %3d\t内存平均使用率: %3d\t", avgCPUUsed, avgMEMUsed);
+	printk("CPU 平均使用率: %3d\t内存平均使用率: %3d\t", avgSYSCpuUsed, avgSYSMemUsed);
 	currentDiskUsedInfo = beginDiskUsedInfo;
 	for(i = 0; i < currentDiskNum; i++)
 	{
@@ -47,7 +44,7 @@ bool judgeSysResConflict()
 		currentNetUsedInfo = currentNetUsedInfo->next;
 	}
 	printk("\n");
-	if(avgCPUUsed >= SYS_MAX_CPU || avgMEMUsed >= SYS_MAX_MEM || avgSwapUsed >= SYS_MAX_SWAP || ret)
+	if(avgSYSCpuUsed >= SYS_MAX_CPU || avgSYSMemUsed >= SYS_MAX_MEM || avgSYSSwapUsed >= SYS_MAX_SWAP || ret)
 		return true;
 	else
 		return false;
