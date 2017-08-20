@@ -18,7 +18,10 @@ blog:           http://blog.csdn.net/u012819339
 #include <pthread.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <time.h>
+#include <stddef.h>
 #include "config.h"
+#include "confOper.h"
 
 #define NETLINK_USER 22
 #define USER_MSG    (NETLINK_USER + 1)
@@ -100,7 +103,11 @@ int main(int argc, char **argv)
     nlh->nlmsg_type = 0;
     nlh->nlmsg_seq = 0;
     nlh->nlmsg_pid = local.nl_pid; //self port
-
+	bool symbol = false;
+	char label[CONFIG_LABEL_MAX_NUM];
+	char value[CONFIG_VALUE_MAX_NUM];
+	time_t timer;
+	struct tm *tblock;
     memcpy(NLMSG_DATA(nlh), data, strlen(data));
 
     while(1)
@@ -113,6 +120,7 @@ int main(int argc, char **argv)
 			close(skfd);
 			exit(-1);
 	    }
+		symbol = true;
 		while(1)
 		{
 			memset(&info, 0, sizeof(struct _my_msg));
@@ -124,20 +132,91 @@ int main(int argc, char **argv)
 				exit(-1);
 			}
 			if(info.conflictInfo.conflictType == 0)
+			{
 				break;
-			printf("conflict type = %2d conflict process = %20s", info.conflictInfo.conflictType, info.conflictInfo.name);
+			}
+			if(symbol)
+			{
+				//clear history info
+				system("clear");
+				timer = time(NULL);
+				tblock = localtime(&timer);
+				printf("Local time is: %s\n", asctime(tblock));
+				symbol = false;
+			}
+			printf("\033[31mconflict type = %2d conflict process = %20s", info.conflictInfo.conflictType, info.conflictInfo.name);
 			printf("[");
 			if(info.conflictInfo.conflictType & CPU_CONFLICT)
 				printf("CPU ");
 			if(info.conflictInfo.conflictType & MEM_CONFLICT)
 				printf("MEM ");
-			if(info.conflictInfo.conflictType & NET_CONFLICT)
-				printf("NET ");
 			if(info.conflictInfo.conflictType & IO_CONFLICT)
 				printf("IO ");
+			if(info.conflictInfo.conflictType & NET_CONFLICT)
+				printf("NET ");
 			if(info.conflictInfo.conflictType & PORT_CONFLICT)
 				printf("PORT ");
-			printf("]\n");
+			printf("]\033[0m\n");
+			//CPU
+			if(info.conflictInfo.conflictType & CPU_CONFLICT)
+			{
+				memset(label, 0, CONFIG_LABEL_MAX_NUM);
+				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				strcpy(label, info.conflictInfo.name);
+				strcat(label, "/CPU");
+				if(getConfValueByLabelAndKey(label, "name", value))
+				{
+					printf("\033[32mCPU: %s\033[0m\n", value);
+				}
+			}
+			//MEM
+			if(info.conflictInfo.conflictType & MEM_CONFLICT)
+			{
+				memset(label, 0, CONFIG_LABEL_MAX_NUM);
+				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				strcpy(label, info.conflictInfo.name);
+				strcat(label, "/MEM");
+				if(getConfValueByLabelAndKey(label, "name", value))
+				{
+					printf("\033[32mMEM: %s\033[0m\n", value);
+				}
+			}
+			//IO
+			if(info.conflictInfo.conflictType & IO_CONFLICT)
+			{
+				memset(label, 0, CONFIG_LABEL_MAX_NUM);
+				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				strcpy(label, info.conflictInfo.name);
+				strcat(label, "/IO");
+				if(getConfValueByLabelAndKey(label, "name", value))
+				{
+					printf("\033[32mIO: %s\033[0m\n", value);
+				}
+			}
+			//NET
+			if(info.conflictInfo.conflictType & NET_CONFLICT)
+			{
+				memset(label, 0, CONFIG_LABEL_MAX_NUM);
+				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				strcpy(label, info.conflictInfo.name);
+				strcat(label, "/NET");
+				if(getConfValueByLabelAndKey(label, "name", value))
+				{
+					printf("\033[32mNET: %s\033[0m\n", value);
+				}
+			}
+			//PORT
+			if(info.conflictInfo.conflictType & PORT_CONFLICT)
+			{
+				memset(label, 0, CONFIG_LABEL_MAX_NUM);
+				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				strcpy(label, info.conflictInfo.name);
+				strcat(label, "/PORT");
+				if(getConfValueByLabelAndKey(label, "name", value))
+				{
+					printf("\033[32mPORT: %s\033[0m\n", value);
+				}
+			}
 		}
 	    usleep(100000);
     }

@@ -11,8 +11,19 @@
 #define __CONFIG_H__
 
 #include <linux/types.h>
+#include <unistd.h>
+#include <stdio.h>
 
 #define MAX_INFOLENGTH           50    //获取应用程序占用系统每个资源数据的最大长度
+
+#define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
+#define CONFIG_LABEL_MAX_NUM     60
+#define CONFIG_KEY_MAX_NUM       50     //配置项key的最大值
+#define CONFIG_VALUE_MAX_NUM     100    //配置项value的最大值
+#define MAX_SUBSTR               512   //拆分后子字符串的最大长度
+//定义KCode配置文件存放的路径
+#define KCODE_CONFIG_PATH     "/etc/KCode.conf"
+#define KCODE_CONFIG_NOTESYMBOL    '#'
 
 /*************************************
  * function: 存放关于进程调度的时间数值
