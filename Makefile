@@ -20,6 +20,7 @@ default:
 
 install:
 	sudo insmod KCode.ko
+	sudo cp KCode.conf /etc
 
 uninstall:
 	sudo rmmod KCode
