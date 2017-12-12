@@ -15,7 +15,7 @@ static char lineData[LINE_CHAR_MAX_NUM];
 
 bool getProcessIODataDebug(pid_t pid, Process_IO_Data *processIOData, const char *file, const char *function, const int line)
 {
-	memset(processIOData, 0, sizeof(processIOData));
+	memset(processIOData, 0, sizeof(Process_IO_Data));
 	struct task_struct *p = pid_task(find_vpid(pid), PIDTYPE_PID);
 	if(p == NULL)
 	{

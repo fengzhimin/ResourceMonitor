@@ -31,4 +31,4 @@ sudo cp Makefile /usr/src/linux-3.16.40/fs
 在函数定义结尾加EXPORT_SYMBOL_GPL(__lock_task_sighand);
 
 #export thread_group_cputime_adjusted(kernel/sched/cputime.c)  EXPORT_SYMBOL_GPL
-在函数定义结尾加EXPORT_SYMBOL_GPL(thread_group_cputime_adjusted);
+在函数定义结尾加EXPORT_SYMBOL_GPL(thread_group_cputime_adjusted);  注意：源文件中有两处定义

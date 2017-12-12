@@ -16,6 +16,10 @@ KCode源码编译安装(在内核层监控软件运行冲突信息)
 	cd KCode
 	make && sudo make install
 
+KCode卸载(在内核层监控软件运行冲突信息)
+	cd KCode
+	sudo make uninstall
+
 UCode源码编译安装(通知用户冲突软件信息)
 	cd KCode/UCode
 	make && sudo make install
