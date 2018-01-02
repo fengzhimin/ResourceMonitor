@@ -72,7 +72,7 @@ int monitorResource(void *data)
 		int avgCPU, avgMEM, avgSWAP;
 		unsigned long long avgIOData, avgNetData;
 		unsigned long avgMaj_flt;
-		//if(judgeSysResConflict())
+		if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{
