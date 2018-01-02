@@ -197,6 +197,10 @@ void getUserLayerAPP()
 	getAllMonitorAPPName();
 #endif
 
+#if (MONITOR_TYPE == 0)
+	getMonitorSoftWare();
+#endif
+
 	/*
 	 * get monitor program's all process
 	 */

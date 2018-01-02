@@ -53,6 +53,7 @@ bool judgeSysResConflict()
 bool judgeSoftWareConflict()
 {
 	getUserLayerAPP();
+	return true;
 	int j;
 	int aveWait_sum = 0;
 	int aveIOWait_sum = 0;

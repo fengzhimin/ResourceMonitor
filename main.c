@@ -31,10 +31,6 @@ int Code_init(void)
 {
 	printk("success\n");
 
-#if (MONITOR_TYPE == 0)
-	getMonitorSoftWare();
-#endif
-
 	loadConfig();   //read config information from configuration file
 	memset(sysResArray, 0, sizeof(SysResource)*MAX_RECORD_LENGTH);    //clear sysResArray
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
@@ -76,7 +72,7 @@ int monitorResource(void *data)
 		int avgCPU, avgMEM, avgSWAP;
 		unsigned long long avgIOData, avgNetData;
 		unsigned long avgMaj_flt;
-		if(judgeSysResConflict())
+		//if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
 			{

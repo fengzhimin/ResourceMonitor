@@ -23,7 +23,7 @@
  * 1: automatic monitor all user layer app
  * 0: monitor user specify app
  */
-#define MONITOR_TYPE    1  
+#define MONITOR_TYPE    1
 
 #define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
 

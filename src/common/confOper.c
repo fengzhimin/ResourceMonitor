@@ -281,6 +281,30 @@ int getMonitorSoftWareDebug(const char *file, const char *function, const int li
 	beginMonitorAPPName = beginMonitorAPPName->next;
 	vfree(currentMonitorAPPName);
 
+	//set program pid
+	currentMonitorAPPName = beginMonitorAPPName;
+	while(currentMonitorAPPName != NULL)
+	{
+		struct task_struct *task, *p;
+		struct list_head *ps;
+		task = &init_task;
+		list_for_each(ps, &task->tasks)
+		{
+			p = list_entry(ps, struct task_struct, tasks);
+			//judge program name whether equal to monitor program name or not
+			if(strcasecmp(currentMonitorAPPName->name, p->comm) == 0)
+			{
+				currentMonitorAPPName->pgid = getPgid(p);
+				goto next;
+			}
+		}
+		
+next:
+		currentMonitorAPPName = currentMonitorAPPName->next;
+	}
+	/*
+	*/
+
 	//set global variable
 	MonitorAPPNameNum = retMonitorNum;
 
