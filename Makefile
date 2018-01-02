@@ -22,6 +22,9 @@ install:
 	sudo insmod KCode.ko
 	sudo cp KCode.conf /etc
 
+monitor:
+	sudo tail -f /var/log/syslog
+
 uninstall:
 	sudo rmmod KCode
 
