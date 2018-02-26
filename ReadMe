@@ -12,17 +12,17 @@
 	第五步：重启电脑
 		sudo reboot
 
-KCode源码编译安装(在内核层监控软件运行冲突信息)
-	cd KCode
+ResourceMonitor服务程序源码编译安装(在内核层监控软件运行冲突信息)
+	cd ResourceMonitor/Server
 	make && sudo make install
 
-KCode卸载(在内核层监控软件运行冲突信息)
-	cd KCode
+ResourceMonitor服务程序卸载(在内核层监控软件运行冲突信息)
+	cd ResourceMonitor/Server
 	sudo make uninstall
 
-UCode源码编译安装(通知用户冲突软件信息)
-	cd KCode/UCode
+ResourceMonitor客户程序源码编译安装(通知用户冲突软件信息)
+	cd ResourceMonitor/Client
 	make && sudo make install
 
-KCode/UCode使用
-	sudo UCode启动用户层监控程序，该程序用于查看当有软件发生冲突后可以通过UCode来查看冲突信息
+ResourceMonitor客户程序使用
+	sudo ResourceMonitor启动用户层监控程序，该程序用于查看当有软件发生冲突后可以通过ResourceMonitor来查看冲突信息

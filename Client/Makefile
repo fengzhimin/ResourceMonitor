@@ -1,4 +1,4 @@
-EXE = UCode
+EXE = ResourceMonitor
 CFLAGS = -lpthread
 obj = main.o strOper.o fileOper.o confOper.o
 

@@ -26,8 +26,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load SYSRESINFO-CPU value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load SYSRESINFO-CPU value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("SYSRESINFO", "MEM", temp))
@@ -36,8 +36,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load SYSRESINFO-MEM value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load SYSRESINFO-MEM value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("SYSRESINFO", "SWAP", temp))
@@ -46,8 +46,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load SYSRESINFO-SWAP value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load SYSRESINFO-SWAP value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("SYSRESINFO", "IO", temp))
@@ -56,8 +56,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load SYSRESINFO-IO value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load SYSRESINFO-IO value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("SYSRESINFO", "NET", temp))
@@ -66,8 +66,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load SYSRESINFO-NET value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load SYSRESINFO-NET value is failure!\n");
 	}
 
 	/*
@@ -80,8 +80,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-CPU value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-CPU value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "MEM", temp))
@@ -90,8 +90,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-MEM value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-MEM value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "MAJ_FLT", temp))
@@ -100,8 +100,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-MAJ_FLT value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-MAJ_FLT value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "IO", temp))
@@ -110,8 +110,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-IO value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-IO value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "NET", temp))
@@ -120,8 +120,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-NET value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-NET value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "SCHED_SUM_EXEC_RUNTIME", temp))
@@ -130,8 +130,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-SCHED.sum_exec_runtime value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-SCHED.sum_exec_runtime value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "SCHED_WAIT_SUM", temp))
@@ -140,8 +140,8 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-SCHED.wait_sum value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-SCHED.wait_sum value is failure!\n");
 	}
 	memset(temp, 0, CONFIG_VALUE_MAX_NUM);
 	if(getConfValueByLabelAndKey("PROCRESINFO", "SCHED_IOWAIT_SUM", temp))
@@ -150,19 +150,19 @@ void loadConfigDebug(const char *file, const char *function, const int line)
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("load PROCRESINFO-SCHED.iowait_sum value is failure!\n");
+		WriteLog(1, WARNING_LOG_FILE, "调用者信息\n", file, function, line);
+		Warning("load PROCRESINFO-SCHED.iowait_sum value is failure!\n");
 	}
 }
 
 bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const char *file, const char *function, const int line)
 {
-	struct file *fd = KOpenFile(KCODE_CONFIG_PATH, O_RDONLY);
+	struct file *fd = KOpenFile(ResourceMonitor_Server_CONFIG_PATH, O_RDONLY);
 	if(fd == NULL)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", KCODE_CONFIG_PATH, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", ResourceMonitor_Server_CONFIG_PATH, " 失败！ 错误信息： ", "    ", "\n");
+		Error(error_info);
 		return false;
 	}
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
@@ -171,7 +171,7 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const c
 	while(KReadLine(fd, lineData) == -1)
 	{
 		removeBeginSpace(lineData);
-		if(lineData[0] != KCODE_CONFIG_NOTESYMBOL)
+		if(lineData[0] != ResourceMonitor_Server_CONFIG_NOTESYMBOL)
 		{
 			if(lineData[0] == '[' && lineData[strlen(lineData)-1] == ']')
 			{
@@ -199,9 +199,9 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const c
 					removeChar(subStr2[1], ' ');
 					if(strlen(subStr2[1]) >= CONFIG_VALUE_MAX_NUM)
 					{
-						WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+						WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
 						sprintf(error_info, "%s%s%s%d%s", "config key: the value of", key, "greater than", CONFIG_VALUE_MAX_NUM, "\n");
-						RecordLog(error_info);
+						Error(error_info);
 						KCloseFile(fd);
 						return false;
 					}
@@ -220,12 +220,12 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const c
 
 int getMonitorSoftWareDebug(const char *file, const char *function, const int line)
 {
-	struct file *fd = KOpenFile(KCODE_CONFIG_PATH, O_RDONLY);
+	struct file *fd = KOpenFile(ResourceMonitor_Server_CONFIG_PATH, O_RDONLY);
 	if(fd == NULL)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", KCODE_CONFIG_PATH, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", ResourceMonitor_Server_CONFIG_PATH, " 失败！ 错误信息： ", "    ", "\n");
+		Error(error_info);
 		return 0;
 	}
 	MonitorAPPName temp;
@@ -239,7 +239,7 @@ int getMonitorSoftWareDebug(const char *file, const char *function, const int li
 	while(KReadLine(fd, lineData) == -1)
 	{
 		removeBeginSpace(lineData);
-		if(lineData[0] != KCODE_CONFIG_NOTESYMBOL)
+		if(lineData[0] != ResourceMonitor_Server_CONFIG_NOTESYMBOL)
 		{
 			if(lineData[0] == '[' && lineData[strlen(lineData)-1] == ']')
 			{

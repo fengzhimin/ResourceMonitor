@@ -21,9 +21,9 @@
 #define CONFIG_KEY_MAX_NUM       50     //配置项key的最大值
 #define CONFIG_VALUE_MAX_NUM     100    //配置项value的最大值
 #define MAX_SUBSTR               512   //拆分后子字符串的最大长度
-//定义KCode配置文件存放的路径
-#define KCODE_CONFIG_PATH     "/etc/KCode.conf"
-#define KCODE_CONFIG_NOTESYMBOL    '#'
+//定义ResourceMonitor-Server配置文件存放的路径
+#define ResourceMonitor_Server_CONFIG_PATH     "/etc/ResourceMonitorServer.conf"
+#define ResourceMonitor_Server_CONFIG_NOTESYMBOL    '#'
 
 /*************************************
  * function: 存放关于进程调度的时间数值

@@ -222,8 +222,8 @@ bool startHookDebug(const char *file, const char *function, const int line)
 	ret = nf_register_hooks(net_hooks, ARRAY_SIZE(net_hooks));
 	if(ret)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("register hook failed\n");
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		Error("register hook failed\n");
 		return false;
 	}
 	else
@@ -440,9 +440,9 @@ int getAllNetStateDebug(NetInfo **beginNetInfo, const char *file, const char *fu
 	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
 	if(fp == NULL)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "   ", "\n");
-		RecordLog(error_info);
+		Error(error_info);
 		return 0;
 	}
 	NetInfo *tailNetInfo = NULL;
@@ -479,9 +479,9 @@ int getAllNetStateDebug(NetInfo **beginNetInfo, const char *file, const char *fu
 	}
 	if(lineNum == 1)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
+		Error(error_info);
 		KCloseFile(fp);
 		return 0;
 	}
@@ -498,9 +498,9 @@ int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *fi
 	struct file *fp = KOpenFile("/proc/net/dev", O_RDONLY);
 	if(fp == NULL)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "   ", "\n");
-		RecordLog(error_info);
+		Error(error_info);
 		return 0;
 	}
 	char _netCardName[MAX_NETCARDNAME_LENGTH+1];
@@ -520,15 +520,15 @@ int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *fi
 			//将多个网卡通过:合并在一起
 			if((strlen((*netCardName))+strlen(_netCardName)+1) >= size)
 			{
-				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-				RecordLog("预存所有网卡名的数组小于所有网卡名的长度!\n");
+				WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+				Error("预存所有网卡名的数组小于所有网卡名的长度!\n");
 				KCloseFile(fp);
 				return netCardNum;
 			}
 			if(i == MAX_NETCARDNAME_LENGTH)
 			{
-				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-				RecordLog("网卡名的字符长度大于预设值!\n");
+				WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+				Error("网卡名的字符长度大于预设值!\n");
 			}
 			else
 			{
@@ -541,9 +541,9 @@ int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *fi
 	}
 	if(lineNum == 1)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "读取文件: ", "/proc/net/dev", " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
+		Error(error_info);
 		KCloseFile(fp);
 		return 0;
 	}
@@ -559,8 +559,8 @@ int getNetCardSpeedDebug(char *netCardName, const char *file, const char *functi
 	int sockfd = vfs_socket(AF_INET, SOCK_DGRAM, 0);
 	if(sockfd < 0)
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("建立socket失败!\n");
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		Error("建立socket失败!\n");
 		return 0;
 	}
 	int err;
@@ -575,8 +575,8 @@ int getNetCardSpeedDebug(char *netCardName, const char *file, const char *functi
 	}
 	else
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("vfs_ioctl执行失败!\n");
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		Error("vfs_ioctl执行失败!\n");
 		return 0;
 	}
 }

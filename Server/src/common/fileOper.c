@@ -55,8 +55,8 @@ int KReadLineDebug(struct file *fd, char *data, const char *file, const char *fu
 	{
 		if(n >= LINE_CHAR_MAX_NUM)
 		{
-			WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-			RecordLog("配置文件的一行数据大小超过预设大小!\n");
+			WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+			Error("配置文件的一行数据大小超过预设大小!\n");
 			return -1;
 		}
 		if(_ch == '\n')

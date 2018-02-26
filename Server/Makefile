@@ -2,9 +2,9 @@ ifneq ($(KERNELRELEASE),)
 
 obj-y := src/
 
-obj-m := KCode.o
+obj-m := ResourceMonitorServer.o
 
-KCode-objs := main.o src/built-in.o
+ResourceMonitorServer-objs := main.o src/built-in.o
 EXTRA_LDFLAGS := --start-group
 KBUILD_CFLAGS +=-Wno-declaration-after-statement -Wno-strict-prototypes -msoft-float -lsoft-fp -mno-sse
 EXTRA_CFLAGS := -DMMAN -I$(src)/include
@@ -19,14 +19,14 @@ default:
 	$(MAKE) -C $(KSRC) M=$(PWD)
 
 install:
-	sudo insmod KCode.ko
-	sudo cp KCode.conf /etc
+	sudo cp ResourceMonitorServer.conf /etc
+	sudo insmod ResourceMonitorServer.ko
 
 monitor:
 	sudo tail -f /var/log/syslog
 
 uninstall:
-	sudo rmmod KCode
+	sudo rmmod ResourceMonitorServer
 
 clean:
 	$(MAKE) -C $(KSRC) M=$(PWD) clean

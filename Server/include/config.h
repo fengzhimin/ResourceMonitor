@@ -17,6 +17,11 @@
 
 #define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
+//log file name
+#define ERROR_LOG_FILE    "errorInfo.log"
+#define WARNING_LOG_FILE  "warningInfo.log"
+#define RESULT_LOG_FILE   "resultInfo.log"
+
 #define MAX_PORT_NUM  200   //per program has max port number
 
 /*
@@ -41,9 +46,9 @@
 //定义存放冲突信息的最大字符个数
 #define MAX_CONFLICTINFO      256
 
-//定义KCode配置文件存放的路径
-#define KCODE_CONFIG_PATH     "/etc/KCode.conf"
-#define KCODE_CONFIG_NOTESYMBOL    '#'
+//定义ResourceMonitor-Server配置文件存放的路径
+#define ResourceMonitor_Server_CONFIG_PATH     "/etc/ResourceMonitorServer.conf"
+#define ResourceMonitor_Server_CONFIG_NOTESYMBOL    '#'
 #define MONITOR_LABEL         "monitor"  //用于标识监控软件的label
 #define MONITOR_KEY           "software" //用于标识监控软件的key
 

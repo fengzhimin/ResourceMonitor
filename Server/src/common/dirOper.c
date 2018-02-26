@@ -21,7 +21,7 @@ int Is_Dir(const char *path)
 	if(vfs_stat(path, &st) == -1)
 	{
 		sprintf(error_info, "%s%s%s%s%s", "判断：", path, "是否为文件夹时错误，", "    ", "\n");
-		RecordLog(error_info);
+		Error(error_info);
 		return 0;
 	}
 	set_fs(fs);

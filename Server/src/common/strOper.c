@@ -58,8 +58,8 @@ int cutStrByLabelDebug(char *str, char ch, char subStr[][MAX_SUBSTR], int subStr
 		{
 			if((i-j-1) >= MAX_SUBSTR)
 			{
-				WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-				RecordLog("子字符串的长度超过最大存放子串数组的大小!\n");
+				WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+				Error("子字符串的长度超过最大存放子串数组的大小!\n");
 				strncpy(subStr[_ret_subNum], pstr, MAX_SUBSTR-1);
 				_ret_subNum++;
 				if(subStrLength == (_ret_subNum+1))    //判断要截取的子串个数是否小于存放子串的数组大小
@@ -89,8 +89,8 @@ int cutStrByLabelDebug(char *str, char ch, char subStr[][MAX_SUBSTR], int subStr
 	//将最后一部分字符串拷贝出来
 	if(strlen(pstr) >= (MAX_SUBSTR+1))
 	{
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
-		RecordLog("子字符串的长度超过最大存放子串数组的大小!\n");
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		Error("子字符串的长度超过最大存放子串数组的大小!\n");
 		strncpy(subStr[_ret_subNum], pstr, MAX_SUBSTR-1);
 	}
 	else

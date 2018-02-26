@@ -35,13 +35,13 @@ int send_Msg(void *pbuf, unsigned int len)
 	nl_skb = nlmsg_new(len, GFP_ATOMIC);
 	if(!nl_skb)
 	{
-		RecordLog("netlink_alloc_skb error!\n");
+		Error("netlink_alloc_skb error!\n");
 		return ret;
 	}
 	nlh = nlmsg_put(nl_skb, 0, 0, NETLINK_USER_MSG, len, 0);
 	if(nlh == NULL)
 	{
-		RecordLog("nlmsg_put() error!\n");
+		Error("nlmsg_put() error!\n");
 		nlmsg_free(nl_skb);
 		return ret;
 	}

@@ -14,7 +14,7 @@ static char subStr2[2][MAX_SUBSTR];
 
 bool getConfValueByLabelAndKey(char *label, char *key, char *value)
 {
-	int fd = OpenFile(KCODE_CONFIG_PATH);
+	int fd = OpenFile(ResourceMonitor_Server_CONFIG_PATH);
 	if(fd == -1)
 	{
 		return false;
@@ -25,7 +25,7 @@ bool getConfValueByLabelAndKey(char *label, char *key, char *value)
 	while(readline(fd, lineData))
 	{
 		removeBeginSpace(lineData);
-		if(lineData[0] != KCODE_CONFIG_NOTESYMBOL)
+		if(lineData[0] != ResourceMonitor_Server_CONFIG_NOTESYMBOL)
 		{
 			if(lineData[0] == '[' && lineData[strlen(lineData)-1] == ']')
 			{
