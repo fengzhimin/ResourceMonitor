@@ -131,26 +131,30 @@ int monitorResource(void *data)
 					avgNetData /= MAX_RECORD_LENGTH;
 					aveWait_sum /= MAX_RECORD_LENGTH;
 					aveIOWait_sum /= MAX_RECORD_LENGTH;
-					printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
+					//printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
 					int conflictType = 0;
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU && avgSYSCpuUsed >= SYS_MAX_CPU)
 					{
+						printk("CPU conflict\n");
 						conflictType |= CPU_CONFLICT;
 						conflictPoint = true;
 					}
 					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgSYSMemUsed >= SYS_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT)
 					{
+						printk("MEM conflict\n");
 						conflictType |= MEM_CONFLICT;
 						conflictPoint = true;
 					}
 					if(avgIOData > PROC_MAX_IO && IOConflict)
 					{
+						printk("IO conflict\n");
 						conflictType |= IO_CONFLICT;
 						conflictPoint = true;
 					}
 					if(avgNetData > PROC_MAX_NET && NetConflict)
 					{
+						printk("NET conflict\n");
 						conflictType |= NET_CONFLICT;
 						conflictPoint = true;
 					}

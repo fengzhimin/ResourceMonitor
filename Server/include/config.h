@@ -18,9 +18,9 @@
 #define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
 
 //log file name
-#define ERROR_LOG_FILE    "errorInfo.log"
-#define WARNING_LOG_FILE  "warningInfo.log"
-#define RESULT_LOG_FILE   "resultInfo.log"
+#define ERROR_LOG_FILE    "/var/log/ResourceMonitor/Server/errorInfo.log"
+#define WARNING_LOG_FILE  "/var/log/ResourceMonitor/Server/warningInfo.log"
+#define RESULT_LOG_FILE   "/var/log/ResourceMonitor/Server/resultInfo.log"
 
 #define MAX_PORT_NUM  200   //per program has max port number
 

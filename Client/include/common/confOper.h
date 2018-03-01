@@ -12,6 +12,10 @@
 #include "config.h"
 #include "fileOper.h"
 #include "strOper.h"
+#include "log/logOper.h"
+
+#define getConfValueByLabelAndKey(label, key, value)  getConfValueByLabelAndKeyDebug(label, key, value, \
+		__FILE__, __FUNCTION__, __LINE__)
 
 /***************************************
  * func: 读取配置项的值
@@ -26,6 +30,7 @@
  *			key = value
  *			getConfValueByLabelAndKey("label1", "key1", &value)   --->  value = value1
 ***************************************/
-bool getConfValueByLabelAndKey(char *label, char *key, char *value);
+bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, \
+		const char *file, const char *function, const int line);
 
 #endif

@@ -7,7 +7,7 @@
 * Description  : 
 ******************************************************/
 
-#include "strOper.h"
+#include "common/strOper.h"
 
 int cutStrByLabel(char *str, char ch, char subStr[][MAX_SUBSTR], int subStrLength)
 {

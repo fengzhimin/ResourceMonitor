@@ -316,11 +316,9 @@ int getInodeByHexPortDebug(char *path, char *hex, const char *file, const char *
 	struct file *fp = KOpenFile(path, O_RDONLY);
 	if(fp == NULL)
 	{
-		/*
-		WriteLog("logInfo.log", "调用者信息\n", file, function, line);
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", path, " 失败！ 错误信息： ", "    ", "\n");
-		RecordLog(error_info);
-		*/
+		Error(error_info);
 		return -1;
 	}
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);

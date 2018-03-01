@@ -21,7 +21,7 @@ blog:           http://blog.csdn.net/u012819339
 #include <time.h>
 #include <stddef.h>
 #include "config.h"
-#include "confOper.h"
+#include "common/confOper.h"
 
 #define NETLINK_USER 22
 #define USER_MSG    (NETLINK_USER + 1)

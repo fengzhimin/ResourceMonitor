@@ -19,6 +19,7 @@ default:
 	$(MAKE) -C $(KSRC) M=$(PWD)
 
 install:
+	sudo mkdir -p /var/log/ResourceMonitor/Server
 	sudo cp ResourceMonitorServer.conf /etc
 	sudo insmod ResourceMonitorServer.ko
 
@@ -26,7 +27,9 @@ monitor:
 	sudo tail -f /var/log/syslog
 
 uninstall:
+	sudo rm -fr /var/log/ResourceMonitor/Server
 	sudo rmmod ResourceMonitorServer
+	sudo rm /etc/ResourceMonitorServer.conf
 
 clean:
 	$(MAKE) -C $(KSRC) M=$(PWD) clean

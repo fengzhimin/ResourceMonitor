@@ -7,25 +7,30 @@
 * Description  : 
 ******************************************************/
 
-#include "confOper.h"
+#include "common/confOper.h"
 
 static char lineData[LINE_CHAR_MAX_NUM];
 static char subStr2[2][MAX_SUBSTR];
+static char error_info[200];
 
-bool getConfValueByLabelAndKey(char *label, char *key, char *value)
+bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, \
+		const char *file, const char *function, const int line)
 {
-	int fd = OpenFile(ResourceMonitor_Server_CONFIG_PATH);
+	int fd = OpenFile(ResourceMonitor_Client_CONFIG_PATH, O_RDONLY);
 	if(fd == -1)
 	{
+		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", ResourceMonitor_Client_CONFIG_PATH, " 失败！ 错误信息： ", "   ", "\n");
+		Error(error_info);
 		return false;
 	}
 	memset(lineData, 0, LINE_CHAR_MAX_NUM);
 	bool point = false;
 	char *temp_str = NULL;
-	while(readline(fd, lineData))
+	while(ReadLine(fd, lineData))
 	{
 		removeBeginSpace(lineData);
-		if(lineData[0] != ResourceMonitor_Server_CONFIG_NOTESYMBOL)
+		if(lineData[0] != ResourceMonitor_Client_CONFIG_NOTESYMBOL)
 		{
 			if(lineData[0] == '[' && lineData[strlen(lineData)-1] == ']')
 			{
@@ -54,6 +59,8 @@ bool getConfValueByLabelAndKey(char *label, char *key, char *value)
 					if(strlen(subStr2[1]) >= CONFIG_VALUE_MAX_NUM)
 					{
 						CloseFile(fd);
+						WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+						Error("The value of config option is more than the max value\n");
 						return false;
 					}
 					strcpy(value, subStr2[1]);
