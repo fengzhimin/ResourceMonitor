@@ -72,6 +72,7 @@ int monitorResource(void *data)
 		int avgCPU, avgMEM, avgSWAP;
 		unsigned long long avgIOData, avgNetData;
 		unsigned long avgMaj_flt;
+		//当系统资源紧缺的时候才可能引发软件资源竞争情况发生
 		if(judgeSysResConflict())
 		{
 			if(judgeSoftWareConflict())
@@ -123,12 +124,16 @@ int monitorResource(void *data)
 						aveWait_sum += currentMonitorAPP->schedInfo[i].wait_sum;
 						aveIOWait_sum += currentMonitorAPP->schedInfo[i].iowait_sum;
 					}
-					avgCPU /= MAX_RECORD_LENGTH;
-					avgMEM /= MAX_RECORD_LENGTH;
-					avgSWAP /= MAX_RECORD_LENGTH;
+
+					//冲突时进程资源使用情况
+					ProcResUtilization conflictProcResUsed;
+
+					conflictProcResUsed.cpuUsed = avgCPU /= MAX_RECORD_LENGTH;
+					conflictProcResUsed.memUsed = avgMEM /= MAX_RECORD_LENGTH;
+					conflictProcResUsed.swapUsed = avgSWAP /= MAX_RECORD_LENGTH;
 					avgMaj_flt /= MAX_RECORD_LENGTH;
-					avgIOData /= MAX_RECORD_LENGTH;
-					avgNetData /= MAX_RECORD_LENGTH;
+					conflictProcResUsed.ioDataBytes = avgIOData /= MAX_RECORD_LENGTH;
+					conflictProcResUsed.netTotalBytes = avgNetData /= MAX_RECORD_LENGTH;
 					aveWait_sum /= MAX_RECORD_LENGTH;
 					aveIOWait_sum /= MAX_RECORD_LENGTH;
 					//printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
@@ -165,6 +170,9 @@ int monitorResource(void *data)
 							beginConflictProcess = endConflictProcess = currentConflictProcess = vmalloc(sizeof(ConflictProcInfo));
 							strcpy(beginConflictProcess->name, currentMonitorAPP->name);
 							beginConflictProcess->conflictType = conflictType;
+							beginConflictProcess->pgid = currentMonitorAPP->pgid;
+							beginConflictProcess->normalResUsed = currentMonitorAPP->normalResUsed;
+							beginConflictProcess->conflictResUsed = conflictProcResUsed;
 							beginConflictProcess->next = NULL;
 						}
 						else
@@ -172,6 +180,9 @@ int monitorResource(void *data)
 							endConflictProcess = endConflictProcess->next = vmalloc(sizeof(ConflictProcInfo));
 							strcpy(endConflictProcess->name, currentMonitorAPP->name);
 							endConflictProcess->conflictType = conflictType;
+							endConflictProcess->pgid = currentMonitorAPP->pgid;
+							endConflictProcess->normalResUsed = currentMonitorAPP->normalResUsed;
+							endConflictProcess->conflictResUsed = conflictProcResUsed;
 							endConflictProcess->next = NULL;
 						}
 					}

@@ -11,8 +11,11 @@
 
 bool judgeSysResConflict()
 {
+	//获取系统总的资源使用情况
 	getSysResourceInfo();
+
 	int i;
+	//一段时间内系统的资源平均使用情况
 	int sumCPU = 0, sumMem = 0, sumSwap = 0;
 	for(i = 0; i < MAX_RECORD_LENGTH; i++)
 	{
@@ -44,6 +47,7 @@ bool judgeSysResConflict()
 		currentNetUsedInfo = currentNetUsedInfo->next;
 	}
 	printk("\n");
+	//当系统资源使用超过预设值时，则认为系统可能会发生资源竞争
 	if(avgSYSCpuUsed >= SYS_MAX_CPU || avgSYSMemUsed >= SYS_MAX_MEM || avgSYSSwapUsed >= SYS_MAX_SWAP || ret)
 		return true;
 	else
@@ -52,7 +56,9 @@ bool judgeSysResConflict()
 
 bool judgeSoftWareConflict()
 {
+	//获取用户层所有程序的资源使用情况以及延时情况
 	getUserLayerAPP();
+
 	int j;
 	int aveWait_sum = 0;
 	int aveIOWait_sum = 0;

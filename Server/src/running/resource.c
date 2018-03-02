@@ -435,44 +435,106 @@ void getUserLayerAPP()
 			}
 		}
 
-		currentRecordResIndex++;
-		currentRecordResIndex %= MAX_RECORD_LENGTH;
-	}
-
-	/*
-	 * delete the exit program
-	 */
-	ResUtilization *delete_point = NULL;
-	currentMonitorAPP = beginMonitorAPP;
-	while(currentMonitorAPP != NULL)
-	{
-		if(!currentMonitorAPP->flags)
+		/*
+		 * delete the exit program
+		 */
+		ResUtilization *delete_point = NULL;
+		currentMonitorAPP = beginMonitorAPP;
+		while(currentMonitorAPP != NULL)
 		{
-			delete_point = currentMonitorAPP;
-			if(currentMonitorAPP->pre == NULL)
+			if(!currentMonitorAPP->flags)
 			{
-				//first object
-				if(currentMonitorAPP->next != NULL)
-					currentMonitorAPP->next->pre = NULL;
-				currentMonitorAPP = beginMonitorAPP = beginMonitorAPP->next;
+				delete_point = currentMonitorAPP;
+				if(currentMonitorAPP->pre == NULL)
+				{
+					//first object
+					if(currentMonitorAPP->next != NULL)
+						currentMonitorAPP->next->pre = NULL;
+					currentMonitorAPP = beginMonitorAPP = beginMonitorAPP->next;
+				}
+				else if(currentMonitorAPP->next != NULL)
+				{
+					//middle object
+					currentMonitorAPP->pre->next = currentMonitorAPP->next;
+					currentMonitorAPP->next->pre = currentMonitorAPP->pre;
+					currentMonitorAPP = currentMonitorAPP->next;
+				}
+				else
+				{
+					//last object
+					endMonitorAPP = endMonitorAPP->pre;
+					currentMonitorAPP = endMonitorAPP->next = NULL;
+				}
+				vfree(delete_point);
+				continue;
 			}
-			else if(currentMonitorAPP->next != NULL)
+			currentMonitorAPP = currentMonitorAPP->next;
+		}
+
+		/*
+		 * set process resource used when the process running is normal
+		 */
+		//先查找是否有进程当前存在延时
+		currentMonitorAPP = beginMonitorAPP;
+		bool isConflict = false;
+		while(currentMonitorAPP != NULL)
+		{
+			int aveWait_sum = 0;
+			int aveIOWait_sum = 0;
+			
+			int count;
+			for(count = 0; count < MAX_RECORD_LENGTH; count++)
 			{
-				//middle object
-				currentMonitorAPP->pre->next = currentMonitorAPP->next;
-				currentMonitorAPP->next->pre = currentMonitorAPP->pre;
+				aveWait_sum += currentMonitorAPP->schedInfo[count].wait_sum;
+				aveIOWait_sum += currentMonitorAPP->schedInfo[count].iowait_sum;
+			}
+
+			if(aveWait_sum >= PROC_MAX_SCHED.wait_sum || aveIOWait_sum >= PROC_MAX_SCHED.iowait_sum)
+			{
+				//存在进程在某一时刻延时
+				isConflict = true;
+				break;
+			}
+
+			currentMonitorAPP = currentMonitorAPP->next;
+		}
+		
+		//判断此时是否有软件延时
+		if(! isConflict)
+		{
+			/*
+			 * 不存在软件延时
+			 * 更新正常运行时软件资源使用情况
+			 */
+			currentMonitorAPP = beginMonitorAPP;
+			int sumCPU, sumMEM, sumSWAP;
+			unsigned long long sumIOData, sumNetData;
+			int count;
+			while(currentMonitorAPP != NULL)
+			{
+				sumCPU = sumMEM = sumSWAP = 0;
+				sumIOData = sumNetData = 0;
+				for(count = 0; count < MAX_RECORD_LENGTH; count++)
+				{
+					sumCPU += currentMonitorAPP->cpuUsed[count];
+					sumMEM += currentMonitorAPP->memUsed[count];
+					sumSWAP += currentMonitorAPP->swapUsed[count];
+					sumIOData += currentMonitorAPP->ioDataBytes[count];
+					sumNetData += currentMonitorAPP->netTotalBytes[count];
+				}
+
+				currentMonitorAPP->normalResUsed.cpuUsed = sumCPU / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.memUsed = sumMEM / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.swapUsed = sumSWAP / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.ioDataBytes = sumIOData / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.netTotalBytes = sumNetData / MAX_RECORD_LENGTH;
+
 				currentMonitorAPP = currentMonitorAPP->next;
 			}
-			else
-			{
-				//last object
-				endMonitorAPP = endMonitorAPP->pre;
-				currentMonitorAPP = endMonitorAPP->next = NULL;
-			}
-			vfree(delete_point);
-			continue;
 		}
-		currentMonitorAPP = currentMonitorAPP->next;
+
+		currentRecordResIndex++;
+		currentRecordResIndex %= MAX_RECORD_LENGTH;
 	}
 
 	vfree(beginProcRes);

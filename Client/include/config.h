@@ -22,7 +22,10 @@
 #define WARNING_LOG_FILE  "/var/log/ResourceMonitor/Client/warningInfo.log"
 #define RESULT_LOG_FILE   "/var/log/ResourceMonitor/Client/resultInfo.log"
 
-#define MAX_INFOLENGTH           50    //获取应用程序占用系统每个资源数据的最大长度
+#define MAX_NAMELENGTH           50    //应用程序名称最大字符长度
+
+//定义存放冲突信息的最大字符个数
+#define MAX_CONFLICTINFO      256
 
 #define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
 #define CONFIG_LABEL_MAX_NUM     60
@@ -43,18 +46,41 @@ typedef struct ProcessSchedInfo
 	int iowait_sum;   //io等待时间
 } ProcSchedInfo;
 
+/***********************************
+ * function: 记录软件执行时的资源使用情况
+ * @para cpuUsed: 软件运行时占用CPU情况
+ * @para memUsed: 软件运行时占用MEM情况
+ * @para swapUsed: 软件运行时占用交换分区的情况
+ * @para ioDataBytes: 软件运行时IO读写情况
+ * @para netTotalBytes: 软件运行时NET上传下载情况
+***********************************/
+typedef struct ProcResourceUtilization
+{
+	int cpuUsed;
+	int memUsed;
+	int swapUsed;
+	unsigned long long ioDataBytes;
+	unsigned long long netTotalBytes;
+} ProcResUtilization;
+
 /**********************************
  * function: 存放资源冲突的进程信息
- * name: process name
+ * name: conflict process name
  * pgid: process group id
  * conflictType: 冲突的类型
+ * normalResUsed: 正常运行时资源使用情况
+ * conflictResUsed: 冲突时资源使用情况
+ * conflictInfo: 存放冲突的信息
  * next: 下一个地址
 **********************************/
 typedef struct ConflictProcess
 {
-	char name[MAX_INFOLENGTH];   //进程的名称
+	char name[MAX_NAMELENGTH];
 	pid_t pgid;
 	int conflictType;
+	ProcResUtilization normalResUsed;
+	ProcResUtilization conflictResUsed;
+	char conflictInfo[MAX_CONFLICTINFO];
 	struct ConflictProcess *next;
 } ConflictProcInfo;
 

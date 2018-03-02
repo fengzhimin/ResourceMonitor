@@ -14,6 +14,10 @@
 #include "config.h"
 #include <stdlib.h>
 #include <string.h>
+#include "log/logOper.h"
+
+#define cutStrByLabel(str, ch, subStr, subStrLength)   \
+	cutStrByLabelDebug(str, ch, subStr, subStrLength, __FILE__, __FUNCTION__, __LINE__);
 
 /**********************************
  * func: 通过字符ch来拆分字符串

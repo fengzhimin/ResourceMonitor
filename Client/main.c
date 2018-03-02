@@ -217,6 +217,10 @@ int main(int argc, char **argv)
 					printf("\033[32mPORT: %s\033[0m\n", value);
 				}
 			}
+
+			printf("冲突前资源使用: CPU-%d\tMEM-%d\tSWAP-%d\tIO-%lld\tNET-%lld\n", info.conflictInfo.normalResUsed.cpuUsed, info.conflictInfo.normalResUsed.memUsed, info.conflictInfo.normalResUsed.swapUsed, info.conflictInfo.normalResUsed.ioDataBytes, info.conflictInfo.normalResUsed.netTotalBytes);
+
+			printf("冲突时资源使用: CPU-%d\tMEM-%d\tSWAP-%d\tIO-%lld\tNET-%lld\n", info.conflictInfo.conflictResUsed.cpuUsed, info.conflictInfo.conflictResUsed.memUsed, info.conflictInfo.conflictResUsed.swapUsed, info.conflictInfo.conflictResUsed.ioDataBytes, info.conflictInfo.conflictResUsed.netTotalBytes);
 		}
 	    usleep(100000);
     }

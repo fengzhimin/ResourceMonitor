@@ -59,7 +59,7 @@
 #define CONFIG_VALUE_MAX_NUM     30    //配置项value的最大值
 
 #define MAX_SUBSTR               512   //拆分后子字符串的最大长度
-#define MAX_INFOLENGTH           50    //获取应用程序占用系统每个资源数据的最大长度
+#define MAX_NAMELENGTH           50    //应用程序名称最大字符长度
 
 #define HEX_MAX_NUM              15    //存放十六进制的最大字符串长度
 #define LINK_MAX_NUM             256   //一个链接信息的最大长度
@@ -78,6 +78,23 @@ typedef struct ProcessSchedInfo
 } ProcSchedInfo;
 
 /***********************************
+ * function: 记录软件执行时的资源使用情况
+ * @para cpuUsed: 软件运行时占用CPU情况
+ * @para memUsed: 软件运行时占用MEM情况
+ * @para swapUsed: 软件运行时占用交换分区的情况
+ * @para ioDataBytes: 软件运行时IO读写情况
+ * @para netTotalBytes: 软件运行时NET上传下载情况
+***********************************/
+typedef struct ProcResourceUtilization
+{
+	int cpuUsed;
+	int memUsed;
+	int swapUsed;
+	unsigned long long ioDataBytes;
+	unsigned long long netTotalBytes;
+} ProcResUtilization;
+
+/***********************************
  * function: record process's resource utilization
  * @para name: process's name
  * @para pgid: process group id
@@ -88,10 +105,11 @@ typedef struct ProcessSchedInfo
  * @para schedInfo: record process sched infomation
  * @para ioDataBytes: record process io read and write bytes
  * @para netTotalBytes: record process network send receive bytes
+ * @para normalResUsed: record process resource used when the process running is normal
 ***********************************/
 typedef struct ResourceUtilization
 {
-	char name[MAX_INFOLENGTH];
+	char name[MAX_NAMELENGTH];
 	pid_t pgid;
 	bool flags;
 	int processNum;
@@ -102,6 +120,7 @@ typedef struct ResourceUtilization
 	ProcSchedInfo schedInfo[MAX_RECORD_LENGTH];
 	unsigned long long ioDataBytes[MAX_RECORD_LENGTH];
 	unsigned long long netTotalBytes[MAX_RECORD_LENGTH];
+	ProcResUtilization normalResUsed;
 	struct ResourceUtilization *pre;
 	struct ResourceUtilization *next;
 } ResUtilization;
@@ -112,7 +131,7 @@ typedef struct ResourceUtilization
 ************************************/ 
 typedef struct ProcessResource
 {
-	char name[MAX_INFOLENGTH];
+	char name[MAX_NAMELENGTH];
 	pid_t pgid;
 	bool flags;
 	int processNum;
@@ -268,8 +287,7 @@ typedef struct ProcessMemInfo
  * function: 定义进程IO数据
  * 详细信息查看 man proc
 **************************/
-typedef struct ProcessIOData
-{
+typedef struct ProcessIODNAME{
 	unsigned long long rchar;
 	unsigned long long wchar;
 	unsigned long long syscr;
@@ -318,14 +336,18 @@ extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作
  * name: conflict process name
  * pgid: process group id
  * conflictType: 冲突的类型
+ * normalResUsed: 正常运行时资源使用情况
+ * conflictResUsed: 冲突时资源使用情况
  * conflictInfo: 存放冲突的信息
  * next: 下一个地址
 **********************************/
 typedef struct ConflictProcess
 {
-	char name[MAX_INFOLENGTH];
+	char name[MAX_NAMELENGTH];
 	pid_t pgid;
 	int conflictType;
+	ProcResUtilization normalResUsed;
+	ProcResUtilization conflictResUsed;
 	char conflictInfo[MAX_CONFLICTINFO];
 	struct ConflictProcess *next;
 } ConflictProcInfo;
@@ -363,7 +385,7 @@ extern ProcSchedInfo PROC_MAX_SCHED;
 **********************************/
 typedef struct MonitorProgramName
 {
-	char name[MAX_INFOLENGTH];
+	char name[MAX_NAMELENGTH];
 	pid_t pgid;
 	struct MonitorProgramName *next;
 } MonitorAPPName;
@@ -377,7 +399,7 @@ typedef struct MonitorProgramName
 typedef struct ProgramAllPid
 {
 	bool sockflag;
-	char name[MAX_INFOLENGTH];
+	char name[MAX_NAMELENGTH];
 	int usePort[MAX_PORT_NUM];
 	int usePort_index;
 	pid_t pgid;
@@ -393,7 +415,7 @@ typedef struct ProgramAllPid
 **********************************/
 typedef struct ProgramAllRes
 {
-	char name[MAX_INFOLENGTH];
+	char name[MAX_NAMELENGTH];
 	bool flags[MAX_CHILD_PROCESS_NUM];
 	pid_t pgid;
 	unsigned long cpuTime[MAX_CHILD_PROCESS_NUM];
