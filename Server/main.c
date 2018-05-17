@@ -98,6 +98,7 @@ int monitorResource(void *data)
 				//加锁
 				mutex_lock(&ConflictProcess_Mutex);
 
+				//删除冲突信息
 				currentConflictProcess = beginConflictProcess;
 				while(beginConflictProcess != NULL)
 				{
@@ -111,8 +112,7 @@ int monitorResource(void *data)
 				{
 					avgCPU = avgMEM = avgSWAP = 0;
 					avgIOData = avgNetData = avgMaj_flt = 0;
-					int aveWait_sum = 0;
-					int aveIOWait_sum = 0;
+					
 					for(i = 0; i < MAX_RECORD_LENGTH; i++)
 					{
 						avgCPU += currentMonitorAPP->cpuUsed[i];
@@ -121,21 +121,24 @@ int monitorResource(void *data)
 						avgMaj_flt += currentMonitorAPP->maj_flt[i];
 						avgIOData += currentMonitorAPP->ioDataBytes[i];
 						avgNetData += currentMonitorAPP->netTotalBytes[i];
-						aveWait_sum += currentMonitorAPP->schedInfo[i].wait_sum;
-						aveIOWait_sum += currentMonitorAPP->schedInfo[i].iowait_sum;
 					}
+					
+					avgCPU /= MAX_RECORD_LENGTH;
+					avgMEM /= MAX_RECORD_LENGTH;
+					avgSWAP /= MAX_RECORD_LENGTH;
+					avgMaj_flt /= MAX_RECORD_LENGTH;
+					avgIOData /= MAX_RECORD_LENGTH;
+					avgNetData /= MAX_RECORD_LENGTH;
 
 					//冲突时进程资源使用情况
 					ProcResUtilization conflictProcResUsed;
 
-					conflictProcResUsed.cpuUsed = avgCPU /= MAX_RECORD_LENGTH;
-					conflictProcResUsed.memUsed = avgMEM /= MAX_RECORD_LENGTH;
-					conflictProcResUsed.swapUsed = avgSWAP /= MAX_RECORD_LENGTH;
-					avgMaj_flt /= MAX_RECORD_LENGTH;
-					conflictProcResUsed.ioDataBytes = avgIOData /= MAX_RECORD_LENGTH;
-					conflictProcResUsed.netTotalBytes = avgNetData /= MAX_RECORD_LENGTH;
-					aveWait_sum /= MAX_RECORD_LENGTH;
-					aveIOWait_sum /= MAX_RECORD_LENGTH;
+					conflictProcResUsed.cpuUsed = avgCPU;
+				    conflictProcResUsed.memUsed = avgMEM;
+					conflictProcResUsed.swapUsed = avgSWAP;
+					conflictProcResUsed.ioDataBytes = avgIOData;
+					conflictProcResUsed.netTotalBytes = avgNetData;
+
 					//printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
 					int conflictType = 0;
 					bool conflictPoint = false;

@@ -62,24 +62,73 @@ bool judgeSoftWareConflict()
 	int j;
 	int aveWait_sum = 0;
 	int aveIOWait_sum = 0;
+	unsigned long aveMaj_flt_sum = 0;
+	bool isConflict = false;
 	currentMonitorAPP = beginMonitorAPP;
 	while(currentMonitorAPP != NULL)
 	{
 		if(currentMonitorAPP->flags)
 		{
+			aveWait_sum = aveIOWait_sum = 0;
+			aveMaj_flt_sum = 0;
+
 			for(j = 0; j < MAX_RECORD_LENGTH; j++)
 			{
 				aveWait_sum += currentMonitorAPP->schedInfo[j].wait_sum;
 				aveIOWait_sum += currentMonitorAPP->schedInfo[j].iowait_sum;
+				aveMaj_flt_sum += currentMonitorAPP->maj_flt[j];
 			}
 			aveWait_sum /= MAX_RECORD_LENGTH;
 			aveIOWait_sum /= MAX_RECORD_LENGTH;
-			//当1s内的等待时间大于500ms时认为软件有冲突
-			if(aveWait_sum >= PROC_MAX_SCHED.wait_sum || aveIOWait_sum >= PROC_MAX_SCHED.iowait_sum)
-				return true;
+			aveMaj_flt_sum /= MAX_RECORD_LENGTH;
+			
+			if(aveWait_sum >= PROC_MAX_SCHED.wait_sum || aveIOWait_sum >= PROC_MAX_SCHED.iowait_sum || aveMaj_flt_sum >= PROC_MAX_MAJ_FLT)
+			{
+				isConflict = true;
+				break;
+			}
 		}
 		currentMonitorAPP = currentMonitorAPP->next;
 	}
+	
+	/*
+	 * set process resource usage when the resource contention is not occuring
+	 */
+	if(! isConflict)
+	{
+		/*
+		 * 不存在软件延时
+		 * 更新正常运行时软件资源使用情况
+		 */
+		currentMonitorAPP = beginMonitorAPP;
+		int sumCPU, sumMEM, sumSWAP;
+		unsigned long long sumIOData, sumNetData;
+		int count;
+		while(currentMonitorAPP != NULL)
+		{
+			if(currentMonitorAPP->flags)
+			{
+				sumCPU = sumMEM = sumSWAP = 0;
+				sumIOData = sumNetData = 0;
+				for(count = 0; count < MAX_RECORD_LENGTH; count++)
+				{
+					sumCPU += currentMonitorAPP->cpuUsed[count];
+					sumMEM += currentMonitorAPP->memUsed[count];
+					sumSWAP += currentMonitorAPP->swapUsed[count];
+					sumIOData += currentMonitorAPP->ioDataBytes[count];
+					sumNetData += currentMonitorAPP->netTotalBytes[count];
+				}
 
-	return false;
+				currentMonitorAPP->normalResUsed.cpuUsed = sumCPU / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.memUsed = sumMEM / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.swapUsed = sumSWAP / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.ioDataBytes = sumIOData / MAX_RECORD_LENGTH;
+				currentMonitorAPP->normalResUsed.netTotalBytes = sumNetData / MAX_RECORD_LENGTH;
+			}
+
+			currentMonitorAPP = currentMonitorAPP->next;
+		}
+	}
+
+	return isConflict;
 }

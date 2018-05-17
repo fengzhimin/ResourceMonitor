@@ -102,6 +102,8 @@ typedef struct ProcResourceUtilization
  * @para processNum: A program has processNum process
  * @para cpuUsed: record process CPU utilization
  * @para memUsed: record process memory utilization
+ * @para swapUsed: record process swap utilization
+ * @para maj_flt: record process major fault
  * @para schedInfo: record process sched infomation
  * @para ioDataBytes: record process io read and write bytes
  * @para netTotalBytes: record process network send receive bytes

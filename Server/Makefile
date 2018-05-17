@@ -31,6 +31,10 @@ uninstall:
 	sudo rmmod ResourceMonitorServer
 	sudo rm /etc/ResourceMonitorServer.conf
 
+reinstall:
+	sudo make uninstall
+	sudo make install
+
 clean:
 	$(MAKE) -C $(KSRC) M=$(PWD) clean
 
