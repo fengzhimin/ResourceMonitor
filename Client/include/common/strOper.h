@@ -47,4 +47,21 @@ void removeBeginSpace(char *str);
 ***********************************/
 void removeChar(char *str, char ch);
 
+/**********************************
+ * func: 将整数转化为字符串
+ * return: 存放最后一个字符的下一个字符的地址
+ * @para str: 存放转化后的字符串
+ * @para num: 整数
+ * example: num = 12 -------> str = "12"
+************************************/
+char* IntToStr(char *str, int num);
+
+/**********************************
+ * func: 将字符串整数转化为int整数(正数)
+ * return: 转化后的int
+ * @para str: 存放转化前的字符串
+ * example: str = "12" -------> return = 12
+***********************************/
+int StrToInt(char *str);
+
 #endif

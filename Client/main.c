@@ -22,6 +22,7 @@ blog:           http://blog.csdn.net/u012819339
 #include <stddef.h>
 #include "config.h"
 #include "common/confOper.h"
+#include "resolution/conflictResolution.h"
 
 #define NETLINK_USER 22
 #define USER_MSG    (NETLINK_USER + 1)
@@ -144,8 +145,14 @@ int main(int argc, char **argv)
 				printf("Local time is: %s\n", asctime(tblock));
 				symbol = false;
 			}
+
 			printf("\033[31mconflict type = %2d conflict process = %20s", info.conflictInfo.conflictType, info.conflictInfo.name);
 			printf("[");
+			/*
+			ResolveContention("mysql", "read_buffer_size");
+			ResolveContention("mysql", "key_buffer_size");
+			ResolveContention("mysql", "sort_buffer_size");
+			*/
 			if(info.conflictInfo.conflictType & CPU_CONFLICT)
 				printf("CPU ");
 			if(info.conflictInfo.conflictType & MEM_CONFLICT)

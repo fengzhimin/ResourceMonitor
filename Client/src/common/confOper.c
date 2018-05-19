@@ -55,7 +55,8 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, \
 				//判断是否为要被提取的配置项
 				if(strcasecmp(key, subStr2[0]) == 0)
 				{
-					removeChar(subStr2[1], ' ');
+					//读取setCommand和getCommand配置项式可能会存在空格命令
+					//removeChar(subStr2[1], ' ');
 					if(strlen(subStr2[1]) >= CONFIG_VALUE_MAX_NUM)
 					{
 						CloseFile(fd);

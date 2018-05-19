@@ -17,10 +17,13 @@
 
 #define OPENLOG  1      //0=不记录日志   1=记录日志
 
+#define ONLINE_RESOLUTION     //0=不在线资源竞争消解    1=在线资源竞争消解
+
 //log file name
 #define ERROR_LOG_FILE    "/var/log/ResourceMonitor/Client/errorInfo.log"
 #define WARNING_LOG_FILE  "/var/log/ResourceMonitor/Client/warningInfo.log"
 #define RESULT_LOG_FILE   "/var/log/ResourceMonitor/Client/resultInfo.log"
+#define GET_CONFIG_VALUE_FILE   "/var/log/ResourceMonitor/Client/configValue.txt"
 
 #define MAX_NAMELENGTH           50    //应用程序名称最大字符长度
 
@@ -28,10 +31,10 @@
 #define MAX_CONFLICTINFO      256
 
 #define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
-#define CONFIG_LABEL_MAX_NUM     60
-#define CONFIG_KEY_MAX_NUM       50     //配置项key的最大值
-#define CONFIG_VALUE_MAX_NUM     100    //配置项value的最大值
-#define MAX_SUBSTR               512   //拆分后子字符串的最大长度
+#define CONFIG_LABEL_MAX_NUM     64
+#define CONFIG_KEY_MAX_NUM       64     //配置项key的最大值
+#define CONFIG_VALUE_MAX_NUM     1024   //配置项value的最大值
+#define MAX_SUBSTR               1024   //拆分后子字符串的最大长度
 //定义ResourceMonitor-Client配置文件存放的路径
 #define ResourceMonitor_Client_CONFIG_PATH     "/etc/ResourceMonitorClient.conf"
 #define ResourceMonitor_Client_CONFIG_NOTESYMBOL    '#'

@@ -109,3 +109,31 @@ void removeChar(char *str, char ch)
 
 	free(temp);
 }
+
+char* IntToStr(char *str, int num)
+{
+	if(num < 10)
+	{
+		str[0] = num + '0';
+		return ++str;
+	}
+	else
+	{
+		str = IntToStr(str, num/10);
+    	str[0] = num%10 + '0';
+		return ++str;
+	}
+}
+
+int StrToInt(char *str)
+{
+	int strLength = strlen(str);
+	int i, retNum = 0;
+	for(i = 0; i < strLength; i++)
+	{
+		retNum *= 10;
+		retNum += str[i] - '0';
+	}
+			
+	return retNum;
+}
