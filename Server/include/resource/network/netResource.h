@@ -49,27 +49,27 @@ unsigned int filter_http(char *type, struct sk_buff *pskb);
 /****************************************
  * func: 处理LocalIn阶段的钩子函数
 ****************************************/
-unsigned int NET_HookLocalIn(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
+unsigned int NET_HookLocalIn(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
 
 /****************************************
  * func: 处理LocalOut阶段的钩子函数
 ****************************************/
-unsigned int NET_HookLocalOut(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
+unsigned int NET_HookLocalOut(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
 
 /****************************************
  * func: 处理PreRouting阶段的钩子函数
 ****************************************/
-unsigned int NET_HookPreRouting(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
+unsigned int NET_HookPreRouting(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
 
 /****************************************
  * func: 处理PostRouting阶段的钩子函数
 ****************************************/
-unsigned int NET_HookPostRouting(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
+unsigned int NET_HookPostRouting(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
 
 /****************************************
  * func: 处理Forward阶段的钩子函数
 ****************************************/
-unsigned int NET_HookForward(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
+unsigned int NET_HookForward(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*));
 
 /****************************************
  * func: 开启数据包的截取

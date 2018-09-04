@@ -79,6 +79,7 @@ void recv_Msg(struct sk_buff *skb)
 					currentConflictProcess = currentConflictProcess->next;
 				}
 				//删除冲突信息
+				/*
 				currentConflictProcess = beginConflictProcess;
 				while(beginConflictProcess != NULL)
 				{
@@ -86,6 +87,7 @@ void recv_Msg(struct sk_buff *skb)
 					vfree(currentConflictProcess);
 					currentConflictProcess = beginConflictProcess;
 				}
+				*/
 				//发送标识结束的信息
 				send_Msg(&data, sizeof(ConflictProcInfo));
 			}

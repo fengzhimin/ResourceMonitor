@@ -196,6 +196,17 @@ int monitorResource(void *data)
 				mutex_unlock(&ConflictProcess_Mutex);
 				printk("--------------------------end----------------------\n\n\n\n");
 			}
+			else
+			{
+				//删除冲突信息
+				currentConflictProcess = beginConflictProcess;
+				while(beginConflictProcess != NULL)
+				{
+					beginConflictProcess = beginConflictProcess->next;
+					vfree(currentConflictProcess);
+					currentConflictProcess = beginConflictProcess;
+				}
+			}
 		}
 	}
 

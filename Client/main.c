@@ -111,6 +111,8 @@ int main(int argc, char **argv)
 	struct tm *tblock;
     memcpy(NLMSG_DATA(nlh), data, strlen(data));
 
+	bool conflictSymbol = false;
+	int conflictCount = 0;
     while(1)
     {
 	    ret = sendto(skfd, nlh, nlh->nlmsg_len, 0, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr_nl));
@@ -125,7 +127,8 @@ int main(int argc, char **argv)
 		while(1)
 		{
 			memset(&info, 0, sizeof(struct _my_msg));
-			ret = recvfrom(skfd, &info, sizeof(struct _my_msg), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+			socklen_t len = sizeof(dest_addr);
+			ret = recvfrom(skfd, &info, sizeof(struct _my_msg), 0, (struct sockaddr *)&dest_addr, &len);
 			if(!ret)
 			{
 				perror("recv form kernel error\n");
@@ -134,8 +137,18 @@ int main(int argc, char **argv)
 			}
 			if(info.conflictInfo.conflictType == 0)
 			{
+				if(symbol)
+				{
+					conflictSymbol = false;
+					conflictCount = 0;
+				}
 				break;
 			}
+			else
+			{
+				conflictSymbol = true;
+			}
+
 			if(symbol)
 			{
 				//clear history info
@@ -144,6 +157,9 @@ int main(int argc, char **argv)
 				tblock = localtime(&timer);
 				printf("Local time is: %s\n", asctime(tblock));
 				symbol = false;
+				if(conflictSymbol)
+					conflictCount++;
+				printf("The contention time is: %f s\n", conflictCount*REQUEST_MESSAGE_RATE*1.0/1000000);
 			}
 
 			printf("\033[31mconflict type = %2d conflict process = %20s", info.conflictInfo.conflictType, info.conflictInfo.name);
@@ -229,7 +245,7 @@ int main(int argc, char **argv)
 
 			printf("冲突时资源使用: CPU-%d\tMEM-%d\tSWAP-%d\tIO-%lld\tNET-%lld\n", info.conflictInfo.conflictResUsed.cpuUsed, info.conflictInfo.conflictResUsed.memUsed, info.conflictInfo.conflictResUsed.swapUsed, info.conflictInfo.conflictResUsed.ioDataBytes, info.conflictInfo.conflictResUsed.netTotalBytes);
 		}
-	    usleep(100000);
+	    usleep(REQUEST_MESSAGE_RATE);
     }
     close(skfd);
 

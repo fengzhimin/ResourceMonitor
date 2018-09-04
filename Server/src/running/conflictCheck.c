@@ -29,7 +29,7 @@ bool judgeSysResConflict()
 	getSysDiskUsedInfo();
 	getSysNetUsedInfo();
 	bool ret = false;
-	printk("CPU 平均使用率: %3d\t内存平均使用率: %3d\t", avgSYSCpuUsed, avgSYSMemUsed);
+	printk("CPU: %3d\tMEM: %3d\tSWAP: %3d\t", avgSYSCpuUsed, avgSYSMemUsed, avgSYSSwapUsed);
 	currentDiskUsedInfo = beginDiskUsedInfo;
 	for(i = 0; i < currentDiskNum; i++)
 	{

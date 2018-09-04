@@ -19,6 +19,8 @@
 
 #define ONLINE_RESOLUTION     //0=不在线资源竞争消解    1=在线资源竞争消解
 
+#define REQUEST_MESSAGE_RATE   100000    //request message rate from server(us)
+
 //log file name
 #define ERROR_LOG_FILE    "/var/log/ResourceMonitor/Client/errorInfo.log"
 #define WARNING_LOG_FILE  "/var/log/ResourceMonitor/Client/warningInfo.log"

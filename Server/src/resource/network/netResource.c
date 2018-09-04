@@ -181,27 +181,27 @@ unsigned int filter_http(char *type, struct sk_buff *pskb)
 	return NF_ACCEPT;
 }
 
-unsigned int NET_HookLocalIn(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
+unsigned int NET_HookLocalIn(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
 {
 	return filter_http("in", pskb);
 }
 
-unsigned int NET_HookLocalOut(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
+unsigned int NET_HookLocalOut(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
 {
 	return NF_ACCEPT;
 }
 
-unsigned int NET_HookPreRouting(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
+unsigned int NET_HookPreRouting(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
 {
 	return NF_ACCEPT;
 }
 
-unsigned int NET_HookPostRouting(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
+unsigned int NET_HookPostRouting(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
 {
 	return filter_http("out", pskb);
 }
 
-unsigned int NET_HookForward(unsigned int hook, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
+unsigned int NET_HookForward(const struct nf_hook_ops *ops, struct sk_buff *pskb, const struct net_device *in, const struct net_device *out, int (*okfn)(struct sk_buff*))
 {
 	return NF_ACCEPT;
 }
