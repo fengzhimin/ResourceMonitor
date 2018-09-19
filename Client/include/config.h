@@ -15,6 +15,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define VERSION "1.0.0"
+
+#define COPYRIGHT "(C) 2017-2018 zhimin feng"
+
 #define OPENLOG  1      //0=不记录日志   1=记录日志
 
 #define ONLINE_RESOLUTION     //0=不在线资源竞争消解    1=在线资源竞争消解

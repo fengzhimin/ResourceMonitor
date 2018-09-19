@@ -1,10 +1,11 @@
-/*******************************
-file:           u_netlink.c
-description:    netlink demo
-author:         arvik
-email:          1216601195@qq.com
-blog:           http://blog.csdn.net/u012819339
-*******************************/
+/******************************************************
+* Author       : fengzhimin
+* Create       : 2018-09-17 01:55
+* Last modified: 2018-09-17 01:55
+* Email        : 374648064@qq.com
+* Filename     : main.c
+* Description  : 
+******************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -23,17 +24,82 @@ blog:           http://blog.csdn.net/u012819339
 #include "config.h"
 #include "common/confOper.h"
 #include "resolution/conflictResolution.h"
+#include "common/ioOper.h"
 
 #define NETLINK_USER 22
 #define USER_MSG    (NETLINK_USER + 1)
 #define MSG_LEN 100
 #define DATA_SPACE   100
 
+int skfd;
+struct nlmsghdr *nlh = NULL;
+static char error_info[200];
+
 struct _my_msg
 {
     struct nlmsghdr hdr;
 	ConflictProcInfo conflictInfo;
 };
+
+static void printVersion()
+{
+	system("clear");
+	fputs("ResourceMonitor " VERSION " - " COPYRIGHT "\n"
+			"Released under the GNU GPL.\n\n",
+			stdout);
+
+	char ch = 0;
+	bool quit = false;
+	while(!quit)
+	{
+		ch = getch();
+		switch(ch)
+		{
+		case 27:
+			system("clear");
+			quit = true;
+			break;
+		case 'q':
+		case 3:   //Ctrl+C
+			close(skfd);
+			free((void *)nlh);
+
+			exit(0);
+		}
+	}
+}
+
+static void printHelp()
+{
+	system("clear");
+	fputs("ResourceMonitor " VERSION " - " COPYRIGHT "\n"
+			"Released under the GNU GPL.\n\n"
+			"-q/Ctrl+C: quit\n"
+			"-v: print version info\n"
+			"-h/?: print help info\n"
+			"ESC: return main menu\n",
+			stdout);
+
+	char ch = 0;
+	bool quit = false;
+	while(!quit)
+	{
+		ch = getch();
+		switch(ch)
+		{
+		case 27:
+			system("clear");
+			quit = true;
+			break;
+		case 'q':
+		case 3:   //Ctrl+C
+			close(skfd);
+			free((void *)nlh);
+
+			exit(0);
+		}
+	}
+}
 
 void monitorPort()
 {
@@ -61,16 +127,32 @@ void monitorPort()
 
 int main(int argc, char **argv)
 {
+	struct termios new;
+	struct termios old;
+
+	tcgetattr(STDIN_FILENO, &old);   //get current terminal setting
+
+	new = old;
+	/*
+	 * ~ICANON: don't need to press enter
+	 * ~ECHO: prohibit echo
+	 * ~ISIG: prohibit to handle the signal
+	 */
+	new.c_lflag &= ~(ICANON | ECHO | ISIG);
+	new.c_cc[VTIME] = 0;
+	new.c_cc[VMIN] = 1;
+	//cfmakeraw(&new);
+	tcsetattr(STDIN_FILENO, TCSANOW, &new);  //set terminal
+
 	pthread_t thr;
 	if(pthread_create(&thr, NULL, (void *)monitorPort, NULL) != 0)
 	{
 		printf("create thread failure!\n");
 	}
+
     char *data = "request";
     struct sockaddr_nl  local, dest_addr;
 
-    int skfd;
-    struct nlmsghdr *nlh = NULL;
     struct _my_msg info;
     int ret;
 
@@ -78,6 +160,7 @@ int main(int argc, char **argv)
     if(skfd == -1)
     {
         printf("create socket error...%s\n", strerror(errno));
+		tcsetattr(STDIN_FILENO, TCSANOW, &old);  //reset terminal setting
         return -1;
     }
 
@@ -89,6 +172,7 @@ int main(int argc, char **argv)
     {
         printf("bind() error\n");
         close(skfd);
+		tcsetattr(STDIN_FILENO, TCSANOW, &old);  //reset terminal setting
         return -1;
     }
 
@@ -104,7 +188,7 @@ int main(int argc, char **argv)
     nlh->nlmsg_type = 0;
     nlh->nlmsg_seq = 0;
     nlh->nlmsg_pid = local.nl_pid; //self port
-	bool symbol = false;
+	bool clear_symbol = false;
 	char label[CONFIG_LABEL_MAX_NUM];
 	char value[CONFIG_VALUE_MAX_NUM];
 	time_t timer;
@@ -113,7 +197,11 @@ int main(int argc, char **argv)
 
 	bool conflictSymbol = false;
 	int conflictCount = 0;
-    while(1)
+
+	bool quit = false;  //whether exit current process or not
+	char inputChar = 0;
+
+    while(!quit)
     {
 	    ret = sendto(skfd, nlh, nlh->nlmsg_len, 0, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr_nl));
 
@@ -121,11 +209,28 @@ int main(int argc, char **argv)
 	    {
 			perror("sendto error1\n");
 			close(skfd);
+			tcsetattr(STDIN_FILENO, TCSANOW, &old);   //reset terminal setting
+
 			exit(-1);
 	    }
-		symbol = true;
-		while(1)
+		clear_symbol = true;
+		while(!quit)
 		{
+			inputChar = getch();
+			switch(inputChar)
+			{
+			case 'q':
+			case 3:      //Ctrl+C
+				quit = true;
+				break;
+			case 'h':
+			case '?':
+				printHelp();
+				break;
+			case 'v':
+				printVersion();
+				break;
+			}
 			memset(&info, 0, sizeof(struct _my_msg));
 			socklen_t len = sizeof(dest_addr);
 			ret = recvfrom(skfd, &info, sizeof(struct _my_msg), 0, (struct sockaddr *)&dest_addr, &len);
@@ -133,14 +238,22 @@ int main(int argc, char **argv)
 			{
 				perror("recv form kernel error\n");
 				close(skfd);
+				tcsetattr(STDIN_FILENO, TCSANOW, &old);   //reset terminal setting
+
 				exit(-1);
 			}
 			if(info.conflictInfo.conflictType == 0)
 			{
-				if(symbol)
+				if(clear_symbol)
 				{
 					conflictSymbol = false;
 					conflictCount = 0;
+					//clear history info
+					system("clear");
+					timer = time(NULL);
+					tblock = localtime(&timer);
+					printf("Local time is: %s\n", asctime(tblock));
+					printf("The system is in normal operation!\n");
 				}
 				break;
 			}
@@ -149,14 +262,14 @@ int main(int argc, char **argv)
 				conflictSymbol = true;
 			}
 
-			if(symbol)
+			if(clear_symbol)
 			{
 				//clear history info
 				system("clear");
 				timer = time(NULL);
 				tblock = localtime(&timer);
 				printf("Local time is: %s\n", asctime(tblock));
-				symbol = false;
+				clear_symbol = false;
 				if(conflictSymbol)
 					conflictCount++;
 				printf("The contention time is: %f s\n", conflictCount*REQUEST_MESSAGE_RATE*1.0/1000000);
@@ -164,11 +277,31 @@ int main(int argc, char **argv)
 
 			printf("\033[31mconflict type = %2d conflict process = %20s", info.conflictInfo.conflictType, info.conflictInfo.name);
 			printf("[");
+
 			/*
+			 * resolve memory resource contention
+			 * modify configuration option online
+			 */
 			ResolveContention("mysql", "read_buffer_size");
 			ResolveContention("mysql", "key_buffer_size");
 			ResolveContention("mysql", "sort_buffer_size");
-			*/
+			//flush cache
+			char value[CONFIG_VALUE_MAX_NUM];
+			if(getConfValueByLabelAndKey("mysql", "flushCommand", value))
+			{
+				if(!ExecuteCommand(value))
+				{
+					sprintf(error_info, "execute command(%s) failed.\n", value);
+					Error(error_info);
+				}
+			}
+			else
+			{
+				strcpy(error_info, "get mysql flushCommand failed.\n");
+				Error(error_info);
+			}
+			
+
 			if(info.conflictInfo.conflictType & CPU_CONFLICT)
 				printf("CPU ");
 			if(info.conflictInfo.conflictType & MEM_CONFLICT)
@@ -250,6 +383,8 @@ int main(int argc, char **argv)
     close(skfd);
 
     free((void *)nlh);
+	tcsetattr(STDIN_FILENO, TCSANOW, &old);   //reset terminal setting
+
     return 0;
 
 }
