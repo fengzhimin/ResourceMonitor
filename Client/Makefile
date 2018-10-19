@@ -35,14 +35,17 @@ $(CUR_OBJS):%.o:%.c
 
 install:
 	sudo mkdir -p /var/log/ResourceMonitor/Client
-	sudo cp ResourceMonitorClient.conf /etc
+	sudo mkdir -p /etc/ResourceMonitor/Client
+	sudo cp -R Resolution /etc/ResourceMonitor/Client
+	sudo cp ResourceMonitorClient.conf /etc/ResourceMonitor/Client
 	sudo cp $(ROOT_DIR)/$(BIN_DIR)/$(BIN) /usr/bin
 
 uninstall:
 	sudo rm -fr /var/log/ResourceMonitor/Client
-	sudo rm /etc/ResourceMonitorClient.conf
+	sudo rm -fr /etc/ResourceMonitor/Client
 	sudo rm /usr/bin/$(BIN)
 
 clean:
 	@rm $(OBJS_DIR)/*.o
 	@rm -rf $(BIN_DIR)/*
+	@rm -fr Resolution/*.txt

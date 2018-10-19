@@ -140,7 +140,7 @@ int monitorResource(void *data)
 					conflictProcResUsed.netTotalBytes = avgNetData;
 
 					//printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
-					int conflictType = 0;
+					char conflictType = 0;
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU && avgSYSCpuUsed >= SYS_MAX_CPU)
 					{

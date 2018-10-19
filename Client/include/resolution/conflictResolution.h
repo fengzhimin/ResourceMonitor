@@ -20,32 +20,31 @@
 #include <errno.h>
 
 #define ExecuteCommand(command)   ExecuteCommandDebug(command, __FILE__, __FUNCTION__, __LINE__)
-#define ResolveContention(softwareName, configName)   ResolveContentionDebug(softwareName, configName, __FILE__, __FUNCTION__, __LINE__)
-#define getConfigValue(getCommand, value)  getConfigValueDebug(getCommand, value, __FILE__, __FUNCTION__, __LINE__)
+#define ReduceConf(softwareName, confName)  ReduceConfDebug(softwareName, confName, __FILE__, __FUNCTION__, __LINE__)
+#define IncreaseConf(softwareName, confName, defValue)   IncreaseConfDebug(softwareName, confName, defValue, __FILE__, __FUNCTION__, __LINE__)
 
 /**********************************
  * func: execute a command that modifies the resource-related configuration options
  * return: true = execute success    false = execute failure
- * @para command: the command of how to modify the resource-related configuration options
+ * @para command: the command of execution
 **********************************/
-bool ExecuteCommandDebug(char *command, const char *file, const char *function, const int line);
+bool ExecuteCommandDebug(char *commandArgv[], const char *file, const char *function, const int line);
 
 /**********************************
- * func: execute a command to get config value
+ * func: execute a script that is reducing the value of configurations
  * return: true = execution success  false = execution failure
- * @para getCommand: the command that get config value
- * @para value: save config value
+ * @para softwareName: the name of the software
+ * @para confName: the name of configuration option
 **********************************/
-bool getConfigValueDebug(char *getCommand, char *value, const char *file, const char *function, const int line);
+bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const char *function, const int line);
 
 /**********************************
- * func: resolve the resource contention online
+ * func: execute a script that is increasing the value of configurations
  * return: true = success    false = failure
  * @para softwareName: the name of the software
- * @para configFilePath: configuration file path
- * @para command: the command of how to modify the resource-related configuration options
- * @para configName: the name of configuration option
+ * @para confName: the name of configuration option
+ * @para defValue: the default value of configuration option
 ***********************************/
-bool ResolveContentionDebug(char *softwareName, char *configName, const char *file, const char *function, const int line);
+bool IncreaseConfDebug(char *softwareName, char *confName, char *defValue, const char *file, const char *function, const int line);
 
 #endif

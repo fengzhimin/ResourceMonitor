@@ -36,7 +36,7 @@ int SYS_MAX_CPU = 70;
 int SYS_MAX_MEM = 70;
 int SYS_MAX_SWAP = 40;
 int SYS_MAX_IO = 80;
-int SYS_MAX_NET = 70;
+int SYS_MAX_NET = 20;
 
 SysResource sysResArray[MAX_RECORD_LENGTH];
 

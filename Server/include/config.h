@@ -47,7 +47,7 @@
 #define MAX_CONFLICTINFO      256
 
 //定义ResourceMonitor-Server配置文件存放的路径
-#define ResourceMonitor_Server_CONFIG_PATH     "/etc/ResourceMonitorServer.conf"
+#define ResourceMonitor_Server_CONFIG_PATH     "/etc/ResourceMonitor/Server/ResourceMonitorServer.conf"
 #define ResourceMonitor_Server_CONFIG_NOTESYMBOL    '#'
 #define MONITOR_LABEL         "monitor"  //用于标识监控软件的label
 #define MONITOR_KEY           "software" //用于标识监控软件的key
@@ -346,8 +346,8 @@ extern Port_Map_Package *currentPortPackageData;  //PortPackageData 当前操作
 typedef struct ConflictProcess
 {
 	char name[MAX_NAMELENGTH];
+	char conflictType;
 	pid_t pgid;
-	int conflictType;
 	ProcResUtilization normalResUsed;
 	ProcResUtilization conflictResUsed;
 	char conflictInfo[MAX_CONFLICTINFO];

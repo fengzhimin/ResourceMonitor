@@ -20,7 +20,8 @@ default:
 
 install:
 	sudo mkdir -p /var/log/ResourceMonitor/Server
-	sudo cp ResourceMonitorServer.conf /etc
+	sudo mkdir -p /etc/ResourceMonitor/Server
+	sudo cp ResourceMonitorServer.conf /etc/ResourceMonitor/Server
 	sudo insmod ResourceMonitorServer.ko
 
 monitor:
@@ -28,8 +29,8 @@ monitor:
 
 uninstall:
 	sudo rm -fr /var/log/ResourceMonitor/Server
+	sudo rm -fr /etc/ResourceMonitor/Server
 	sudo rmmod ResourceMonitorServer
-	sudo rm /etc/ResourceMonitorServer.conf
 
 reinstall:
 	sudo make uninstall

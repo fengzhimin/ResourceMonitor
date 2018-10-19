@@ -19,7 +19,7 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 	sprintf(_line, "%s%4d%s", "[行数:", line, "] ");          //获取正在执行的行数
 	
 	int _size = strlen(logInfo) + strlen(_date) + strlen(_function) + strlen(_file) + strlen(_line) + 20;
-	char *mergeInfo = malloc(_size);
+	char *mergeInfo = malloc(_size*sizeof(char));
 	memset(mergeInfo, 0, _size);
 	strcat(mergeInfo, "[");
 	strcat(mergeInfo, _date);
@@ -35,24 +35,16 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 
 int WriteLog(int rank, const char* logName, const char* logInfo, const char *file, const char* function, const int line)
 {
-    switch(rank)
-    {
-        case 0:
-            printf("\033[31m%s\033[0m", logInfo);   //终端及时显示信息
-            break;
-        case 1:
-            printf("\033[32m%s\033[0m", logInfo);   //终端及时显示信息
-            break;
-        default:
-            printf("%s", logInfo);   //终端及时显示信息
-    }
-	
 #if OPENLOG
 	int _fd = OpenFile(logName, O_APPEND | O_RDWR);
 	if(-1 == _fd)
 		return -1;
 	
 	char *_mergeInfo = CreateLogInfo(logInfo, file, function, line);
+
+	//判断是否在终端显示信息
+	if(SHOWINFO == 1)
+		printf("%s\n", _mergeInfo);
 
 	int _ret_write = WriteFile(_fd, _mergeInfo);
 

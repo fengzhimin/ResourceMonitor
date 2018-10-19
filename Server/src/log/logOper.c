@@ -25,7 +25,7 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 	sprintf(_line, "%s%4d%s", "[行数:", line, "] ");          //获取正在执行的行数
 	
 	int _size = strlen(logInfo) + strlen(_date) + strlen(_function) + strlen(_file) + strlen(_line) + 20;
-	char *mergeInfo = kmalloc(_size, GFP_ATOMIC);
+	char *mergeInfo = kmalloc(_size*sizeof(char), GFP_ATOMIC);
 	memset(mergeInfo, 0, _size);
 	strcat(mergeInfo, "[");
 	strcat(mergeInfo, _date);
@@ -41,15 +41,6 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 
 int WriteLog(int rank, const char* logName, const char* logInfo, const char *file, const char* function, const int line)
 {
-	switch(rank)
-	{
-	case 0:
-		printk("\033[31m%s\033[0m", logInfo);
-	case 1:
-		printk("\033[32m%s\033[0m", logInfo);
-	default:
-		printk("%s", logInfo);
-	}
 #if (OPENLOG == 1)
 	struct file * _fd = KOpenFile(logName, O_APPEND | O_WRONLY);
 	if(NULL == _fd)

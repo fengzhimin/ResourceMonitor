@@ -34,12 +34,21 @@
 int skfd;
 struct nlmsghdr *nlh = NULL;
 static char error_info[200];
+struct termios newTermios;
+struct termios oldTermios;
 
 struct _my_msg
 {
     struct nlmsghdr hdr;
 	ConflictProcInfo conflictInfo;
 };
+
+static void ExitResourceMonitor()
+{
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
+	close(skfd);
+	free((void *)nlh);
+}
 
 static void printVersion()
 {
@@ -61,8 +70,7 @@ static void printVersion()
 			break;
 		case 'q':
 		case 3:   //Ctrl+C
-			close(skfd);
-			free((void *)nlh);
+			ExitResourceMonitor();
 
 			exit(0);
 		}
@@ -93,8 +101,7 @@ static void printHelp()
 			break;
 		case 'q':
 		case 3:   //Ctrl+C
-			close(skfd);
-			free((void *)nlh);
+			ExitResourceMonitor();
 
 			exit(0);
 		}
@@ -127,22 +134,20 @@ void monitorPort()
 
 int main(int argc, char **argv)
 {
-	struct termios new;
-	struct termios old;
 
-	tcgetattr(STDIN_FILENO, &old);   //get current terminal setting
+	tcgetattr(STDIN_FILENO, &oldTermios);   //get current terminal setting
 
-	new = old;
+	newTermios = oldTermios;
 	/*
 	 * ~ICANON: don't need to press enter
 	 * ~ECHO: prohibit echo
 	 * ~ISIG: prohibit to handle the signal
 	 */
-	new.c_lflag &= ~(ICANON | ECHO | ISIG);
-	new.c_cc[VTIME] = 0;
-	new.c_cc[VMIN] = 1;
-	//cfmakeraw(&new);
-	tcsetattr(STDIN_FILENO, TCSANOW, &new);  //set terminal
+	newTermios.c_lflag &= ~(ICANON | ECHO | ISIG);
+	newTermios.c_cc[VTIME] = 0;
+	newTermios.c_cc[VMIN] = 1;
+	//cfmakeraw(&newTermios);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newTermios);  //set terminal
 
 	pthread_t thr;
 	if(pthread_create(&thr, NULL, (void *)monitorPort, NULL) != 0)
@@ -160,7 +165,7 @@ int main(int argc, char **argv)
     if(skfd == -1)
     {
         printf("create socket error...%s\n", strerror(errno));
-		tcsetattr(STDIN_FILENO, TCSANOW, &old);  //reset terminal setting
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);  //reset terminal setting
         return -1;
     }
 
@@ -172,7 +177,7 @@ int main(int argc, char **argv)
     {
         printf("bind() error\n");
         close(skfd);
-		tcsetattr(STDIN_FILENO, TCSANOW, &old);  //reset terminal setting
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);  //reset terminal setting
         return -1;
     }
 
@@ -190,7 +195,8 @@ int main(int argc, char **argv)
     nlh->nlmsg_pid = local.nl_pid; //self port
 	bool clear_symbol = false;
 	char label[CONFIG_LABEL_MAX_NUM];
-	char value[CONFIG_VALUE_MAX_NUM];
+	char name[CONFIG_VALUE_MAX_NUM];
+	char defaultValue[CONFIG_VALUE_MAX_NUM];
 	time_t timer;
 	struct tm *tblock;
     memcpy(NLMSG_DATA(nlh), data, strlen(data));
@@ -208,8 +214,7 @@ int main(int argc, char **argv)
 	    if(!ret)
 	    {
 			perror("sendto error1\n");
-			close(skfd);
-			tcsetattr(STDIN_FILENO, TCSANOW, &old);   //reset terminal setting
+			ExitResourceMonitor();
 
 			exit(-1);
 	    }
@@ -237,8 +242,7 @@ int main(int argc, char **argv)
 			if(!ret)
 			{
 				perror("recv form kernel error\n");
-				close(skfd);
-				tcsetattr(STDIN_FILENO, TCSANOW, &old);   //reset terminal setting
+				ExitResourceMonitor();
 
 				exit(-1);
 			}
@@ -254,6 +258,17 @@ int main(int argc, char **argv)
 					tblock = localtime(&timer);
 					printf("Local time is: %s\n", asctime(tblock));
 					printf("The system is in normal operation!\n");
+				}
+
+				//increase the value of configuration option
+				memset(label, 0, CONFIG_LABEL_MAX_NUM);
+				memset(name, 0, CONFIG_VALUE_MAX_NUM);
+				strcpy(label, "mysqld");
+				strcat(label, "/NET");
+				if(getConfValueByLabelAndKey(label, "name", name) && getConfValueByLabelAndKey(label, "defaultValue", defaultValue))
+				{
+					IncreaseConf("mysqld", name, defaultValue);
+					
 				}
 				break;
 			}
@@ -278,30 +293,6 @@ int main(int argc, char **argv)
 			printf("\033[31mconflict type = %2d conflict process = %20s", info.conflictInfo.conflictType, info.conflictInfo.name);
 			printf("[");
 
-			/*
-			 * resolve memory resource contention
-			 * modify configuration option online
-			 */
-			ResolveContention("mysql", "read_buffer_size");
-			ResolveContention("mysql", "key_buffer_size");
-			ResolveContention("mysql", "sort_buffer_size");
-			//flush cache
-			char value[CONFIG_VALUE_MAX_NUM];
-			if(getConfValueByLabelAndKey("mysql", "flushCommand", value))
-			{
-				if(!ExecuteCommand(value))
-				{
-					sprintf(error_info, "execute command(%s) failed.\n", value);
-					Error(error_info);
-				}
-			}
-			else
-			{
-				strcpy(error_info, "get mysql flushCommand failed.\n");
-				Error(error_info);
-			}
-			
-
 			if(info.conflictInfo.conflictType & CPU_CONFLICT)
 				printf("CPU ");
 			if(info.conflictInfo.conflictType & MEM_CONFLICT)
@@ -317,60 +308,65 @@ int main(int argc, char **argv)
 			if(info.conflictInfo.conflictType & CPU_CONFLICT)
 			{
 				memset(label, 0, CONFIG_LABEL_MAX_NUM);
-				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				memset(name, 0, CONFIG_VALUE_MAX_NUM);
 				strcpy(label, info.conflictInfo.name);
 				strcat(label, "/CPU");
-				if(getConfValueByLabelAndKey(label, "name", value))
+				if(getConfValueByLabelAndKey(label, "name", name))
 				{
-					printf("\033[32mCPU: %s\033[0m\n", value);
+					printf("\033[32mCPU: %s\033[0m\n", name);
+					ReduceConf(info.conflictInfo.name, name);
+					
 				}
 			}
 			//MEM
 			if(info.conflictInfo.conflictType & MEM_CONFLICT)
 			{
 				memset(label, 0, CONFIG_LABEL_MAX_NUM);
-				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				memset(name, 0, CONFIG_VALUE_MAX_NUM);
 				strcpy(label, info.conflictInfo.name);
 				strcat(label, "/MEM");
-				if(getConfValueByLabelAndKey(label, "name", value))
+				if(getConfValueByLabelAndKey(label, "name", name))
 				{
-					printf("\033[32mMEM: %s\033[0m\n", value);
+					printf("\033[32mMEM: %s\033[0m\n", name);
+					ReduceConf(info.conflictInfo.name, name);
 				}
 			}
 			//IO
 			if(info.conflictInfo.conflictType & IO_CONFLICT)
 			{
 				memset(label, 0, CONFIG_LABEL_MAX_NUM);
-				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				memset(name, 0, CONFIG_VALUE_MAX_NUM);
 				strcpy(label, info.conflictInfo.name);
 				strcat(label, "/IO");
-				if(getConfValueByLabelAndKey(label, "name", value))
+				if(getConfValueByLabelAndKey(label, "name", name))
 				{
-					printf("\033[32mIO: %s\033[0m\n", value);
+					printf("\033[32mIO: %s\033[0m\n", name);
+					ReduceConf(info.conflictInfo.name, name);
 				}
 			}
 			//NET
 			if(info.conflictInfo.conflictType & NET_CONFLICT)
 			{
 				memset(label, 0, CONFIG_LABEL_MAX_NUM);
-				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				memset(name, 0, CONFIG_VALUE_MAX_NUM);
 				strcpy(label, info.conflictInfo.name);
 				strcat(label, "/NET");
-				if(getConfValueByLabelAndKey(label, "name", value))
+				if(getConfValueByLabelAndKey(label, "name", name))
 				{
-					printf("\033[32mNET: %s\033[0m\n", value);
+					printf("\033[32mNET: %s\033[0m\n", name);
+					ReduceConf(info.conflictInfo.name, name);
 				}
 			}
 			//PORT
 			if(info.conflictInfo.conflictType & PORT_CONFLICT)
 			{
 				memset(label, 0, CONFIG_LABEL_MAX_NUM);
-				memset(value, 0, CONFIG_VALUE_MAX_NUM);
+				memset(name, 0, CONFIG_VALUE_MAX_NUM);
 				strcpy(label, info.conflictInfo.name);
 				strcat(label, "/PORT");
-				if(getConfValueByLabelAndKey(label, "name", value))
+				if(getConfValueByLabelAndKey(label, "name", name))
 				{
-					printf("\033[32mPORT: %s\033[0m\n", value);
+					printf("\033[32mPORT: %s\033[0m\n", name);
 				}
 			}
 
@@ -380,10 +376,8 @@ int main(int argc, char **argv)
 		}
 	    usleep(REQUEST_MESSAGE_RATE);
     }
-    close(skfd);
 
-    free((void *)nlh);
-	tcsetattr(STDIN_FILENO, TCSANOW, &old);   //reset terminal setting
+	ExitResourceMonitor();
 
     return 0;
 

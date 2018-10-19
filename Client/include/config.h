@@ -20,6 +20,7 @@
 #define COPYRIGHT "(C) 2017-2018 zhimin feng"
 
 #define OPENLOG  1      //0=不记录日志   1=记录日志
+#define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
 
 #define ONLINE_RESOLUTION     //0=不在线资源竞争消解    1=在线资源竞争消解
 
@@ -42,8 +43,11 @@
 #define CONFIG_VALUE_MAX_NUM     1024   //配置项value的最大值
 #define MAX_SUBSTR               1024   //拆分后子字符串的最大长度
 //定义ResourceMonitor-Client配置文件存放的路径
-#define ResourceMonitor_Client_CONFIG_PATH     "/etc/ResourceMonitorClient.conf"
+#define ResourceMonitor_Client_CONFIG_PATH     "/etc/ResourceMonitor/Client/ResourceMonitorClient.conf"
 #define ResourceMonitor_Client_CONFIG_NOTESYMBOL    '#'
+//save the script of contention solution
+#define ResourceMonitor_Client_SOLUTION_PATH   "/etc/ResourceMonitor/Client/Resolution"
+#define SCRIPT_PATH_MAX_NUM    128    // the max number of the script path
 
 /*************************************
  * function: 存放关于进程调度的时间数值
@@ -85,8 +89,8 @@ typedef struct ProcResourceUtilization
 typedef struct ConflictProcess
 {
 	char name[MAX_NAMELENGTH];
+	char conflictType;
 	pid_t pgid;
-	int conflictType;
 	ProcResUtilization normalResUsed;
 	ProcResUtilization conflictResUsed;
 	char conflictInfo[MAX_CONFLICTINFO];
