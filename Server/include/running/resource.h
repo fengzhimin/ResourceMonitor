@@ -41,4 +41,14 @@ void getSysResourceInfo();
 ***********************************************/
 void getUserLayerAPP();
 
+/***********************************************
+ * func: 计算所有磁盘的资源使用率
+ * @para prevDiskInfo: 前一时刻所有磁盘的使用状态
+ * @para prevDiskNum: 前一刻系统磁盘的个数
+ * @para nextDiskInfo: 下一时刻所有磁盘的使用状态
+ * @para nextDiskNum: 下一时刻系统磁盘的个数
+ * return: true = success   false = failure
+***********************************************/
+bool calcDiskUsedInfo(DiskInfo *prevDiskInfo, int prevDiskNum, DiskInfo *nextDiskInfo, int nextDiskNum);
+
 #endif

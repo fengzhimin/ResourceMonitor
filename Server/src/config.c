@@ -78,3 +78,11 @@ int avgSYSCpuUsed = 0;
 int avgSYSMemUsed = 0;
 //record current system Swap info
 int avgSYSSwapUsed = 0;
+
+/*
+ * record whether resource contention is occuring
+ */
+bool CPUConflict = false;
+bool MEMConflict = false;
+bool IOConflict = false;
+bool NETConflict = false;

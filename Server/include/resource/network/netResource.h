@@ -165,6 +165,16 @@ int getAllNetCardNameDebug(char **netCardName, unsigned int size, const char *fi
 ***********************************************/
 int getNetCardSpeedDebug(char *netCardName, const char *file, const char *function, const int line);
 
+/***********************************************
+ * func: 计算所有网卡的资源使用率
+ * @para prevNetInfo: 前一时刻所有网卡的使用状态
+ * @para prevNetNum: 前一刻系统网卡的个数
+ * @para nextNetInfo: 下一时刻所有网卡的使用状态
+ * @para nextNetNum: 下一时刻系统网卡的个数
+ * return: true = success   false = failure
+***********************************************/
+bool calcNetUsedInfo(NetInfo *prevNetInfo, int prevNetNum, NetInfo *nextNetInfo, int nextNetNum);
+
 /*************************************************
  * func: get current net used Info(average used), set global variable value(currentNetNum, beginNetUsedInfo)
  * return: void

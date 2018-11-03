@@ -184,9 +184,78 @@ int getAllDiskStateDebug(DiskInfo **beginDiskInfo, const char *file, const char 
 	return ret_num;
 }
 
+bool calcDiskUsedInfo(DiskInfo *prevDiskInfo, int prevDiskNum, DiskInfo *nextDiskInfo, int nextDiskNum)
+{
+	DiskInfo *tempPrevDiskInfo = prevDiskInfo;
+	DiskInfo *tempNextDiskInfo = nextDiskInfo;
+	if(prevDiskNum == nextDiskNum && prevDiskNum != 0)
+	{
+		int handle_IO_time = 0;
+		IOUsedInfo *tailIOUsedInfo;
+		//free invalid object
+		while(sysResArray[currentRecordSysResIndex].ioUsed != NULL)
+		{
+			tailIOUsedInfo = sysResArray[currentRecordSysResIndex].ioUsed;
+			sysResArray[currentRecordSysResIndex].ioUsed = sysResArray[currentRecordSysResIndex].ioUsed->next;
+			vfree(tailIOUsedInfo);
+		}
+		sysResArray[currentRecordSysResIndex].ioUsed = tailIOUsedInfo = NULL;
+		while(tempPrevDiskInfo != NULL)
+		{
+			handle_IO_time = (tempNextDiskInfo->diskInfo.ticks - tempPrevDiskInfo->diskInfo.ticks);
+			//计算每个磁盘的使用率
+			if(tailIOUsedInfo == NULL)
+			{
+				sysResArray[currentRecordSysResIndex].ioUsed = tailIOUsedInfo = vmalloc(sizeof(IOUsedInfo));
+			}
+			else
+			{
+				tailIOUsedInfo = tailIOUsedInfo->next = vmalloc(sizeof(IOUsedInfo));
+			}
+			strcpy(tailIOUsedInfo->diskName, tempPrevDiskInfo->diskName);
+			tailIOUsedInfo->ioUsed = handle_IO_time*100/CALC_CPU_TIME;
+			tailIOUsedInfo->next = NULL;
+
+			tempPrevDiskInfo = tempPrevDiskInfo->next;
+			tempNextDiskInfo = tempNextDiskInfo->next;
+		}
+		//释放列表资源
+		while(prevDiskInfo != NULL)
+		{
+			tempPrevDiskInfo = prevDiskInfo;
+			tempNextDiskInfo = nextDiskInfo;
+			prevDiskInfo = prevDiskInfo->next;
+			nextDiskInfo = nextDiskInfo->next;
+			vfree(tempPrevDiskInfo);
+			vfree(tempNextDiskInfo);
+		}
+
+		return true;
+	}
+	else
+	{
+		//针对前后两次磁盘的个数不一致的情况，直接忽略这次检测
+		//释放列表资源
+		while(tempPrevDiskInfo != NULL)
+		{
+			prevDiskInfo = prevDiskInfo->next;
+			vfree(tempPrevDiskInfo);
+			tempPrevDiskInfo = prevDiskInfo;
+		}
+		while(tempNextDiskInfo != NULL)
+		{
+			nextDiskInfo = nextDiskInfo->next;
+			vfree(tempNextDiskInfo);
+			tempNextDiskInfo = nextDiskInfo;
+		}
+
+		return false;
+	}
+}
+
 void getSysDiskUsedInfo()
 {
-	//free invaild data
+	//clear old data
 	currentDiskNum = 0;
 	currentDiskUsedInfo = beginDiskUsedInfo;
 	while(currentDiskUsedInfo != NULL)

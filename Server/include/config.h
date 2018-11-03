@@ -465,5 +465,10 @@ extern int avgSYSCpuUsed;
 extern int avgSYSMemUsed;
 extern int avgSYSSwapUsed;
 
+extern bool CPUConflict;
+extern bool MEMConflict;
+extern bool IOConflict;
+extern bool NETConflict;
+
 #endif
 

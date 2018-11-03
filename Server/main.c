@@ -75,25 +75,9 @@ int monitorResource(void *data)
 		//当系统资源紧缺的时候才可能引发软件资源竞争情况发生
 		if(judgeSysResConflict())
 		{
-			if(judgeSoftWareConflict())
+			while(judgeSoftWareConflict())
 			{
 				printk("--------------------------start----------------------\n");
-				bool IOConflict = false;
-				bool NetConflict = false;
-				currentDiskUsedInfo = beginDiskUsedInfo;
-				for(i = 0; i < currentDiskNum; i++)
-				{
-					if(currentDiskUsedInfo->ioUsed >= SYS_MAX_IO)
-						IOConflict = true;
-					currentDiskUsedInfo = currentDiskUsedInfo->next;
-				}
-				currentNetUsedInfo = beginNetUsedInfo;
-				for(i = 0; i < currentNetNum; i++)
-				{
-					if(currentNetUsedInfo->netUsed >= SYS_MAX_NET)
-						NetConflict = true;
-					currentNetUsedInfo = currentNetUsedInfo->next;
-				}
 				//系统资源冲突
 				//加锁
 				mutex_lock(&ConflictProcess_Mutex);
@@ -142,13 +126,13 @@ int monitorResource(void *data)
 					//printk("%20s: %8d\t%8d\t%d\t%ld\t%8lld\t%8lld [%d\t%d]\n", currentMonitorAPP->name, avgCPU, avgMEM, avgSWAP, avgMaj_flt, avgIOData, avgNetData, aveWait_sum, aveIOWait_sum);
 					char conflictType = 0;
 					bool conflictPoint = false;
-					if(avgCPU > PROC_MAX_CPU && avgSYSCpuUsed >= SYS_MAX_CPU)
+					if(avgCPU > PROC_MAX_CPU && CPUConflict)
 					{
 						printk("CPU conflict\n");
 						conflictType |= CPU_CONFLICT;
 						conflictPoint = true;
 					}
-					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgSYSMemUsed >= SYS_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT)
+					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT && MEMConflict)
 					{
 						printk("MEM conflict\n");
 						conflictType |= MEM_CONFLICT;
@@ -160,7 +144,7 @@ int monitorResource(void *data)
 						conflictType |= IO_CONFLICT;
 						conflictPoint = true;
 					}
-					if(avgNetData > PROC_MAX_NET && NetConflict)
+					if(avgNetData > PROC_MAX_NET && NETConflict)
 					{
 						printk("NET conflict\n");
 						conflictType |= NET_CONFLICT;
@@ -196,16 +180,14 @@ int monitorResource(void *data)
 				mutex_unlock(&ConflictProcess_Mutex);
 				printk("--------------------------end----------------------\n\n\n\n");
 			}
-			else
+
+			//删除冲突信息
+			currentConflictProcess = beginConflictProcess;
+			while(beginConflictProcess != NULL)
 			{
-				//删除冲突信息
+				beginConflictProcess = beginConflictProcess->next;
+				vfree(currentConflictProcess);
 				currentConflictProcess = beginConflictProcess;
-				while(beginConflictProcess != NULL)
-				{
-					beginConflictProcess = beginConflictProcess->next;
-					vfree(currentConflictProcess);
-					currentConflictProcess = beginConflictProcess;
-				}
 			}
 		}
 	}

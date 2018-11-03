@@ -579,6 +579,85 @@ int getNetCardSpeedDebug(char *netCardName, const char *file, const char *functi
 	}
 }
 
+bool calcNetUsedInfo(NetInfo *prevNetInfo, int prevNetNum, NetInfo *nextNetInfo, int nextNetNum)
+{
+	NetInfo *tempPrevNetInfo = prevNetInfo;
+	NetInfo *tempNextNetInfo = nextNetInfo;
+	unsigned long long totalPackage = 0;
+	unsigned long long totalBytes = 0;
+	int speed;
+	if(prevNetNum == nextNetNum && prevNetNum != 0)
+	{
+		NetUsedInfo *tailNetUsedInfo;
+		//free invalid object
+		while(sysResArray[currentRecordSysResIndex].netUsed != NULL)
+		{
+			tailNetUsedInfo = sysResArray[currentRecordSysResIndex].netUsed;
+			sysResArray[currentRecordSysResIndex].netUsed = sysResArray[currentRecordSysResIndex].netUsed->next;
+			vfree(tailNetUsedInfo);
+		}
+		sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = NULL;
+		while(tempPrevNetInfo != NULL)
+		{
+			speed = getNetCardSpeed(tempPrevNetInfo->netCardName);
+			//计算每个网卡的使用率
+			if(tailNetUsedInfo == NULL)
+			{
+				sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
+			}
+			else
+			{
+				tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
+			}
+			strcpy(tailNetUsedInfo->netCardName, tempPrevNetInfo->netCardName);
+			tailNetUsedInfo->next = NULL;
+			//计算出来的是百分比
+			if(speed != 0)
+			{
+				totalPackage = tempNextNetInfo->netCardInfo.uploadPackage - tempPrevNetInfo->netCardInfo.uploadPackage + tempNextNetInfo->netCardInfo.downloadPackage - tempPrevNetInfo->netCardInfo.downloadPackage;
+				totalBytes = tempNextNetInfo->netCardInfo.uploadBytes - tempPrevNetInfo->netCardInfo.uploadBytes + tempNextNetInfo->netCardInfo.downloadBytes - tempPrevNetInfo->netCardInfo.downloadBytes;
+				tailNetUsedInfo->netUsed = totalBytes*8/(speed*10000);
+			}
+			else
+				tailNetUsedInfo->netUsed = 0;
+
+			tempPrevNetInfo = tempPrevNetInfo->next;
+			tempNextNetInfo = tempNextNetInfo->next;
+		}
+		//释放列表资源
+		while(prevNetInfo != NULL)
+		{
+			tempPrevNetInfo = prevNetInfo;
+			tempNextNetInfo = nextNetInfo;
+			prevNetInfo = prevNetInfo->next;
+			nextNetInfo = nextNetInfo->next;
+			vfree(tempPrevNetInfo);
+			vfree(tempNextNetInfo);
+		}
+
+		return true;
+	}
+	else
+	{
+		//当前后两次网卡数量不一致的时，直接忽略
+		//释放列表资源
+		while(tempPrevNetInfo != NULL)
+		{
+			prevNetInfo = prevNetInfo->next;
+			vfree(tempPrevNetInfo);
+			tempPrevNetInfo = prevNetInfo;
+		}
+		while(tempNextNetInfo != NULL)
+		{
+			nextNetInfo = nextNetInfo->next;
+			vfree(tempNextNetInfo);
+			tempNextNetInfo = nextNetInfo;
+		}
+
+		return false;
+	}
+}
+
 void getSysNetUsedInfo()
 {
 	//free invaild data

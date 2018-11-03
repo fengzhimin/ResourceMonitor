@@ -19,168 +19,45 @@ static int _port[MAX_PORT_NUM];
 
 void getSysResourceInfo()
 {
-	Total_Cpu_Occupy_t total_cpu_occupy1;
-	getTotalCPUTime(&total_cpu_occupy1);
-	unsigned long long total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
-	//获取系统的网络使用情况
-	NetInfo *totalNet1;
-	int totalNetInfoNum1 = getAllNetState(&totalNet1);
-	DiskInfo *totalDiskInfo1;
-	int totalDiskInfoNum1 = getAllDiskState(&totalDiskInfo1);
+	//获取前一时刻系统的CPU使用情况
+	Total_Cpu_Occupy_t prev_cpu_occupy;
+	getTotalCPUTime(&prev_cpu_occupy);
+	unsigned long long prevCPUData = prev_cpu_occupy.user + prev_cpu_occupy.nice + prev_cpu_occupy.system + prev_cpu_occupy.idle;
+	//获取前一时刻系统的网络使用情况
+	NetInfo *prevNetInfo;
+	int prevNetInfoNum = getAllNetState(&prevNetInfo);
+	//获取前一时刻系统的磁盘使用情况
+	DiskInfo *prevDiskInfo;
+	int prevDiskInfoNum = getAllDiskState(&prevDiskInfo);
 
 	//隔一段时间
 	msleep(CALC_CPU_TIME);
 
-	DiskInfo *totalDiskInfo2;
-	int totalDiskInfoNum2 = getAllDiskState(&totalDiskInfo2);
-	DiskInfo *curDiskInfo1 = totalDiskInfo1;
-	DiskInfo *curDiskInfo2 = totalDiskInfo2;
-	if(totalDiskInfoNum1 == totalDiskInfoNum2 && totalDiskInfoNum1 != 0)
-	{
-		int handle_IO_time = 0;
-		IOUsedInfo *tailIOUsedInfo;
-		//free invalid object
-		while(sysResArray[currentRecordSysResIndex].ioUsed != NULL)
-		{
-			tailIOUsedInfo = sysResArray[currentRecordSysResIndex].ioUsed;
-			sysResArray[currentRecordSysResIndex].ioUsed = sysResArray[currentRecordSysResIndex].ioUsed->next;
-			vfree(tailIOUsedInfo);
-		}
-		sysResArray[currentRecordSysResIndex].ioUsed = tailIOUsedInfo = NULL;
-		while(curDiskInfo1 != NULL)
-		{
-			handle_IO_time = (curDiskInfo2->diskInfo.ticks - curDiskInfo1->diskInfo.ticks);
-			//计算每个磁盘的使用率
-			if(tailIOUsedInfo == NULL)
-			{
-				sysResArray[currentRecordSysResIndex].ioUsed = tailIOUsedInfo = vmalloc(sizeof(IOUsedInfo));
-			}
-			else
-			{
-				tailIOUsedInfo = tailIOUsedInfo->next = vmalloc(sizeof(IOUsedInfo));
-			}
-			strcpy(tailIOUsedInfo->diskName, curDiskInfo1->diskName);
-			tailIOUsedInfo->ioUsed = handle_IO_time*100/CALC_CPU_TIME;
-			tailIOUsedInfo->next = NULL;
+	//获取下一时刻系统的CPU使用情况
+	Total_Cpu_Occupy_t next_cpu_occupy;
+	getTotalCPUTime(&next_cpu_occupy);
+	unsigned long long nextCPUData = next_cpu_occupy.user + next_cpu_occupy.nice + next_cpu_occupy.system + next_cpu_occupy.idle;	
+	//获取下一时刻系统的网络使用情况
+	NetInfo *nextNetInfo;
+	int nextNetInfoNum = getAllNetState(&nextNetInfo);
+	//获取下一时刻系统的磁盘使用情况
+	DiskInfo *nextDiskInfo;
+	int nextDiskInfoNum = getAllDiskState(&nextDiskInfo);
 
-			curDiskInfo1 = curDiskInfo1->next;
-			curDiskInfo2 = curDiskInfo2->next;
-		}
-		//释放列表资源
-		while(totalDiskInfo1 != NULL)
-		{
-			curDiskInfo1 = totalDiskInfo1;
-			curDiskInfo2 = totalDiskInfo2;
-			totalDiskInfo1 = totalDiskInfo1->next;
-			totalDiskInfo2 = totalDiskInfo2->next;
-			vfree(curDiskInfo1);
-			vfree(curDiskInfo2);
-		}
-	}
-	else
-	{
-		//针对前后两次磁盘的个数不一致的情况，直接忽略这次检测
-		//释放列表资源
-		while(totalDiskInfo1 != NULL)
-		{
-			curDiskInfo1 = totalDiskInfo1;
-			totalDiskInfo1 = totalDiskInfo1->next;
-			vfree(curDiskInfo1);
-		}
-		while(totalDiskInfo2 != NULL)
-		{
-			curDiskInfo2 = totalDiskInfo2;
-			totalDiskInfo2 = totalDiskInfo2->next;
-			vfree(curDiskInfo2);
-		}
-	}
-	Total_Cpu_Occupy_t total_cpu_occupy2;
-	getTotalCPUTime(&total_cpu_occupy2);
-	unsigned long long total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;	
 	//计算总CPU使用率
-	unsigned long long totalcpu = total_cpu2 - total_cpu1;
-	unsigned long long totalidle = total_cpu_occupy2.idle - total_cpu_occupy1.idle;
+	unsigned long long totalcpu = nextCPUData - prevCPUData;
+	unsigned long long totalidle = next_cpu_occupy.idle - prev_cpu_occupy.idle;
 	sysResArray[currentRecordSysResIndex].cpuUsed = 100*(totalcpu-totalidle)/totalcpu;
+	//计算总的系统磁盘使用率
+	calcDiskUsedInfo(prevDiskInfo, prevDiskInfoNum, nextDiskInfo, nextDiskInfoNum);
+	//计算总的系统网卡使用率
+	calcNetUsedInfo(nextNetInfo, nextNetInfoNum, prevNetInfo, prevNetInfoNum);
+	//计算物理内存和交换空间的使用率
 	MemInfo totalMem;
 	if(getTotalPM(&totalMem))
 	{
-		//计算内存使用率
 		sysResArray[currentRecordSysResIndex].memUsed = 100*(totalMem.memTotal-totalMem.memAvailable)/totalMem.memTotal;
 		sysResArray[currentRecordSysResIndex].swapUsed = 100*(totalMem.totalswap-totalMem.freeswap)/totalMem.totalswap;
-	}
-	//获取系统的网络实时情况
-	NetInfo *totalNet2;
-	int totalNetInfoNum2 = getAllNetState(&totalNet2);
-	NetInfo *curNetInfo1 = totalNet1;
-	NetInfo *curNetInfo2 = totalNet2;
-	unsigned long long totalPackage = 0;
-	unsigned long long totalBytes = 0;
-	int speed;
-	if(totalNetInfoNum1 == totalNetInfoNum2 && totalNetInfoNum1 != 0)
-	{
-		NetUsedInfo *tailNetUsedInfo;
-		//free invalid object
-		while(sysResArray[currentRecordSysResIndex].netUsed != NULL)
-		{
-			tailNetUsedInfo = sysResArray[currentRecordSysResIndex].netUsed;
-			sysResArray[currentRecordSysResIndex].netUsed = sysResArray[currentRecordSysResIndex].netUsed->next;
-			vfree(tailNetUsedInfo);
-		}
-		sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = NULL;
-		while(curNetInfo1 != NULL)
-		{
-			speed = getNetCardSpeed(curNetInfo1->netCardName);
-			//计算每个网卡的使用率
-			if(tailNetUsedInfo == NULL)
-			{
-				sysResArray[currentRecordSysResIndex].netUsed = tailNetUsedInfo = vmalloc(sizeof(NetUsedInfo));
-			}
-			else
-			{
-				tailNetUsedInfo = tailNetUsedInfo->next = vmalloc(sizeof(NetUsedInfo));
-			}
-			strcpy(tailNetUsedInfo->netCardName, curNetInfo1->netCardName);
-			tailNetUsedInfo->next = NULL;
-			//计算出来的是百分比
-			if(speed != 0)
-			{
-				totalPackage = curNetInfo2->netCardInfo.uploadPackage - curNetInfo1->netCardInfo.uploadPackage + curNetInfo2->netCardInfo.downloadPackage - curNetInfo1->netCardInfo.downloadPackage;
-				totalBytes = curNetInfo2->netCardInfo.uploadBytes - curNetInfo1->netCardInfo.uploadBytes + curNetInfo2->netCardInfo.downloadBytes - curNetInfo1->netCardInfo.downloadBytes;
-				tailNetUsedInfo->netUsed = totalBytes*8/(speed*10000);
-			}
-			else
-				tailNetUsedInfo->netUsed = 0;
-
-			curNetInfo1 = curNetInfo1->next;
-			curNetInfo2 = curNetInfo2->next;
-		}
-		//释放列表资源
-		while(totalNet1 != NULL)
-		{
-			curNetInfo1 = totalNet1;
-			curNetInfo2 = totalNet2;
-			totalNet1 = totalNet1->next;
-			totalNet2 = totalNet2->next;
-			vfree(curNetInfo1);
-			vfree(curNetInfo2);
-		}
-	}
-	else
-	{
-		//当前后两次网卡数量不一致的时，直接忽略
-		//释放列表资源
-		while(totalNet1 != NULL)
-		{
-			curNetInfo1 = totalNet1;
-			totalNet1 = totalNet1->next;
-			vfree(curNetInfo1);
-		}
-		while(totalNet2 != NULL)
-		{
-			curNetInfo2 = totalNet2;
-			totalNet2 = totalNet2->next;
-			vfree(curNetInfo2);
-		}
 	}
 
 	currentRecordSysResIndex++;
@@ -243,9 +120,16 @@ void getUserLayerAPP()
 
 		currentMonitorProgPid = currentMonitorProgPid->next;
 	}
-	Total_Cpu_Occupy_t total_cpu_occupy1;
-	getTotalCPUTime(&total_cpu_occupy1);
-	int total_cpu1 = total_cpu_occupy1.user + total_cpu_occupy1.nice + total_cpu_occupy1.system + total_cpu_occupy1.idle;
+	//获取前一时刻系统的CPU使用情况
+	Total_Cpu_Occupy_t prev_cpu_occupy;
+	getTotalCPUTime(&prev_cpu_occupy);
+	unsigned long long prevCPUData = prev_cpu_occupy.user + prev_cpu_occupy.nice + prev_cpu_occupy.system + prev_cpu_occupy.idle;
+	//获取前一时刻系统的网络使用情况
+	NetInfo *prevNetInfo;
+	int prevNetInfoNum = getAllNetState(&prevNetInfo);
+	//获取前一时刻系统的磁盘使用情况
+	DiskInfo *prevDiskInfo;
+	int prevDiskInfoNum = getAllDiskState(&prevDiskInfo);
 
 	//sleep CALC_CPU_TIME ms
 	msleep(CALC_CPU_TIME);
@@ -357,12 +241,36 @@ void getUserLayerAPP()
 		currentMonitorProgPid = currentMonitorProgPid->next;
 	}
 
-	Total_Cpu_Occupy_t total_cpu_occupy2;
-	getTotalCPUTime(&total_cpu_occupy2);
-	int total_cpu2 = total_cpu_occupy2.user + total_cpu_occupy2.nice + total_cpu_occupy2.system + total_cpu_occupy2.idle;	
+	//获取下一时刻系统的CPU使用情况
+	Total_Cpu_Occupy_t next_cpu_occupy;
+	getTotalCPUTime(&next_cpu_occupy);
+	unsigned long long nextCPUData = next_cpu_occupy.user + next_cpu_occupy.nice + next_cpu_occupy.system + next_cpu_occupy.idle;	
+	//获取下一时刻系统的网络使用情况
+	NetInfo *nextNetInfo;
+	int nextNetInfoNum = getAllNetState(&nextNetInfo);
+	//获取下一时刻系统的磁盘使用情况
+	DiskInfo *nextDiskInfo;
+	int nextDiskInfoNum = getAllDiskState(&nextDiskInfo);
+	//计算总CPU使用率
+	unsigned long long totalcpu = nextCPUData - prevCPUData;
+	unsigned long long totalidle = next_cpu_occupy.idle - prev_cpu_occupy.idle;
+	sysResArray[currentRecordSysResIndex].cpuUsed = 100*(totalcpu-totalidle)/totalcpu;
+	//计算总的系统磁盘使用率
+	calcDiskUsedInfo(prevDiskInfo, prevDiskInfoNum, nextDiskInfo, nextDiskInfoNum);
+	//计算总的系统网卡使用率
+	calcNetUsedInfo(nextNetInfo, nextNetInfoNum, prevNetInfo, prevNetInfoNum);
+	//计算物理内存和交换空间的使用率
+
+	//更新索引值
+	currentRecordSysResIndex++;
+	currentRecordSysResIndex %= MAX_RECORD_LENGTH;
+
 	MemInfo totalMem;
 	if(getTotalPM(&totalMem))
 	{
+		//计算系统总的内存和交换分区的使用率
+		sysResArray[currentRecordSysResIndex].memUsed = 100*(totalMem.memTotal-totalMem.memAvailable)/totalMem.memTotal;
+		sysResArray[currentRecordSysResIndex].swapUsed = 100*(totalMem.totalswap-totalMem.freeswap)/totalMem.totalswap;
 		/*
 		 * init beginMonitorAPP flags is equal to false;
 		 */
@@ -393,7 +301,7 @@ void getUserLayerAPP()
 					currentMonitorAPP->memUsed[currentRecordResIndex] = 100*beginProcRes[i].VmRss/totalMem.memTotal;
 					currentMonitorAPP->swapUsed[currentRecordResIndex] = 100*beginProcRes[i].swap/totalMem.totalswap;
 					currentMonitorAPP->maj_flt[currentRecordResIndex] = beginProcRes[i].maj_flt;
-					currentMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(total_cpu2-total_cpu1);
+					currentMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(nextCPUData-prevCPUData);
 					currentMonitorAPP->schedInfo[currentRecordResIndex] = beginProcRes[i].schedInfo;
 					currentMonitorAPP->ioDataBytes[currentRecordResIndex] = beginProcRes[i].ioDataBytes;
 					currentMonitorAPP->netTotalBytes[currentRecordResIndex] = beginProcRes[i].netTotalBytes;
@@ -428,7 +336,7 @@ void getUserLayerAPP()
 				endMonitorAPP->memUsed[currentRecordResIndex] = 100*beginProcRes[i].VmRss/totalMem.memTotal;
 				endMonitorAPP->swapUsed[currentRecordResIndex] = 100*beginProcRes[i].swap/totalMem.totalswap;
 				endMonitorAPP->maj_flt[currentRecordResIndex] = beginProcRes[i].maj_flt;
-				endMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(total_cpu2-total_cpu1);
+				endMonitorAPP->cpuUsed[currentRecordResIndex] = 100*beginProcRes[i].cpuTime/(nextCPUData-prevCPUData);
 				endMonitorAPP->schedInfo[currentRecordResIndex] = beginProcRes[i].schedInfo;
 				endMonitorAPP->ioDataBytes[currentRecordResIndex] = beginProcRes[i].ioDataBytes;
 				endMonitorAPP->netTotalBytes[currentRecordResIndex] = beginProcRes[i].netTotalBytes;
