@@ -90,28 +90,27 @@ bool judgeSoftWareConflict()
 
 	getSysDiskUsedInfo();
 	getSysNetUsedInfo();
+	printk("CPU: %3d\tMEM: %3d\tSWAP: %3d\t", avgSYSCpuUsed, avgSYSMemUsed, avgSYSSwapUsed);
 	//judge whether IO resource is conflicting
 	currentDiskUsedInfo = beginDiskUsedInfo;
 	while(currentDiskUsedInfo != NULL)
 	{
+		printk("%10s:%3d\t", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
 		if(currentDiskUsedInfo->ioUsed >= SYS_MAX_IO)
-		{
 			IOConflict = true;
-			break;
-		}
 		currentDiskUsedInfo = currentDiskUsedInfo->next;
 	}
+
 	//judge whether NET resource is conflicting
 	currentNetUsedInfo = beginNetUsedInfo;
 	while(currentNetUsedInfo != NULL)
 	{
+		printk("%10s:%3d\t", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
 		if(currentNetUsedInfo->netUsed >= SYS_MAX_NET)
-		{
 			NETConflict = true;
-			break;
-		}
 		currentNetUsedInfo = currentNetUsedInfo->next;
 	}
+	printk("\n");
 
 	int j;
 	int aveWait_sum = 0;

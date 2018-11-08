@@ -128,25 +128,25 @@ int monitorResource(void *data)
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU && CPUConflict)
 					{
-						printk("CPU conflict\n");
+						printk("CPU conflict[%s]\n", currentMonitorAPP->name);
 						conflictType |= CPU_CONFLICT;
 						conflictPoint = true;
 					}
 					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT && MEMConflict)
 					{
-						printk("MEM conflict\n");
+						printk("MEM conflict[%s]\n", currentMonitorAPP->name);
 						conflictType |= MEM_CONFLICT;
 						conflictPoint = true;
 					}
 					if(avgIOData > PROC_MAX_IO && IOConflict)
 					{
-						printk("IO conflict\n");
+						printk("IO conflict[%s]\n", currentMonitorAPP->name);
 						conflictType |= IO_CONFLICT;
 						conflictPoint = true;
 					}
 					if(avgNetData > PROC_MAX_NET && NETConflict)
 					{
-						printk("NET conflict\n");
+						printk("NET conflict[%s]\n", currentMonitorAPP->name);
 						conflictType |= NET_CONFLICT;
 						conflictPoint = true;
 					}

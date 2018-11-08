@@ -583,7 +583,6 @@ bool calcNetUsedInfo(NetInfo *prevNetInfo, int prevNetNum, NetInfo *nextNetInfo,
 {
 	NetInfo *tempPrevNetInfo = prevNetInfo;
 	NetInfo *tempNextNetInfo = nextNetInfo;
-	unsigned long long totalPackage = 0;
 	unsigned long long totalBytes = 0;
 	int speed;
 	if(prevNetNum == nextNetNum && prevNetNum != 0)
@@ -614,9 +613,12 @@ bool calcNetUsedInfo(NetInfo *prevNetInfo, int prevNetNum, NetInfo *nextNetInfo,
 			//计算出来的是百分比
 			if(speed != 0)
 			{
-				totalPackage = tempNextNetInfo->netCardInfo.uploadPackage - tempPrevNetInfo->netCardInfo.uploadPackage + tempNextNetInfo->netCardInfo.downloadPackage - tempPrevNetInfo->netCardInfo.downloadPackage;
 				totalBytes = tempNextNetInfo->netCardInfo.uploadBytes - tempPrevNetInfo->netCardInfo.uploadBytes + tempNextNetInfo->netCardInfo.downloadBytes - tempPrevNetInfo->netCardInfo.downloadBytes;
-				tailNetUsedInfo->netUsed = totalBytes*8/(speed*10000);
+				/*
+				 * 千兆网卡（1000Mbit/s)理论最大约128MByte/s  8 bit = 1 Bytes
+				 * totalBytes*8*100/(speed*1024*1024)  转化为百分比的整数
+				 */
+				tailNetUsedInfo->netUsed = (1000/CALC_CPU_TIME)*totalBytes*800/(speed*1024*1024);
 			}
 			else
 				tailNetUsedInfo->netUsed = 0;

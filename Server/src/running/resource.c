@@ -51,7 +51,7 @@ void getSysResourceInfo()
 	//计算总的系统磁盘使用率
 	calcDiskUsedInfo(prevDiskInfo, prevDiskInfoNum, nextDiskInfo, nextDiskInfoNum);
 	//计算总的系统网卡使用率
-	calcNetUsedInfo(nextNetInfo, nextNetInfoNum, prevNetInfo, prevNetInfoNum);
+	calcNetUsedInfo(prevNetInfo, prevNetInfoNum, nextNetInfo, nextNetInfoNum);
 	//计算物理内存和交换空间的使用率
 	MemInfo totalMem;
 	if(getTotalPM(&totalMem))
@@ -258,7 +258,7 @@ void getUserLayerAPP()
 	//计算总的系统磁盘使用率
 	calcDiskUsedInfo(prevDiskInfo, prevDiskInfoNum, nextDiskInfo, nextDiskInfoNum);
 	//计算总的系统网卡使用率
-	calcNetUsedInfo(nextNetInfo, nextNetInfoNum, prevNetInfo, prevNetInfoNum);
+	calcNetUsedInfo(prevNetInfo, prevNetInfoNum, nextNetInfo, nextNetInfoNum);
 	//计算物理内存和交换空间的使用率
 
 	//更新索引值
