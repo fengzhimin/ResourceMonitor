@@ -17,7 +17,7 @@ bool ExecuteCommandDebug(char *commandArgv[], const char *file, const char *func
 	pid_t pid = fork();
 	if(pid < 0 )
 	{
-		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		WriteLog(0, "调用者信息\n", file, function, line);
 		sprintf(error_info, "create process failed: %s.\n", strerror(errno));
 		Error(error_info);
 
@@ -27,7 +27,7 @@ bool ExecuteCommandDebug(char *commandArgv[], const char *file, const char *func
 	{
 		if(execvp("sh", commandArgv) < 0)
 		{
-			WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+			WriteLog(0, "调用者信息\n", file, function, line);
 			sprintf(error_info, "execute command(%s) failure: %s.\n", commandArgv[1], strerror(errno));
 			Error(error_info);
 
@@ -39,7 +39,7 @@ bool ExecuteCommandDebug(char *commandArgv[], const char *file, const char *func
 		int status;
 		if(wait(&status) < 0)
 		{
-			WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+			WriteLog(0, "调用者信息\n", file, function, line);
 			sprintf(error_info, "wait child process(%s) exit failed: %s.\n", commandArgv[1], strerror(errno));
 			Error(error_info);
 			
@@ -60,7 +60,7 @@ bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const
 	sprintf(scriptPath, "%s/%sDown.sh", ResourceMonitor_Client_SOLUTION_PATH, softwareName);
 	if((access(scriptPath, F_OK)) == -1)
 	{
-		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		WriteLog(0, "调用者信息\n", file, function, line);
 		sprintf(error_info, "script(%s) is not existing\n", scriptPath);
 		Error(error_info);
 
@@ -72,7 +72,7 @@ bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const
 		return true;
 	else
 	{
-		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		WriteLog(0, "调用者信息\n", file, function, line);
 		sprintf(error_info, "reduce config failure(software:%s\tconfName:%s)\n", softwareName, confName);
 		Error(error_info);
 
@@ -87,7 +87,7 @@ bool IncreaseConfDebug(char *softwareName, char *confName, char *defValue, const
 	sprintf(scriptPath, "%s/%sUp.sh", ResourceMonitor_Client_SOLUTION_PATH, softwareName);
 	if((access(scriptPath, F_OK)) == -1)
 	{
-		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		WriteLog(0, "调用者信息\n", file, function, line);
 		sprintf(error_info, "script(%s) is not existing\n", scriptPath);
 		Error(error_info);
 
@@ -99,7 +99,7 @@ bool IncreaseConfDebug(char *softwareName, char *confName, char *defValue, const
 		return true;
 	else
 	{
-		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		WriteLog(0, "调用者信息\n", file, function, line);
 		sprintf(error_info, "increase config failure(software:%s\tconfName:%s)\n", softwareName, confName);
 		Error(error_info);
 

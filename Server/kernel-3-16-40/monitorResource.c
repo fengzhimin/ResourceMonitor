@@ -9,6 +9,12 @@
 
 #include <linux/monitorResource.h>
 
+static char lineData[VFS_LINE_CHAR_MAX_NUM];
+static char path[VFS_FILE_PATH_MAX_LENGTH];
+static char pathfd[VFS_FILE_PATH_MAX_LENGTH];
+static char buf[VFS_BUF_SIZE];
+static char buflinkInfo[1024];
+
 struct file *VFS_KOpenFile(const char* fileName, int mode)
 {
 	struct file *fd = NULL;
@@ -52,7 +58,7 @@ int VFS_KReadLine(struct file *fd, char *data)
 	{
 		if(n >= VFS_LINE_CHAR_MAX_NUM)
 		{
-			printk("配置文件的一行数据大小超过预设大小!\n");
+			printk("\033[31m[函数:%s] [文件:%s] [行数:%d] 配置文件的一行数据大小超过预设大小!\033[0m\n", __FUNCTION__, __FILE__, __LINE__);
 			return -1;
 		}
 		if(_ch == '\n')
@@ -84,38 +90,53 @@ char* decTohex(char *ch, int num)
 	}
 }
 
+/*
+ * 格式为：0: 00000000:0050 00000000:0000 0A 00000000:00000000 00:00000000 00000000     0        0 16151 1 0000000000000000 100 0 0 10 0
+ * 0050: 端口对应的十六进制
+ * 16151: 端口对应的inode节点号
+ */
 int getPort(char *str, char *hexPort)
 {
 	int strLength = strlen(str);
 	int i, point = 0, index = 0;
 	int ret = 0;
+	int m_point = 0;
+	bool continue_space = false;
 	for(i = 0; i < strLength; i++)
 	{
 		if(point == 2)
 		{
-			if(str[i] == ' ')
+			//跳过以0开头的十六进制数
+			for( ; i < strLength; i++)
 			{
-				int m_point = 0;
-				bool continue_space = false;
-				for( i++; i < strLength; i++)
-				{
-					if(m_point == 7)
-					{
-						if(str[i] == ' ')
-							return ret;
-						ret = ret*10 + str[i] - '0';   //inode
-					}
-					else if((str[i] == ' ' || str[i] == '\t') && !continue_space)
-					{
-						continue_space = true;
-						m_point++;
-					}
-					else if(str[i] != ' ' && str[i] != '\t')
-						continue_space = false;
-						
-				}
+				if(str[i] != '0')
+					break;
 			}
-			hexPort[index++] = str[i];
+
+			//拷贝十六进制数
+			while(str[i] != ' ')
+			{
+				hexPort[index++] = str[i++];
+			}
+
+			//查找inode号
+			for( i++; i < strLength; i++)
+			{
+				if(m_point == 7)
+				{
+					if(str[i] == ' ')
+						return ret;
+					ret = ret*10 + str[i] - '0';   //inode
+				}
+				else if((str[i] == ' ' || str[i] == '\t') && !continue_space)
+				{
+					continue_space = true;
+					m_point++;
+				}
+				else if(str[i] != ' ' && str[i] != '\t')
+					continue_space = false;
+
+			}
 		}
 		else if(str[i] == ':')
 		{
@@ -130,12 +151,11 @@ int getPort(char *str, char *hexPort)
 int judge(char *path, char *hex)
 {
 	struct file *fp = VFS_KOpenFile(path, O_RDONLY);
-	char lineData[VFS_LINE_CHAR_MAX_NUM];
+	char hexPort[VFS_HEX_MAX_NUM];
+	int ret = -1;
 	memset(lineData, 0, VFS_LINE_CHAR_MAX_NUM);
 	VFS_KReadLine(fp, lineData);
 	memset(lineData, 0, VFS_LINE_CHAR_MAX_NUM);
-	char hexPort[VFS_HEX_MAX_NUM];
-	int ret = -1;
 	while(VFS_KReadLine(fp, lineData) == -1)
 	{
 		memset(hexPort, 0, VFS_HEX_MAX_NUM);
@@ -154,10 +174,10 @@ int judge(char *path, char *hex)
 
 int getConflictInode(int port)
 {
-	char hexPort[VFS_HEX_MAX_NUM];
-	memset(hexPort, 0, VFS_HEX_MAX_NUM);
+	char hexPort[VFS_HEX_MAX_NUM] = { 0 };
+	int ret;
 	decTohex(hexPort, port);
-	int ret = judge("/proc/net/tcp", hexPort);
+	ret = judge("/proc/net/tcp", hexPort);
 	if(ret != -1)
 		return ret;
 	else if((ret = judge("/proc/net/tcp6", hexPort)) != -1)
@@ -190,32 +210,41 @@ struct conflictProcess getConflictProcess(int port)
 	struct conflictProcess ret;
 	struct task_struct *task, *p;
 	struct list_head *ps;
-	task = &init_task;
-	char path[VFS_FILE_PATH_MAX_LENGTH], pathfd[VFS_FILE_PATH_MAX_LENGTH];
-	int inode = getConflictInode(port);
-	ret.pid = -1;
 	mm_segment_t fs;
+	int fd, nread;
+	struct linux_dirent *d;
+	int bpos;
+	char d_type;
+	int linkSize = 0;
+	//获取端口对应的inode节点号
+	int inode = getConflictInode(port);
+	task = &init_task;
+	ret.pid = -1;
+	if(inode == -1)
+	{
+		printk("\033[31mget inode failure!(port:%d)\033[0m\n", port);
+		return ret;
+	}
 	fs = get_fs();
 	set_fs(KERNEL_DS);
+	//遍历所有正在运行的进程的信息
 	list_for_each(ps, &task->tasks)
 	{
 		p = list_entry(ps, struct task_struct, tasks);
 		memset(path, 0, VFS_FILE_PATH_MAX_LENGTH);
-		sprintf(path, "%s/%d/fd", "/proc", p->pid);
-		int fd, nread;
-		char buf[VFS_BUF_SIZE];
-		struct linux_dirent *d;
-		int bpos;
-		char d_type;
+		sprintf(path, "/proc/%d/fd", p->pid);
+		//打开/proc/pid/fd文件夹
 		fd = sys_open(path, O_RDONLY | O_DIRECTORY, 0);
 		if (fd >= 0)
 		{
 			for ( ; ; ) 
 			{
+				//读取/proc/pid/fd文件夹下的内容
+				memset(buf, 0, VFS_BUF_SIZE);
 				nread = sys_getdents(fd, buf, VFS_BUF_SIZE);
 				if (nread < 0)
 				{
-					//printk("getdents failure! error code = %d\n", nread);
+					printk("\033[31mgetdents failure! error code = %d\033[0m\n", nread);
 					break;
 				}
 
@@ -230,19 +259,19 @@ struct conflictProcess getConflictProcess(int port)
 					{
 						memset(pathfd, 0, VFS_FILE_PATH_MAX_LENGTH);
 						sprintf(pathfd, "%s/%s", path, d->d_name);
-						//printk("pathfd = %s\n", pathfd);
-						char buflinkInfo[1024];
-						int linkSize = sys_readlink(pathfd, buflinkInfo, 1024);
+						linkSize = sys_readlink(pathfd, buflinkInfo, 1024);
 						if(linkSize < 0 || linkSize > 1024)
 							continue;
 						buflinkInfo[linkSize] = '\0';
+						//比较对应进程的节点号是否为已经占用端口对应的节点号
 						if(judgeConflictID(buflinkInfo, inode))
 						{
 							ret.pid = p->pid;
 							memset(ret.ProcessName, 0, VFS_PROCESS_NAME_MAX_CHAR);
 							strcpy(ret.ProcessName, p->comm);
 							sys_close(fd);
-							goto end;
+
+							return ret;
 						}
 				    }
 				}
@@ -252,32 +281,35 @@ struct conflictProcess getConflictProcess(int port)
 		
 	}
 	set_fs(fs);
-end:
+
 	return ret;
 }
 
 struct KCode_dirent* vfs_readdir(const char *path)
 {
-	mm_segment_t fs;
-	fs = get_fs();
-	set_fs(KERNEL_DS);
-	int fd = sys_open(path, O_RDONLY | O_DIRECTORY, 0);
-	if(fd < 0)
-		return NULL;
+	int fd = 0;
 	int nread;
-	char buf[VFS_BUF_SIZE];
 	struct linux_dirent *d;
 	int bpos;
 	char d_type;
-	int dirent_size = sizeof(struct KCode_dirent);
-	struct KCode_dirent *begin = vmalloc(dirent_size);
-	struct KCode_dirent *cur = begin;
+	int dirent_size;
+	struct KCode_dirent *begin = NULL;
+	struct KCode_dirent * cur = NULL;
+	int num = 0;
+	mm_segment_t fs;
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	fd = sys_open(path, O_RDONLY | O_DIRECTORY, 0);
+	if(fd < 0)
+		return NULL;
+	dirent_size = sizeof(struct KCode_dirent);
+	cur = begin = vmalloc(dirent_size);
 	memset(begin, 0 ,dirent_size);
 	begin->next = NULL;
-	int num = 0;
 	//printk("begin = %d\t begin->name = %s\n", begin, begin->name);
 	while(1)
 	{
+		memset(buf, 0, VFS_BUF_SIZE);
 		nread = sys_getdents(fd, buf, VFS_BUF_SIZE);
 		if (nread < 0)
 		{
@@ -383,6 +415,7 @@ EXPORT_SYMBOL(vfs_readdir);
 
 int vfs_readlink(const char *path, char *buf, int bufsize)
 {
+	int ret = 0;
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
@@ -393,7 +426,7 @@ int vfs_readlink(const char *path, char *buf, int bufsize)
 	printk("stat.dev = %d\n", stat.dev);
 	printk("stat.mode = %d\n", stat.mode);
 */
-	int ret = sys_readlink(path, buf, bufsize);
+	ret = sys_readlink(path, buf, bufsize);
 	set_fs(fs);
 	return ret;
 }
@@ -401,10 +434,11 @@ EXPORT_SYMBOL(vfs_readlink);
 
 long vfs_socket(int family, int type, int protocol)
 {
+	int ret = 0;
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
-	int ret = sys_socket(family, type, protocol);
+	ret = sys_socket(family, type, protocol);
 	set_fs(fs);
 	return ret;
 }
@@ -412,10 +446,11 @@ EXPORT_SYMBOL(vfs_socket);
 
 long vfs_socketClose(unsigned int sockfd)
 {
+	int ret = 0;
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
-	long ret = sys_close(sockfd);
+	ret = sys_close(sockfd);
 	set_fs(fs);
 	return ret;
 }
@@ -423,10 +458,11 @@ EXPORT_SYMBOL(vfs_socketClose);
 
 long vfs_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg)
 {
+	int ret = 0;
 	mm_segment_t fs;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
-	int ret = sys_ioctl(fd, cmd, arg);
+    ret = sys_ioctl(fd, cmd, arg);
 	set_fs(fs);
 	return ret;
 }

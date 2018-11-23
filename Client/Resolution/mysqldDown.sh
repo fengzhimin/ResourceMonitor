@@ -43,6 +43,3 @@ do
 	let maxCount-=1
 	mysql -uroot -pfzm --execute="flush tables" > /dev/null 2> error.txt
 done
-
-# clear temp file
-rm -fr error.txt tmp.txt

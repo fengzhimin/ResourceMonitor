@@ -16,6 +16,7 @@
 #include <linux/types.h>
 
 #define OPENLOG 1    //1: 表示打开日志功能　　　0: 表示关闭日志功能
+#define SHOWINFO   1     //0: 表示不在终端显示日志   1: 表示在终端显示
 
 //log file name
 #define ERROR_LOG_FILE    "/var/log/ResourceMonitor/Server/errorInfo.log"
@@ -29,8 +30,6 @@
  * 0: monitor user specify app
  */
 #define MONITOR_TYPE    1
-
-#define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
 
 #define FILE_PATH_MAX_LENGTH   256    //一个文件的路径最大长度
 

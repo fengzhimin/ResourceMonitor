@@ -19,7 +19,7 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, \
 	int fd = OpenFile(ResourceMonitor_Client_CONFIG_PATH, O_RDONLY);
 	if(fd == -1)
 	{
-		WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+		WriteLog(0, "调用者信息\n", file, function, line);
 		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", ResourceMonitor_Client_CONFIG_PATH, " 失败！ 错误信息： ", "   ", "\n");
 		Error(error_info);
 		return false;
@@ -60,7 +60,7 @@ bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, \
 					if(strlen(subStr2[1]) >= CONFIG_VALUE_MAX_NUM)
 					{
 						CloseFile(fd);
-						WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+						WriteLog(0, "调用者信息\n", file, function, line);
 						Error("The value of config option is more than the max value\n");
 						return false;
 					}

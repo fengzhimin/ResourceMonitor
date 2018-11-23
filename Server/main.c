@@ -29,14 +29,14 @@ int monitorResource(void *data);
 
 int Code_init(void)
 {
-	printk("success\n");
+	printk("\033[32msuccess\033[0m\n");
 
 	loadConfig();   //read config information from configuration file
 	memset(sysResArray, 0, sizeof(SysResource)*MAX_RECORD_LENGTH);    //clear sysResArray
 	monitorTask = kthread_create(monitorResource, "hello kernel thread", "monitorKthread");
 	if(IS_ERR(monitorTask))
 	{
-		printk("Unable to start kernel thread\n");
+		printk("\033[31mUnable to start kernel thread\033[0m\n");
 		int err = PTR_ERR(monitorTask);
 		monitorTask = NULL;
 		return err;
@@ -54,9 +54,9 @@ void Code_exit(void)
 	if(monitorTask)
 	{
 		release_Netlink();
-		printk("Cancel this kernel thread\n");
+		printk("\033[32mCancel this kernel thread\033[0m\n");
 		kthread_stop(monitorTask);
-		printk("Canceled\n");
+		printk("\033[32mCanceled\033[0m\n");
 	}
     return;
 }
@@ -77,7 +77,9 @@ int monitorResource(void *data)
 		{
 			while(judgeSoftWareConflict())
 			{
-				printk("--------------------------start----------------------\n");
+#if (SHOWINFO == 0)
+				printk("\033[5m\033[35m--------------------------start----------------------\033[0m\n");
+#endif
 				//系统资源冲突
 				//加锁
 				mutex_lock(&ConflictProcess_Mutex);
@@ -128,25 +130,33 @@ int monitorResource(void *data)
 					bool conflictPoint = false;
 					if(avgCPU > PROC_MAX_CPU && CPUConflict)
 					{
-						printk("CPU conflict[%s]\n", currentMonitorAPP->name);
+#if (SHOWINFO == 0)
+						printk("\033[31mCPU conflict[%s]\033[0m\n", currentMonitorAPP->name);
+#endif
 						conflictType |= CPU_CONFLICT;
 						conflictPoint = true;
 					}
 					if((avgMEM+avgSWAP) > PROC_MAX_MEM && avgMaj_flt > PROC_MAX_MAJ_FLT && MEMConflict)
 					{
-						printk("MEM conflict[%s]\n", currentMonitorAPP->name);
+#if (SHOWINFO == 0)
+						printk("\033[31mMEM conflict[%s]\033[0m\n", currentMonitorAPP->name);
+#endif
 						conflictType |= MEM_CONFLICT;
 						conflictPoint = true;
 					}
 					if(avgIOData > PROC_MAX_IO && IOConflict)
 					{
-						printk("IO conflict[%s]\n", currentMonitorAPP->name);
+#if (SHOWINFO == 0)
+						printk("\033[31mIO conflict[%s]\033[0m\n", currentMonitorAPP->name);
+#endif
 						conflictType |= IO_CONFLICT;
 						conflictPoint = true;
 					}
 					if(avgNetData > PROC_MAX_NET && NETConflict)
 					{
-						printk("NET conflict[%s]\n", currentMonitorAPP->name);
+#if (SHOWINFO == 0)
+						printk("\033[31mNET conflict[%s]\033[0m\n", currentMonitorAPP->name);
+#endif
 						conflictType |= NET_CONFLICT;
 						conflictPoint = true;
 					}
@@ -178,7 +188,9 @@ int monitorResource(void *data)
 
 				//释放锁
 				mutex_unlock(&ConflictProcess_Mutex);
-				printk("--------------------------end----------------------\n\n\n\n");
+#if (SHOWINFO == 1)
+				printk("\033[5m\033[35m--------------------------end----------------------\033[0m\n\n\n\n");
+#endif
 			}
 
 			//删除冲突信息

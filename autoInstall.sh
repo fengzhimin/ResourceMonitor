@@ -29,14 +29,6 @@ then
 	exit -1
 fi
 
-# clear previous installation
-if [ -e /boot/vmlinuz-3.16.40 ]
-then
-	rm -fr /boot/vmlinuz-3.16.40
-	rm -fr /boot/Systemp.map-3.16.40
-	rm -fr /boot/initrd.img-3.16.40
-fi
-
 if [ -d /usr/src/linux-3.16.40 ]
 then
 	rm -fr /usr/src/linux-3.16.40
@@ -187,6 +179,14 @@ fi
 # start to compile kernel and install
 cd $kernelPath
 make -j8 && make modules_install && make install
+
+# clear previous installation
+if [ -e /boot/vmlinuz-3.16.40.old ]
+then
+	rm -fr /boot/vmlinuz-3.16.40.old
+	rm -fr /boot/Systemp.map-3.16.40.old
+	rm -fr /boot/initrd.img-3.16.40.old
+fi
 
 if [ $? == 0 ]
 then

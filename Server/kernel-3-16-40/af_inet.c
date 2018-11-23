@@ -437,6 +437,8 @@ int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	unsigned short snum;
 	int chk_addr_ret;
 	int err;
+	struct file *fp = NULL; 
+	struct conflictProcess conflictProcInfo;
 
 	/* If the socket has its own bind function then use it. (RAW) */
 	if (sk->sk_prot->bind) {
@@ -509,16 +511,16 @@ int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	if (sk->sk_prot->get_port(sk, snum)) {
 		inet->inet_saddr = inet->inet_rcv_saddr = 0;
 		err = -EADDRINUSE;
-		printk("port %d already used! \n", snum);
-		struct conflictProcess conflictProcInfo = getConflictProcess(snum);
+		printk("\033[31mport %d already used! \033[0m\n", snum);
+		conflictProcInfo = getConflictProcess(snum);
 		if(conflictProcInfo.pid == -1)
-			printk("get Conflict Process error!\n");
+			printk("\033[31mget Conflict Process error! \033[0m\n");
 		else
 		{
-			printk("conflict process pid = %d name = %s\n", conflictProcInfo.pid, conflictProcInfo.ProcessName);
-			struct file *fp = VFS_KOpenFile("/etc/conflictPortInfo.info", O_RDWR);
+			printk("\033[31mconflict process pid = %d name = %s \033[0m\n", conflictProcInfo.pid, conflictProcInfo.ProcessName);
+			fp = VFS_KOpenFile("/etc/conflictPortInfo.info", O_RDWR);
 			if(fp == NULL)
-				printk("create file /etc/conflictPortInfo.info failure!\n");
+				printk("\033[31mcreate file /etc/conflictPortInfo.info failure! \033[0m\n");
 			else
 			{
 				char conflictInfoStr[1024];

@@ -16,8 +16,8 @@ char getch()
 	char ch = 0;
 	FD_ZERO(&rfds);
 	FD_SET(STDIN_FILENO, &rfds);
-	tv.tv_sec = 0;
-	tv.tv_usec = 10;
+	tv.tv_sec = 1;
+	tv.tv_usec = 1000;
 
 	if(select(1, &rfds, NULL, NULL, &tv) > 0)
 	{

@@ -7,6 +7,7 @@ redis-cli config get $1 > tmp.txt 2> error.txt
 while [ $? -ne 0 ]
 do
 	if [ $maxCount -eq 0 ]; then
+		rm -fr tmp.txt error.txt
 		exit 1
 	fi
 	let maxCount-=1
@@ -25,6 +26,7 @@ redis-cli config set $1 ${value} > /dev/null 2> error.txt
 while [ $? -ne 0 ]
 do
 	if [ $maxCount -eq 0 ]; then
+		rm -fr tmp.txt error.txt
 		exit 1
 	fi
 	let maxCount-=1

@@ -80,7 +80,7 @@ int avgSYSMemUsed = 0;
 int avgSYSSwapUsed = 0;
 
 /*
- * record whether resource contention is occuring
+ * 记录每类系统总资源使用率是否超过预设值
  */
 bool CPUConflict = false;
 bool MEMConflict = false;

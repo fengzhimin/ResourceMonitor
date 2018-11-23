@@ -58,7 +58,7 @@ ProgAllPid getAllPidDebug(char *name, pid_t pgid, const char *file, const char *
 		{
 			if(recordPidIndex == MAX_CHILD_PROCESS_NUM)
 			{
-				WriteLog(0, ERROR_LOG_FILE, "调用者信息\n", file, function, line);
+				WriteLog(0, "调用者信息\n", file, function, line);
 				sprintf(error_info, "%s%s", "程序(%s)的进程个数超过了预定义最大进程个数\n", name);
 				Error(error_info);
 				task_unlock(p);

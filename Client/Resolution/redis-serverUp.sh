@@ -9,6 +9,7 @@ redis-cli config get $1 > tmp.txt 2> error.txt
 while [ $? -ne 0 ]
 do
 	if [ $maxCount -eq 0 ]; then
+		rm -fr tmp.txt error.txt
 		exit 1
 	fi
 	let maxCount-=1
@@ -18,6 +19,7 @@ done
 value=`cat tmp.txt | tail -n 1 | cut -d "\"" -f 1`
 
 if [ $value -ge $2 ]; then
+	rm -fr tmp.txt error.txt
 	exit 1
 fi
 
@@ -35,6 +37,7 @@ redis-cli config set $1 ${value} > /dev/null 2> error.txt
 while [ $? -ne 0 ]
 do
 	if [ $maxCount -eq 0 ]; then
+		rm -fr tmp.txt error.txt
 		exit 1
 	fi
 	let maxCount-=1

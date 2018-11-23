@@ -39,18 +39,46 @@ char *CreateLogInfo(const char *logInfo, const char *file, const char* function,
 	return mergeInfo;
 }
 
-int WriteLog(int rank, const char* logName, const char* logInfo, const char *file, const char* function, const int line)
+int WriteLog(int rank, const char* logInfo, const char *file, const char* function, const int line)
 {
 #if (OPENLOG == 1)
+	char *logName = NULL;
+	switch(rank)
+	{
+	case 0:
+		logName = ERROR_LOG_FILE;
+		break;
+	case 1:
+		logName = WARNING_LOG_FILE;
+		break;
+	case 2:
+	default:
+		logName = RESULT_LOG_FILE;
+	}
 	struct file * _fd = KOpenFile(logName, O_APPEND | O_WRONLY);
 	if(NULL == _fd)
 		return -1;
 	
 	char *_mergeInfo = CreateLogInfo(logInfo, file, function, line);
 
-	//判断是否在终端显示信息
-	if(SHOWINFO == 1)
-		printk(_mergeInfo);
+//判断是否在终端显示信息
+#if (SHOWINFO == 1)
+	switch(rank)
+	{
+	case 0:
+		//红色
+		printk("\033[31m%s\033[0m", _mergeInfo);
+		break;
+	case 1:
+		//黄色
+		printk("\033[33m%s\033[0m", _mergeInfo);
+		break;
+	case 2:
+	default:
+		//绿色
+		printk("\033[32m%s\033[0m", _mergeInfo);
+	}
+#endif
 
 	int _ret_write = KWriteFile(_fd, _mergeInfo);
 

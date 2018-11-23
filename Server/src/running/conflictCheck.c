@@ -28,21 +28,55 @@ bool judgeSysResConflict()
 	avgSYSSwapUsed = sumSwap/MAX_RECORD_LENGTH;
 	//judge whether CPU resource is conflicting
 	if(avgSYSCpuUsed >= SYS_MAX_CPU)
+	{
 		CPUConflict = true;
+#if (SHOWINFO == 1)
+		printk("\033[33mCPU: %3d\t\033[0m", avgSYSCpuUsed);
+#endif
+	}
+	else
+	{
+		CPUConflict = false;
+#if (SHOWINFO == 1)
+		printk("CPU: %3d\t", avgSYSCpuUsed);
+#endif
+	}
 	//judge whether MEM resource is conflicting
 	if(avgSYSMemUsed >= SYS_MAX_MEM || avgSYSSwapUsed >= SYS_MAX_SWAP)
+	{
 		MEMConflict = true;
+#if (SHOWINFO == 1)
+		printk("\033[33mMEM: %3d\tSWAP: %3d\t\033[0m", avgSYSMemUsed, avgSYSSwapUsed);
+#endif
+	}
+	else
+	{
+		MEMConflict = false;
+#if (SHOWINFO == 1)
+		printk("MEM: %3d\tSWAP: %3d\t", avgSYSMemUsed, avgSYSSwapUsed);
+#endif
+	}
 
 	getSysDiskUsedInfo();
 	getSysNetUsedInfo();
-	printk("CPU: %3d\tMEM: %3d\tSWAP: %3d\t", avgSYSCpuUsed, avgSYSMemUsed, avgSYSSwapUsed);
 	//judge whether IO resource is conflicting
 	currentDiskUsedInfo = beginDiskUsedInfo;
 	while(currentDiskUsedInfo != NULL)
 	{
-		printk("%10s:%3d\t", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
 		if(currentDiskUsedInfo->ioUsed >= SYS_MAX_IO)
+		{
 			IOConflict = true;
+#if (SHOWINFO == 1)
+			printk("\033[33m%10s:%3d\t\033[0m", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
+#endif
+		}
+		else
+		{
+			IOConflict = false;
+#if (SHOWINFO == 1)
+			printk("%10s:%3d\t", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
+#endif
+		}
 		currentDiskUsedInfo = currentDiskUsedInfo->next;
 	}
 
@@ -50,9 +84,20 @@ bool judgeSysResConflict()
 	currentNetUsedInfo = beginNetUsedInfo;
 	while(currentNetUsedInfo != NULL)
 	{
-		printk("%10s:%3d\t", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
 		if(currentNetUsedInfo->netUsed >= SYS_MAX_NET)
+		{
 			NETConflict = true;
+#if (SHOWINFO == 1)
+			printk("\033[33m%10s:%3d\t\033[0m", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
+#endif
+		}
+		else
+		{
+			NETConflict = false;
+#if (SHOWINFO == 1)
+			printk("%10s:%3d\t", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
+#endif
+		}
 		currentNetUsedInfo = currentNetUsedInfo->next;
 	}
 	printk("\n");
@@ -83,21 +128,55 @@ bool judgeSoftWareConflict()
 	avgSYSSwapUsed = sumSwap/MAX_RECORD_LENGTH;
 	//judge whether CPU resource is conflicting
 	if(avgSYSCpuUsed >= SYS_MAX_CPU)
+	{
 		CPUConflict = true;
+#if (SHOWINFO == 1)
+		printk("\033[33mCPU: %3d\t\033[0m", avgSYSCpuUsed);
+#endif
+	}
+	else
+	{
+		CPUConflict = false;
+#if (SHOWINFO == 1)
+		printk("CPU: %3d\t", avgSYSCpuUsed);
+#endif
+	}
 	//judge whether MEM resource is conflicting
 	if(avgSYSMemUsed >= SYS_MAX_MEM || avgSYSSwapUsed >= SYS_MAX_SWAP)
+	{
 		MEMConflict = true;
+#if (SHOWINFO == 1)
+		printk("\033[33mMEM: %3d\tSWAP: %3d\t\033[0m", avgSYSMemUsed, avgSYSSwapUsed);
+#endif
+	}
+	else
+	{
+		MEMConflict = false;
+#if (SHOWINFO == 1)
+		printk("MEM: %3d\tSWAP: %3d\t", avgSYSMemUsed, avgSYSSwapUsed);
+#endif
+	}
 
 	getSysDiskUsedInfo();
 	getSysNetUsedInfo();
-	printk("CPU: %3d\tMEM: %3d\tSWAP: %3d\t", avgSYSCpuUsed, avgSYSMemUsed, avgSYSSwapUsed);
 	//judge whether IO resource is conflicting
 	currentDiskUsedInfo = beginDiskUsedInfo;
 	while(currentDiskUsedInfo != NULL)
 	{
-		printk("%10s:%3d\t", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
 		if(currentDiskUsedInfo->ioUsed >= SYS_MAX_IO)
+		{
 			IOConflict = true;
+#if (SHOWINFO == 1)
+			printk("\033[33m%10s:%3d\t\033[0m", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
+#endif
+		}
+		else
+		{
+			IOConflict = false;
+#if (SHOWINFO == 1)
+			printk("%10s:%3d\t", currentDiskUsedInfo->diskName, currentDiskUsedInfo->ioUsed);
+#endif
+		}
 		currentDiskUsedInfo = currentDiskUsedInfo->next;
 	}
 
@@ -105,9 +184,20 @@ bool judgeSoftWareConflict()
 	currentNetUsedInfo = beginNetUsedInfo;
 	while(currentNetUsedInfo != NULL)
 	{
-		printk("%10s:%3d\t", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
 		if(currentNetUsedInfo->netUsed >= SYS_MAX_NET)
+		{
 			NETConflict = true;
+#if (SHOWINFO == 1)
+			printk("\033[33m%10s:%3d\t\033[0m", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
+#endif
+		}
+		else
+		{
+			NETConflict = false;
+#if (SHOWINFO == 1)
+			printk("%10s:%3d\t", currentNetUsedInfo->netCardName, currentNetUsedInfo->netUsed);
+#endif
+		}
 		currentNetUsedInfo = currentNetUsedInfo->next;
 	}
 	printk("\n");
@@ -153,7 +243,7 @@ bool judgeSoftWareConflict()
 	{
 		/*
 		 * 不存在软件延时
-		 * 更新正常运行时软件资源使用情况
+		 * 更新正常运行时软件资源使用情况(前一时刻的软件资源使用情况)
 		 */
 		currentMonitorAPP = beginMonitorAPP;
 		int sumCPU, sumMEM, sumSWAP;
