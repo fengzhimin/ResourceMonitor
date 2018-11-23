@@ -61,16 +61,16 @@ int WriteLog(int rank, const char* logInfo, const char *file, const char* functi
 	{
 	case 0:
 		//红色
-		printk("\033[31m%s\033[0m", _mergeInfo);
+		printf("\033[31m%s\033[0m", _mergeInfo);
 		break;
 	case 1:
 		//黄色
-		printk("\033[33m%s\033[0m", _mergeInfo);
+		printf("\033[33m%s\033[0m", _mergeInfo);
 		break;
 	case 2:
 	default:
 		//绿色
-		printk("\033[32m%s\033[0m", _mergeInfo);
+		printf("\033[32m%s\033[0m", _mergeInfo);
 	}
 #endif
 

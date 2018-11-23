@@ -161,7 +161,6 @@ static void showConflictInfo()
 					if(getConfValueByLabelAndKey(label, "name", name))
 					{
 						printf("\033[31mCPU: %s\033[0m\n", name);
-
 					}
 				}
 				//MEM
@@ -250,6 +249,8 @@ void monitorPort()
 				pthread_mutex_lock(&showOtherInfo_mutex);
 				//clear history info
 				system("clear");
+				time_t timer;
+				struct tm *tblock;
 				timer = time(NULL);
 				tblock = localtime(&timer);
 				printf("Local time is: %s\n", asctime(tblock));
@@ -287,7 +288,8 @@ void monitorResource()
     skfd = socket(AF_NETLINK, SOCK_RAW, USER_MSG);
     if(skfd == -1)
     {
-        printf("create socket error...%s\n", strerror(errno));
+        sprintf(error_info, "create socket error...%s\n", strerror(errno));
+		Error(error_info);
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);  //reset terminal setting
 		exit(-1);
     }
@@ -298,7 +300,8 @@ void monitorResource()
     local.nl_groups = 0;
     if(bind(skfd, (struct sockaddr *)&local, sizeof(local)) != 0)
     {
-        printf("bind() error\n");
+        sprintf(error_info, "bind() error...%s\n", strerror(errno));
+		Error(error_info);
         close(skfd);
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);  //reset terminal setting
 		exit(-1);
@@ -326,7 +329,8 @@ void monitorResource()
 
 	    if(!ret)
 	    {
-			perror("sendto error1\n");
+			sprintf(error_info, "sendto error...%s\n", strerror(errno));
+			Error(error_info);
 			ExitResourceMonitor();
 
 			exit(-1);
@@ -351,7 +355,8 @@ void monitorResource()
 			ret = recvfrom(skfd, &info, sizeof(struct _my_msg), 0, (struct sockaddr *)&dest_addr, &len);
 			if(!ret)
 			{
-				perror("recv form kernel error\n");
+				sprintf(error_info, "recv form kernel error...%s\n", strerror(errno));
+				Error(error_info);
 				ExitResourceMonitor();
 
 				exit(-1);
@@ -473,15 +478,15 @@ int main(int argc, char **argv)
 
 	if(pthread_mutex_init(&showOtherInfo_mutex, NULL) != 0)
 	{
-		printf("init showOtherInfo_mutex failure!\n");
 		Error("init showOtherInfo_mutex failure!\n");
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
 		return -1;
 	}
 
 	if(pthread_mutex_init(&conflictProcess_mutex, NULL) != 0)
 	{
-		printf("init conflictProcess_mutex failure!\n");
 		Error("init conflictProcess_mutex failure!\n");
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
 		return -1;
 	}
 
@@ -489,7 +494,6 @@ int main(int argc, char **argv)
 	pthread_t pthreadPort_t;
 	if(pthread_create(&pthreadPort_t, NULL, (void *)monitorPort, NULL) != 0)
 	{
-		printf("create monitorPort thread failure!\n");
 		Error("create monitorPort thread failure!\n");
 		return -1;
 	}
@@ -498,8 +502,8 @@ int main(int argc, char **argv)
 	pthread_t pthreadResource_t;
 	if(pthread_create(&pthreadResource_t, NULL, (void *)monitorResource, NULL) != 0)
 	{
-		printf("create monitorResource thread failure!\n");
 		Error("create monitorResource thread failure!\n");
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
 		return -1;
 	}
 
@@ -507,8 +511,8 @@ int main(int argc, char **argv)
 	pthread_t pthreadShowConflictInfo_t;
 	if(pthread_create(&pthreadShowConflictInfo_t, NULL, (void *)showInfo, NULL) != 0)
 	{
-		printf("create showInfo thread failure!\n");
 		Error("create showInfo thread failure!\n");
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
 		return -1;
 	}
 

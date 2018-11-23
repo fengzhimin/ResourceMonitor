@@ -26,7 +26,7 @@
 #define COPYRIGHT "(C) 2017-2018 zhimin feng"
 
 #define OPENLOG  1      //0=不记录日志   1=记录日志
-#define SHOWINFO   0     //0: 表示不在终端显示日志   1: 表示在终端显示
+#define SHOWINFO   1     //0: 表示不在终端显示日志   1: 表示在终端显示
 
 #define ONLINE_RESOLUTION     //0=不在线资源竞争消解    1=在线资源竞争消解
 
