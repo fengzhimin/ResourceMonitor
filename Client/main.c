@@ -19,6 +19,7 @@
 #include "common/confOper.h"
 #include "resolution/conflictResolution.h"
 #include "common/ioOper.h"
+#include "common/procInfo.h"
 
 static char error_info[200];
 
@@ -256,7 +257,7 @@ void monitorPort()
 				printf("Local time is: %s\n", asctime(tblock));
 				printf("\033[31m%s\033\[0m\n", buf);
 				//显示端口冲突信息1s
-				sleep(1000000);
+				sleep(1);
 				//unlock showOtherInfo variable
 				pthread_mutex_unlock(&showOtherInfo_mutex);
 				//记录端口冲突信息
@@ -461,6 +462,38 @@ void monitorResource()
 
 int main(int argc, char **argv)
 {
+	if(getuid() != 0)
+	{
+		printf("请使用root权限执行\n");
+		return -1;
+	}
+
+	int pid = getProcIdByName(PROCNAME);
+	if(pid == -1)
+	{
+		sprintf(error_info, "获取进程(%s)id失败!\n", PROCNAME);
+		Warning(error_info);
+	}
+	else if(pid > 0)
+	{
+		printf("进程%s(%d)已经运行，请先关闭后重新启动!\n", PROCNAME, pid);
+		return -1;
+	}
+
+	//修改进程名称
+	char argv_buf[MAX_ARGV_LENGTH] = {0};  //save argv parameters
+	int i;
+	for(i = 0; i < argc; i++)
+	{
+		strcat(argv_buf, argv[i]);
+		strcat(argv_buf, " ");
+	}
+
+    //修改argv[0]所指向的内存空间的内容
+    setproctitle_init(argc, argv, environ);
+    
+    //调用prctl修改进程名
+    setproctitle("%s %s", PROCNAME, argv_buf);
 
 	tcgetattr(STDIN_FILENO, &oldTermios);   //get current terminal setting
 

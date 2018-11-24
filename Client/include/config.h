@@ -25,6 +25,8 @@
 
 #define COPYRIGHT "(C) 2017-2018 zhimin feng"
 
+#define PROCNAME  "ResourceMonitor"   //进程名称
+
 #define OPENLOG  1      //0=不记录日志   1=记录日志
 #define SHOWINFO   1     //0: 表示不在终端显示日志   1: 表示在终端显示
 
@@ -58,6 +60,7 @@
 //存放端口冲突信息的临时文件
 #define PORT_CONTENTION_INFO_PATH    "/etc/conflictPortInfo.info"
 
+# define MAX_ARGV_LENGTH       2048   //max argv parameters length
 /*************************************
  * function: 存放关于进程调度的时间数值
 *************************************/

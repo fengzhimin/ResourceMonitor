@@ -131,6 +131,9 @@ int StrToInt(char *str)
 	int i, retNum = 0;
 	for(i = 0; i < strLength; i++)
 	{
+		//排除其他字符
+		if(str[i] < '0' || str[i] > '9')
+			continue;
 		retNum *= 10;
 		retNum += str[i] - '0';
 	}
