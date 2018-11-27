@@ -54,9 +54,13 @@
 //定义ResourceMonitor-Client配置文件存放的路径
 #define ResourceMonitor_Client_CONFIG_PATH     "/etc/ResourceMonitor/Client/ResourceMonitorClient.conf"
 #define ResourceMonitor_Client_CONFIG_NOTESYMBOL    '#'
+//存放修改配置项信息，用于增加后续配置项值
+#define REDUCE_CONFIG_PATH       "/tmp/ResourceMonitor_Reduce_Config.info"
+#define TMP_REDUCE_CONFIG_PATH       "/tmp/TMP_ResourceMonitor_Reduce_Config.info"
 //save the script of contention solution
 #define ResourceMonitor_Client_SOLUTION_PATH   "/etc/ResourceMonitor/Client/Resolution"
-#define SCRIPT_PATH_MAX_NUM    128    // the max number of the script path
+#define SCRIPT_PATH_MAX_LENGTH    128    // the max length of the script path
+#define COMMAND_MAX_LENGTH        1024   // the max length of the command
 //存放端口冲突信息的临时文件
 #define PORT_CONTENTION_INFO_PATH    "/etc/conflictPortInfo.info"
 
@@ -135,6 +139,7 @@ extern bool showOtherInfo;   //标记显示版本信息或者其他帮助信息�
 extern int conflictCount;  //竞争次数  用于计算竞争发生的时间
 extern char label[CONFIG_LABEL_MAX_NUM];  //配置文件中的标签
 extern char name[CONFIG_VALUE_MAX_NUM];   //配置文件中的配置项名称
+extern char increaseValue[CONFIG_VALUE_MAX_NUM];  //配置文件中的每次增加配置的量
 extern char defaultValue[CONFIG_VALUE_MAX_NUM];   //配置文件中的配置项默认值
 
 struct _my_msg

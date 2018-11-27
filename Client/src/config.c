@@ -21,7 +21,8 @@ pthread_mutex_t showOtherInfo_mutex;
 pthread_mutex_t conflictProcess_mutex; 
 bool showOtherInfo = false;   //标记显示版本信息或者帮助信息
 int conflictCount = 0;
-char label[CONFIG_LABEL_MAX_NUM];  //配置文件中的标签
-char name[CONFIG_VALUE_MAX_NUM];   //配置文件中的配置项名称
-char defaultValue[CONFIG_VALUE_MAX_NUM];   //配置文件中的配置项默认值
+char label[CONFIG_LABEL_MAX_NUM] = {0};  //配置文件中的标签
+char name[CONFIG_VALUE_MAX_NUM] = {0};   //配置文件中的配置项名称
+char increaseValue[CONFIG_VALUE_MAX_NUM] = {0};  //配置文件中的每次增加配置的量
+char defaultValue[CONFIG_VALUE_MAX_NUM] = {0};   //配置文件中的配置项默认值
 

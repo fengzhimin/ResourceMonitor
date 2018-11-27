@@ -10,53 +10,57 @@
 #include "resolution/conflictResolution.h"
 
 static char error_info[200];
+static char result_info[200];
 static char lineData[LINE_CHAR_MAX_NUM];
 
-bool ExecuteCommandDebug(char *commandArgv[], const char *file, const char *function, const int line)
+int ExecuteCommandDebug(char *command, const char *file, const char *function, const int line)
 {
-	pid_t pid = fork();
-	if(pid < 0 )
+	int status;
+	status = system(command);
+	if(status == -1)
 	{
 		WriteLog(0, "调用者信息\n", file, function, line);
-		sprintf(error_info, "create process failed: %s.\n", strerror(errno));
+		sprintf(error_info, "system error(%s)\n", command);
 		Error(error_info);
-
-		return false;
-	}
-	else if(pid == 0)
-	{
-		if(execvp("sh", commandArgv) < 0)
-		{
-			WriteLog(0, "调用者信息\n", file, function, line);
-			sprintf(error_info, "execute command(%s) failure: %s.\n", commandArgv[1], strerror(errno));
-			Error(error_info);
-
-			exit(-1);
-		}
+		return status;
 	}
 	else
 	{
-		int status;
-		if(wait(&status) < 0)
+		int ret_status = WEXITSTATUS(status);
+		if(WIFEXITED(status))
 		{
-			WriteLog(0, "调用者信息\n", file, function, line);
-			sprintf(error_info, "wait child process(%s) exit failed: %s.\n", commandArgv[1], strerror(errno));
-			Error(error_info);
-			
-			return false;
-		}
-		else if(status == 0)
-			return true;
-		else
-			return false;
-	}
+			//执行command命令成功
+			if(0 == ret_status || 1 == ret_status)
+			{
+				//执行脚本成功
+				sprintf(result_info, "execute command(%s) success\n", command);
+				Result(result_info);
+			}
+			else
+			{
+				//脚本执行失败
+				WriteLog(0, "调用者信息\n", file, function, line);
+				sprintf(error_info, "execute command(%s) failure, return value(%d)\n", command, ret_status);
+				Error(error_info);
+			}
 
-	return false;
+			return ret_status;
+		}
+		else
+		{
+			//执行command命令出错
+			WriteLog(0, "调用者信息\n", file, function, line);
+			sprintf(error_info, "execute command(%s) error, error code(%d)\n", command, ret_status);
+			Error(error_info);
+
+			return -2;
+		}
+	}
 }
 
 bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const char *function, const int line)
 {
-	char scriptPath[SCRIPT_PATH_MAX_NUM];
+	char scriptPath[SCRIPT_PATH_MAX_LENGTH];
 	sprintf(scriptPath, "%s/%sDown.sh", ResourceMonitor_Client_SOLUTION_PATH, softwareName);
 	if((access(scriptPath, F_OK)) == -1)
 	{
@@ -67,13 +71,30 @@ bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const
 		return false;
 	}
 
-	char *commandArgv[] = { "sh", scriptPath, confName, NULL};
-	if(ExecuteCommand(commandArgv))
+	char command[COMMAND_MAX_LENGTH] = {0};
+	sprintf(command, "bash %s %s", scriptPath, confName);
+	int status = ExecuteCommand(command);
+	if(0 == status)
+	{
+		//增加配置项值成功
+		sprintf(result_info, "Reduce config success(software:%s\tconfName:%s)\n", softwareName, confName);
+		Result(result_info);
 		return true;
+	}
 	else
 	{
 		WriteLog(0, "调用者信息\n", file, function, line);
-		sprintf(error_info, "reduce config failure(software:%s\tconfName:%s)\n", softwareName, confName);
+		switch(status)
+		{
+		case 2:
+			sprintf(error_info, "get the value of config failure(software:%s\tconfName:%s)\n", softwareName, confName);
+			break;
+		case 3:
+			sprintf(error_info, "set the value of config failure(software:%s\tconfName:%s)\n", softwareName, confName);
+			break;
+		default:
+			sprintf(error_info, "Reduce config failure(software:%s\tconfName:%s), error code(%d)\n", softwareName, confName, status);
+		}
 		Error(error_info);
 
 		return false;
@@ -81,9 +102,9 @@ bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const
 
 }
 
-bool IncreaseConfDebug(char *softwareName, char *confName, char *defValue, const char *file, const char *function, const int line)
+bool IncreaseConfDebug(char *softwareName, char *confName, char *increaseValue, char *defValue, const char *file, const char *function, const int line)
 {
-	char scriptPath[SCRIPT_PATH_MAX_NUM];
+	char scriptPath[SCRIPT_PATH_MAX_LENGTH];
 	sprintf(scriptPath, "%s/%sUp.sh", ResourceMonitor_Client_SOLUTION_PATH, softwareName);
 	if((access(scriptPath, F_OK)) == -1)
 	{
@@ -94,16 +115,144 @@ bool IncreaseConfDebug(char *softwareName, char *confName, char *defValue, const
 		return false;
 	}
 
-	char *commandArgv[] = { "sh", scriptPath, confName, defValue, NULL};
-	if(ExecuteCommand(commandArgv))
+	char command[COMMAND_MAX_LENGTH] = {0};
+	sprintf(command, "bash %s %s %s %s", scriptPath, confName, increaseValue, defValue);
+	int status = ExecuteCommand(command);
+	if(0 == status)
+	{
+		//增加配置项值成功
+		sprintf(result_info, "Increase config success(software:%s\tconfName:%s)\n", softwareName, confName);
+		Result(result_info);
 		return true;
+	}
+	else if(1 == status)
+	{
+		//配置项值等于默认值
+		sprintf(result_info, "config value is equal to default value(software:%s\tconfName:%s\tdefault value:%s)\n", softwareName, confName, defValue);
+		Result(result_info);
+		return true;
+	}
 	else
 	{
 		WriteLog(0, "调用者信息\n", file, function, line);
-		sprintf(error_info, "increase config failure(software:%s\tconfName:%s)\n", softwareName, confName);
+		switch(status)
+		{
+		case 2:
+			sprintf(error_info, "get the value of config failure(software:%s\tconfName:%s)\n", softwareName, confName);
+			break;
+		case 3:
+			sprintf(error_info, "set the value of config failure(software:%s\tconfName:%s)\n", softwareName, confName);
+			break;
+		default:
+			sprintf(error_info, "Increase config failure(software:%s\tconfName:%s), error code(%d)\n", softwareName, confName, status);
+		}
 		Error(error_info);
 
 		return false;
 	}
+}
 
+bool RecordTunedConfInfoDebug(char *softwareName, char *confName, const char *file, const char *function, const int line)
+{
+	char confInfo[CONFIG_VALUE_MAX_NUM + CONFIG_LABEL_MAX_NUM] = {0};
+	sprintf(confInfo, "%s:%s", softwareName, confName);
+	if(!access(REDUCE_CONFIG_PATH, F_OK))
+	{
+		//存在REDUCE_CONFIG_PATH
+		int fd = OpenFile(REDUCE_CONFIG_PATH, O_RDONLY);
+		if(fd == -1)
+		{
+			WriteLog(0, "调用者信息\n", file, function, line);
+			sprintf(error_info, "open file(%s) failure\n", REDUCE_CONFIG_PATH);
+			Error(error_info);
+			return false;
+		}
+
+		//查找文件中是否已经记录了调整的配置信息
+		bool isExist = false;
+		while(ReadLine(fd, lineData) == 0)
+		{
+			if(strcmp(lineData, confInfo) == 0)
+			{
+				isExist = true;
+				break;
+			}
+		}
+
+		if(!isExist)
+			WriteLine(fd, confInfo);
+
+		CloseFile(fd);
+	}
+	else
+	{
+		//不存在REDUCE_CONFIG_PATH
+		int fd = OpenFile(REDUCE_CONFIG_PATH, O_WRONLY);
+		if(fd == -1)
+		{
+			WriteLog(0, "调用者信息\n", file, function, line);
+			sprintf(error_info, "open file(%s) failure\n", REDUCE_CONFIG_PATH);
+			Error(error_info);
+			return false;
+		}
+
+		WriteLine(fd, confInfo);
+
+		CloseFile(fd);
+	}
+
+	return true;
+}
+
+bool UpdateTunedConfInfoDebug(char *softwareName, char *confName, const char *file, const char *function, const int line)
+{
+	char confInfo[CONFIG_VALUE_MAX_NUM + CONFIG_LABEL_MAX_NUM] = {0};
+	sprintf(confInfo, "%s:%s", softwareName, confName);
+	if(!access(REDUCE_CONFIG_PATH, F_OK))
+	{
+		//存在REDUCE_CONFIG_PATH
+		int fd = OpenFile(REDUCE_CONFIG_PATH, O_RDONLY);
+		int newFd = OpenFile(TMP_REDUCE_CONFIG_PATH, O_WRONLY);
+		if(fd == -1)
+		{
+			WriteLog(0, "调用者信息\n", file, function, line);
+			sprintf(error_info, "open file(%s) failure\n", REDUCE_CONFIG_PATH);
+			Error(error_info);
+			return false;
+		}
+		
+		if(newFd == -1)
+		{
+			WriteLog(0, "调用者信息\n", file, function, line);
+			sprintf(error_info, "open file(%s) failure\n", TMP_REDUCE_CONFIG_PATH);
+			Error(error_info);
+			return false;
+		}
+
+		//查找文件中是否已经记录了调整的配置信息
+		while(ReadLine(fd, lineData) == 0)
+		{
+			if(strcmp(lineData, confInfo) != 0)
+			{
+				WriteLine(newFd, lineData);
+			}
+		}
+
+		CloseFile(fd);
+		CloseFile(newFd);
+
+		//重新替换临时文件
+		remove(REDUCE_CONFIG_PATH);
+		rename(TMP_REDUCE_CONFIG_PATH, REDUCE_CONFIG_PATH);
+	}
+	else
+	{
+		//不存在REDUCE_CONFIG_PATH
+		WriteLog(0, "调用者信息\n", file, function, line);
+		sprintf(error_info, "File(%s) is not existing\n", REDUCE_CONFIG_PATH);
+		Error(error_info);
+		return false;
+	}
+
+	return true;
 }

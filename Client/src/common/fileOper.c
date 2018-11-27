@@ -25,6 +25,17 @@ int WriteFile(int fd, char *data)
 	return _ret_value;
 }
 
+int WriteLine(int fd, char *data)
+{
+	int _ret_value;
+
+	_ret_value = write(fd, data, strlen(data));
+
+	_ret_value += write(fd, "\n", 1);
+
+	return _ret_value;
+}
+
 int ReadFile(int fd, char *data, size_t size)
 {
 	int _ret_value;

@@ -14,21 +14,24 @@
 #include "log/logOper.h"
 #include "common/confOper.h"
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #define ExecuteCommand(command)   ExecuteCommandDebug(command, __FILE__, __FUNCTION__, __LINE__)
 #define ReduceConf(softwareName, confName)  ReduceConfDebug(softwareName, confName, __FILE__, __FUNCTION__, __LINE__)
-#define IncreaseConf(softwareName, confName, defValue)   IncreaseConfDebug(softwareName, confName, defValue, __FILE__, __FUNCTION__, __LINE__)
+#define IncreaseConf(softwareName, confName, increaseValue, defValue)   IncreaseConfDebug(softwareName, confName, increaseValue, defValue, __FILE__, __FUNCTION__, __LINE__)
+#define RecordTunedConfInfo(softwareName, confName)   RecordTunedConfInfoDebug(softwareName, confName, __FILE__, __FUNCTION__, __LINE__)
+#define UpdateTunedConfInfo(softwareName, confName)   UpdateTunedConfInfoDebug(softwareName, confName, __FILE__, __FUNCTION__, __LINE__)
 
 /**********************************
  * func: execute a command that modifies the resource-related configuration options
- * return: true = execute success    false = execute failure
- * @para command: the command of execution
+ * return: 
+ *		-1 = 执行system函数失败
+ *		-2 = 执行command命令失败
+ *	   >=0 = 执行command命令成功，并返回command的状态码
+ * @para command: 执行的命令，要求返回值为大于等于零的数字
 **********************************/
-bool ExecuteCommandDebug(char *commandArgv[], const char *file, const char *function, const int line);
+int ExecuteCommandDebug(char *command, const char *file, const char *function, const int line);
 
 /**********************************
  * func: execute a script that is reducing the value of configurations
@@ -43,8 +46,25 @@ bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const
  * return: true = success    false = failure
  * @para softwareName: the name of the software
  * @para confName: the name of configuration option
+ * @para increaseValue: increase the level of configuration option value
  * @para defValue: the default value of configuration option
 ***********************************/
-bool IncreaseConfDebug(char *softwareName, char *confName, char *defValue, const char *file, const char *function, const int line);
+bool IncreaseConfDebug(char *softwareName, char *confName, char *increaseValue, char *defValue, const char *file, const char *function, const int line);
+
+/**********************************
+ * func: record the reduced config information
+ * return: true = success    false = failure
+ * @para softwareName: the name of the software
+ * @para confName: the name of the reduced config
+**********************************/
+bool RecordTunedConfInfoDebug(char *softwareName, char *confName, const char *file, const char *function, const int line);
+
+/**********************************
+ * func: update the reduced config information
+ * return: true = success    false = failure
+ * @para softwareName: the name of the software
+ * @para confName: the name of the reduced config
+**********************************/
+bool UpdateTunedConfInfoDebug(char *softwareName, char *confName, const char *file, const char *function, const int line);
 
 #endif

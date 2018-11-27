@@ -25,6 +25,15 @@ static char error_info[200];
 
 static void ExitResourceMonitor()
 {
+	//删除脚本生产的临时文件
+	if(remove("./error.txt") != 0)
+	{
+		Error("remove error.txt failure!\n");
+	}
+	if(remove("./tmp.txt") != 0)
+	{
+		Error("remove tmp.txt failure!\n");
+	}
 	pthread_mutex_destroy(&showOtherInfo_mutex);
 	pthread_mutex_destroy(&conflictProcess_mutex);
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
@@ -110,15 +119,6 @@ static void showConflictInfo()
 			tblock = localtime(&timer);
 			printf("Local time is: %s\n", asctime(tblock));
 			printf("The system is in normal operation!\n");
-		}
-		//increase the value of configuration option
-		memset(label, 0, CONFIG_LABEL_MAX_NUM);
-		memset(name, 0, CONFIG_VALUE_MAX_NUM);
-		strcpy(label, "mysqld");
-		strcat(label, "/NET");
-		if(getConfValueByLabelAndKey(label, "name", name) && getConfValueByLabelAndKey(label, "defaultValue", defaultValue))
-		{
-			IncreaseConf("mysqld", name, defaultValue);
 		}
 
 		conflictCount = 0;   //清空竞争次数
@@ -391,9 +391,10 @@ void monitorResource()
 			memset(name, 0, CONFIG_VALUE_MAX_NUM);
 			strcpy(label, "mysqld");
 			strcat(label, "/NET");
-			if(getConfValueByLabelAndKey(label, "name", name) && getConfValueByLabelAndKey(label, "defaultValue", defaultValue))
+			if(getConfValueByLabelAndKey(label, "name", name) && getConfValueByLabelAndKey(label, "increaseValue", increaseValue) \
+					&& getConfValueByLabelAndKey(label, "defaultValue", defaultValue))
 			{
-				IncreaseConf("mysqld", name, defaultValue);
+				IncreaseConf("mysqld", name, increaseValue, defaultValue);
 			}
 		}
 		else
@@ -422,7 +423,10 @@ void monitorResource()
 					strcat(label, "/MEM");
 					if(getConfValueByLabelAndKey(label, "name", name))
 					{
-						ReduceConf(currentConflictProcess->name, name);
+						if(ReduceConf(currentConflictProcess->name, name))
+						{
+							//调整内存配置项成功
+						}
 					}
 				}
 				//IO

@@ -35,6 +35,13 @@ int OpenFile(const char* fileName, int mode);
 **********************************/
 int WriteFile(int fd, char *data);
 
+/*********************************
+ *function: 向文件写一行数据
+ *return: 实际写入字符个数
+ *@para fd: 文件指针
+ *@para data: 写入的数据
+**********************************/
+int WriteLine(int fd, char *data);
 
 /*********************************
  *function: 读取文件数据
