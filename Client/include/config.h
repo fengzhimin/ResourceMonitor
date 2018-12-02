@@ -32,13 +32,21 @@
 
 #define ONLINE_RESOLUTION     //0=不在线资源竞争消解    1=在线资源竞争消解
 
-//确保客户端请求数据的频率大于服务器更新数据的频率
+//确保客户端请求数据的频率大于服务器更新数据的频率(消解冲突的频率)
 #define REQUEST_MESSAGE_RATE   1500000    //request message rate from server(us)
+
+//显示冲突信息频率
+#define SHOW_MESSAGE_RATE      1000000    //show contention information rate(us)
+
+//增加配置值的频率
+#define INCREASE_CONFIG_RATE   2000000    //the rate of increase config(us)
 
 //log file name
 #define ERROR_LOG_FILE    "/var/log/ResourceMonitor/Client/errorInfo.log"
 #define WARNING_LOG_FILE  "/var/log/ResourceMonitor/Client/warningInfo.log"
 #define RESULT_LOG_FILE   "/var/log/ResourceMonitor/Client/resultInfo.log"
+//the max size of log file(10M = 1024*1024*10)
+#define MAX_LOG_FILE_SIZE  10485670
 //#define GET_CONFIG_VALUE_FILE   "/var/log/ResourceMonitor/Client/configValue.txt"
 
 #define MAX_NAMELENGTH           50    //应用程序名称最大字符长度
@@ -47,9 +55,10 @@
 #define MAX_CONFLICTINFO      256
 
 #define LINE_CHAR_MAX_NUM      1024   //一行最大字符个数
-#define CONFIG_LABEL_MAX_NUM     64
+#define CONFIG_LABEL_MAX_NUM     64     //配置文件中label标签的最大长度
 #define CONFIG_KEY_MAX_NUM       64     //配置项key的最大值
 #define CONFIG_VALUE_MAX_NUM     1024   //配置项value的最大值
+#define SOFTWARE_NAME_MAX_NUM    64     //软件名称最大长度
 #define MAX_SUBSTR               1024   //拆分后子字符串的最大长度
 //定义ResourceMonitor-Client配置文件存放的路径
 #define ResourceMonitor_Client_CONFIG_PATH     "/etc/ResourceMonitor/Client/ResourceMonitorClient.conf"
@@ -127,7 +136,6 @@ typedef struct ConflictProcess
 
 extern ConflictProcInfo *beginConflictProcess;   //冲突信息的头
 extern ConflictProcInfo *endConflictProcess;     //冲突信息的尾
-extern ConflictProcInfo *currentConflictProcess; //当前的冲突信息
 
 extern int skfd;   //连接服务器的socket描述符
 extern struct nlmsghdr *nlh;  //设置netlink的数据
@@ -141,6 +149,7 @@ extern char label[CONFIG_LABEL_MAX_NUM];  //配置文件中的标签
 extern char name[CONFIG_VALUE_MAX_NUM];   //配置文件中的配置项名称
 extern char increaseValue[CONFIG_VALUE_MAX_NUM];  //配置文件中的每次增加配置的量
 extern char defaultValue[CONFIG_VALUE_MAX_NUM];   //配置文件中的配置项默认值
+extern char softwareName[SOFTWARE_NAME_MAX_NUM];  //软件的名称
 
 struct _my_msg
 {

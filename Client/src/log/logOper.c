@@ -49,6 +49,13 @@ int WriteLog(int rank, const char* logInfo, const char *file, const char* functi
 	default:
 		logName = RESULT_LOG_FILE;
 	}
+	struct stat buf;
+	stat(logName, &buf);
+	//判断日志文件是否超过最大值
+	if(buf.st_size >= MAX_LOG_FILE_SIZE)
+	{
+		remove(logName);
+	}
 	int _fd = OpenFile(logName, O_APPEND | O_RDWR);
 	if(-1 == _fd)
 		return -1;

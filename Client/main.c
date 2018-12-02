@@ -1,7 +1,7 @@
 /******************************************************
 * Author       : fengzhimin
 * Create       : 2018-09-17 01:55
-* Last modified: 2018-09-17 01:55
+* Last modified: 2018-11-28 00:45
 * Email        : 374648064@qq.com
 * Filename     : main.c
 * Description  : 
@@ -22,17 +22,21 @@
 #include "common/procInfo.h"
 
 static char error_info[200];
+static char warning_info[200];
+static char result_info[200];
 
 static void ExitResourceMonitor()
 {
 	//删除脚本生产的临时文件
 	if(remove("./error.txt") != 0)
 	{
-		Error("remove error.txt failure!\n");
+		sprintf(warning_info, "remove error.txt failure!(%s)\n", strerror(errno));
+		Warning(warning_info);
 	}
 	if(remove("./tmp.txt") != 0)
 	{
-		Error("remove tmp.txt failure!\n");
+		sprintf(warning_info, "remove tmp.txt failure!(%s)\n", strerror(errno));
+		Warning(warning_info);
 	}
 	pthread_mutex_destroy(&showOtherInfo_mutex);
 	pthread_mutex_destroy(&conflictProcess_mutex);
@@ -133,9 +137,9 @@ static void showConflictInfo()
 			timer = time(NULL);
 			tblock = localtime(&timer);
 			printf("Local time is: %s\n", asctime(tblock));
-			printf("The contention time is: %f s\n", (++conflictCount)*REQUEST_MESSAGE_RATE*1.0/1000000);
+			printf("The contention time is: %f s\n", (++conflictCount)*SHOW_MESSAGE_RATE*1.0/1000000);
 
-			currentConflictProcess = beginConflictProcess;
+			ConflictProcInfo *currentConflictProcess = beginConflictProcess;
 			while(currentConflictProcess != NULL)
 			{
 				printf("\033[31mconflict type = %2d conflict process = %20s", currentConflictProcess->conflictType, currentConflictProcess->name);
@@ -274,7 +278,17 @@ void showInfo()
 	while(1)
 	{
 		showConflictInfo();
-		usleep(1000000);
+		usleep(SHOW_MESSAGE_RATE);
+	}
+}
+
+void increaseConfig()
+{
+	while(1)
+	{
+		//increase the value of configuration option
+		AutoIncreaseConf();
+		usleep(INCREASE_CONFIG_RATE);
 	}
 }
 
@@ -340,7 +354,7 @@ void monitorResource()
 		//lock beginConflictProcess variable
 		pthread_mutex_lock(&conflictProcess_mutex);
 		//释放上一时刻存放的竞争信息
-		currentConflictProcess = beginConflictProcess;
+		ConflictProcInfo *currentConflictProcess = beginConflictProcess;
 		while(currentConflictProcess != NULL)
 		{
 			beginConflictProcess = beginConflictProcess->next;
@@ -383,22 +397,9 @@ void monitorResource()
 		//unlock beginConflictProcess variable
 		pthread_mutex_unlock(&conflictProcess_mutex);
 
-		//竞争消解
-		if(beginConflictProcess == NULL)
+		if(beginConflictProcess != NULL)
 		{
-			//increase the value of configuration option
-			memset(label, 0, CONFIG_LABEL_MAX_NUM);
-			memset(name, 0, CONFIG_VALUE_MAX_NUM);
-			strcpy(label, "mysqld");
-			strcat(label, "/NET");
-			if(getConfValueByLabelAndKey(label, "name", name) && getConfValueByLabelAndKey(label, "increaseValue", increaseValue) \
-					&& getConfValueByLabelAndKey(label, "defaultValue", defaultValue))
-			{
-				IncreaseConf("mysqld", name, increaseValue, defaultValue);
-			}
-		}
-		else
-		{
+			//竞争消解
 			currentConflictProcess = beginConflictProcess;
 			while(currentConflictProcess != NULL)
 			{
@@ -411,7 +412,21 @@ void monitorResource()
 					strcat(label, "/CPU");
 					if(getConfValueByLabelAndKey(label, "name", name))
 					{
-						ReduceConf(currentConflictProcess->name, name);
+						if(ReduceConf(currentConflictProcess->name, name))
+						{
+							if(RecordTunedConfInfo(currentConflictProcess->name, name, "CPU"))
+							{
+								sprintf(result_info, "Record tuned configuration success(software:%s\tconf:%s\tResourceType:CPU)\n", \
+										currentConflictProcess->name, name);
+								Result(result_info);
+							}
+							else
+							{
+								sprintf(error_info, "Record tuned configuration failure(software:%s\tconf:%s\tResourceType:CPU)\n", \
+										currentConflictProcess->name, name);
+								Error(error_info);
+							}
+						}
 					}
 				}
 				//MEM
@@ -425,7 +440,18 @@ void monitorResource()
 					{
 						if(ReduceConf(currentConflictProcess->name, name))
 						{
-							//调整内存配置项成功
+							if(RecordTunedConfInfo(currentConflictProcess->name, name, "MEM"))
+							{
+								sprintf(result_info, "Record tuned configuration success(software:%s\tconf:%s\tResourceType:MEM)\n", \
+										currentConflictProcess->name, name);
+								Result(result_info);
+							}
+							else
+							{
+								sprintf(error_info, "Record tuned configuration failure(software:%s\tconf:%s\tResourceType:MEM)\n", \
+										currentConflictProcess->name, name);
+								Error(error_info);
+							}
 						}
 					}
 				}
@@ -438,7 +464,21 @@ void monitorResource()
 					strcat(label, "/IO");
 					if(getConfValueByLabelAndKey(label, "name", name))
 					{
-						ReduceConf(currentConflictProcess->name, name);
+						if(ReduceConf(currentConflictProcess->name, name))
+						{
+							if(RecordTunedConfInfo(currentConflictProcess->name, name, "IO"))
+							{
+								sprintf(result_info, "Record tuned configuration success(software:%s\tconf:%s\tResourceType:IO)\n", \
+										currentConflictProcess->name, name);
+								Result(result_info);
+							}
+							else
+							{
+								sprintf(error_info, "Record tuned configuration failure(software:%s\tconf:%s\tResourceType:IO)\n", \
+										currentConflictProcess->name, name);
+								Error(error_info);
+							}
+						}
 					}
 				}
 				//NET
@@ -450,7 +490,21 @@ void monitorResource()
 					strcat(label, "/NET");
 					if(getConfValueByLabelAndKey(label, "name", name))
 					{
-						ReduceConf(currentConflictProcess->name, name);
+						if(ReduceConf(currentConflictProcess->name, name))
+						{
+							if(RecordTunedConfInfo(currentConflictProcess->name, name, "NET"))
+							{
+								sprintf(result_info, "Record tuned configuration success(software:%s\tconf:%s\tResourceType:NET)\n", \
+										currentConflictProcess->name, name);
+								Result(result_info);
+							}
+							else
+							{
+								sprintf(error_info, "Record tuned configuration failure(software:%s\tconf:%s\tResourceType:NET)\n", \
+										currentConflictProcess->name, name);
+								Error(error_info);
+							}
+						}
 					}
 				}
 
@@ -535,11 +589,20 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	//创建线程用于监控共享资源竞争信息
+	//创建线程用于监控共享资源竞争信息并消解冲突
 	pthread_t pthreadResource_t;
 	if(pthread_create(&pthreadResource_t, NULL, (void *)monitorResource, NULL) != 0)
 	{
 		Error("create monitorResource thread failure!\n");
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
+		return -1;
+	}
+
+	//创建线程用于增加配置项
+	pthread_t pthreadIncrease_t;
+	if(pthread_create(&pthreadIncrease_t, NULL, (void *)increaseConfig, NULL) != 0)
+	{
+		Error("create increase config thread failure!\n");
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);   //reset terminal setting
 		return -1;
 	}

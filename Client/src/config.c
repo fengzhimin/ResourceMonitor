@@ -11,7 +11,6 @@
 
 ConflictProcInfo *beginConflictProcess = NULL;   //冲突信息的头
 ConflictProcInfo *endConflictProcess = NULL;     //冲突信息的尾
-ConflictProcInfo *currentConflictProcess = NULL; //当前的冲突信息
 
 int skfd;
 struct nlmsghdr *nlh = NULL;
@@ -25,4 +24,5 @@ char label[CONFIG_LABEL_MAX_NUM] = {0};  //配置文件中的标签
 char name[CONFIG_VALUE_MAX_NUM] = {0};   //配置文件中的配置项名称
 char increaseValue[CONFIG_VALUE_MAX_NUM] = {0};  //配置文件中的每次增加配置的量
 char defaultValue[CONFIG_VALUE_MAX_NUM] = {0};   //配置文件中的配置项默认值
+char softwareName[SOFTWARE_NAME_MAX_NUM] = {0};  //软件的名称
 

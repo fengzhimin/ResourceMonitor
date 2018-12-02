@@ -16,12 +16,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #define ExecuteCommand(command)   ExecuteCommandDebug(command, __FILE__, __FUNCTION__, __LINE__)
 #define ReduceConf(softwareName, confName)  ReduceConfDebug(softwareName, confName, __FILE__, __FUNCTION__, __LINE__)
 #define IncreaseConf(softwareName, confName, increaseValue, defValue)   IncreaseConfDebug(softwareName, confName, increaseValue, defValue, __FILE__, __FUNCTION__, __LINE__)
-#define RecordTunedConfInfo(softwareName, confName)   RecordTunedConfInfoDebug(softwareName, confName, __FILE__, __FUNCTION__, __LINE__)
+#define RecordTunedConfInfo(softwareName, confName, resourceType)   RecordTunedConfInfoDebug(softwareName, confName, resourceType, __FILE__, __FUNCTION__, __LINE__)
 #define UpdateTunedConfInfo(softwareName, confName)   UpdateTunedConfInfoDebug(softwareName, confName, __FILE__, __FUNCTION__, __LINE__)
+#define AutoIncreaseConf()   AutoIncreaseConfDebug(__FILE__, __FUNCTION__, __LINE__)
 
 /**********************************
  * func: execute a command that modifies the resource-related configuration options
@@ -43,28 +45,30 @@ bool ReduceConfDebug(char *softwareName, char *confName, const char *file, const
 
 /**********************************
  * func: execute a script that is increasing the value of configurations
- * return: true = success    false = failure
+ * return:
+		0 = success
+		1 = the value of config is equal to default value
+		other = failure
  * @para softwareName: the name of the software
  * @para confName: the name of configuration option
  * @para increaseValue: increase the level of configuration option value
  * @para defValue: the default value of configuration option
 ***********************************/
-bool IncreaseConfDebug(char *softwareName, char *confName, char *increaseValue, char *defValue, const char *file, const char *function, const int line);
+int IncreaseConfDebug(char *softwareName, char *confName, char *increaseValue, char *defValue, const char *file, const char *function, const int line);
 
 /**********************************
  * func: record the reduced config information
  * return: true = success    false = failure
  * @para softwareName: the name of the software
  * @para confName: the name of the reduced config
+ * @para resourceType: the resource type
 **********************************/
-bool RecordTunedConfInfoDebug(char *softwareName, char *confName, const char *file, const char *function, const int line);
+bool RecordTunedConfInfoDebug(char *softwareName, char *confName, char *resourceType, const char *file, const char *function, const int line);
 
-/**********************************
- * func: update the reduced config information
+/*********************************
+ * func: automaic increase the value of configuration option
  * return: true = success    false = failure
- * @para softwareName: the name of the software
- * @para confName: the name of the reduced config
-**********************************/
-bool UpdateTunedConfInfoDebug(char *softwareName, char *confName, const char *file, const char *function, const int line);
+*********************************/
+bool AutoIncreaseConfDebug(const char *file, const char *function, const int line);
 
 #endif
