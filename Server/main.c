@@ -77,7 +77,7 @@ int monitorResource(void *data)
 		{
 			while(judgeSoftWareConflict())
 			{
-#if (SHOWINFO == 0)
+#if (SHOWINFO == 1)
 				printk("\033[5m\033[35m--------------------------start----------------------\033[0m\n");
 #endif
 				//系统资源冲突

@@ -20,7 +20,6 @@
 
 #define getConfValueByLabelAndKey(label, key, value) getConfValueByLabelAndKeyDebug(label, key, value, __FILE__, __FUNCTION__, __LINE__)
 
-#define getMonitorSoftWare() getMonitorSoftWareDebug(__FILE__, __FUNCTION__, __LINE__)
 
 /****************************************
  * func: load configuration from config file to initial the max value of Resource unilization
@@ -42,11 +41,5 @@ void loadConfigDebug(const char *file, const char *function, const int line);
  *			getConfValueByLabelAndKey("label1", "key1", &value)   --->  value = value1
 ***************************************/
 bool getConfValueByLabelAndKeyDebug(char *label, char *key, char *value, const char *file, const char *function, const int line);
-
-/****************************************
- * func: 从配置文件中获取要监控的软件(设置全局变量MonitorProcInfo)
- * return: 监控软件的个数
-****************************************/
-int getMonitorSoftWareDebug(const char *file, const char *function, const int line);
 
 #endif

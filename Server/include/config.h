@@ -29,7 +29,7 @@
  * 1: automatic monitor all user layer app
  * 0: monitor user specify app
  */
-#define MONITOR_TYPE    1
+#define MONITOR_TYPE    0
 
 #define FILE_PATH_MAX_LENGTH   256    //一个文件的路径最大长度
 
@@ -48,8 +48,8 @@
 //定义ResourceMonitor-Server配置文件存放的路径
 #define ResourceMonitor_Server_CONFIG_PATH     "/etc/ResourceMonitor/Server/ResourceMonitorServer.conf"
 #define ResourceMonitor_Server_CONFIG_NOTESYMBOL    '#'
-#define MONITOR_LABEL         "monitor"  //用于标识监控软件的label
-#define MONITOR_KEY           "software" //用于标识监控软件的key
+#define MONITOR_LABEL         "MONITOR"  //用于标识监控软件的label
+#define MONITOR_KEY           "SoftwareName" //用于标识监控软件的key
 
 #define MAX_RECORD_LENGTH          5     //during MAX_RECORD_LENGTH*CALC_CPU_TIME ms, Process Resource utilization
 #define MAX_CHILD_PROCESS_NUM      21    //A program has the maximum number of processes(MAX_CHILD_PROCESS_NUM-1)

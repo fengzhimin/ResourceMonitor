@@ -10,6 +10,9 @@
 #include "running/monitorSoftWare.h"
 
 static char buffer[PAGE_SIZE];
+static char error_info[200];
+char value[CONFIG_VALUE_MAX_NUM];
+char key[CONFIG_KEY_MAX_NUM];
 
 void clearMonitorAPPName()
 {
@@ -89,3 +92,73 @@ void getAllMonitorAPPName()
 	beginMonitorAPPName = beginMonitorAPPName->next;
 	vfree(currentMonitorAPPName);
 }
+
+int getMonitorSoftWareDebug(const char *file, const char *function, const int line)
+{
+	struct file *fd = KOpenFile(ResourceMonitor_Server_CONFIG_PATH, O_RDONLY);
+	if(fd == NULL)
+	{
+		WriteLog(0, "调用者信息\n", file, function, line);
+		sprintf(error_info, "%s%s%s%s%s", "打开文件: ", ResourceMonitor_Server_CONFIG_PATH, " 失败！ 错误信息： ", "    ", "\n");
+		Error(error_info);
+		return 0;
+	}
+	MonitorAPPName temp;
+	//associate list header and tail
+	beginMonitorAPPName = endMonitorAPPName = currentMonitorAPPName = vmalloc(sizeof(MonitorAPPName));
+	memset(currentMonitorAPPName, 0, sizeof(MonitorAPPName));
+	int retMonitorNum = 0;   //记录有效的监控软件个数
+	int readMonitorNum = 1;   //记录读取的软件编号
+	while(true)
+	{
+		sprintf(key, "%s%d", MONITOR_KEY, readMonitorNum);
+		memset(&temp, 0, sizeof(MonitorAPPName));
+		memset(value, 0, CONFIG_VALUE_MAX_NUM);
+		if(getConfValueByLabelAndKey(MONITOR_LABEL, key, value))
+		{
+			strcpy(temp.name, value);
+			if(insertMonitorAPPName(temp))
+			{
+				retMonitorNum++;
+			}
+
+			readMonitorNum++;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	//in order to improve efficiency
+	currentMonitorAPPName = beginMonitorAPPName;
+	beginMonitorAPPName = beginMonitorAPPName->next;
+	vfree(currentMonitorAPPName);
+
+	//set program pid
+	currentMonitorAPPName = beginMonitorAPPName;
+	while(currentMonitorAPPName != NULL)
+	{
+		struct task_struct *task, *p;
+		struct list_head *ps;
+		task = &init_task;
+		list_for_each(ps, &task->tasks)
+		{
+			p = list_entry(ps, struct task_struct, tasks);
+			//judge program name whether equal to monitor program name or not
+			if(strcasecmp(currentMonitorAPPName->name, p->comm) == 0)
+			{
+				currentMonitorAPPName->pgid = getPgid(p);
+				goto next;
+			}
+		}
+		
+next:
+		currentMonitorAPPName = currentMonitorAPPName->next;
+	}
+	//set global variable
+	MonitorAPPNameNum = retMonitorNum;
+
+	return retMonitorNum;
+}
+

@@ -13,10 +13,13 @@
 #include "config.h"
 #include "common/fileOper.h"
 #include "running/process.h"
+#include "common/confOper.h"
 #include <linux/string.h>
 #include <linux/init.h>
 #include <linux/sched.h>
 #include <linux/vmalloc.h>
+
+#define getMonitorSoftWare() getMonitorSoftWareDebug(__FILE__, __FUNCTION__, __LINE__)
 
 /**********************************************
  * func: clear MonitorAPPName object
@@ -36,5 +39,11 @@ bool insertMonitorAPPName(MonitorAPPName obj);
  * return: void
 *********************************************/
 void getAllMonitorAPPName();
+
+/****************************************
+ * func: 从配置文件中获取要监控的软件(设置全局变量MonitorProcInfo)
+ * return: 监控软件的个数
+****************************************/
+int getMonitorSoftWareDebug(const char *file, const char *function, const int line);
 
 #endif

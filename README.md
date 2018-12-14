@@ -7,7 +7,7 @@
 	* sudo rm -fr /boot/Systemp.map-3.16.40
 	* sudo rm -fr /boot/initrd.img-3.16.40
 - 第四步：编译安装源码
-	* 第一次编译源码的时候，需要将原有内核源码的.config文件（**/usr/src/linux-headers\-\*\-generic/.config**）拷贝到新内核源码目录下，这样就不用从新配置内核源码了。
+	* 第一次编译源码的时候，需要将原有内核源码的.config文件（**/usr/src/linux-headers\-\*\-generic/.config**）拷贝到新内核源码目录下，这样就不用重新配置内核源码了。
 	* cd /usr/src/linux-3.16.40
 	* sudo make -j8 && sudo make modules_install && sudo make install
 - 第五步：重启电脑

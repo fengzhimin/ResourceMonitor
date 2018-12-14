@@ -224,8 +224,9 @@ bool judgeSoftWareConflict()
 			aveWait_sum /= MAX_RECORD_LENGTH;
 			aveIOWait_sum /= MAX_RECORD_LENGTH;
 			aveMaj_flt_sum /= MAX_RECORD_LENGTH;
+			//printk("processName:%s \t wait_sum:%d \t iowait_sum:%d \t pageFaultNum: %ld\n", currentMonitorAPP->name, aveWait_sum, aveIOWait_sum, aveMaj_flt_sum);
 			//if(strcmp(currentMonitorAPP->name, "redis-server") == 0 || strcmp(currentMonitorAPP->name, "mysqld") == 0 || strcmp(currentMonitorAPP->name, "apache2") == 0)
-			//	printk("wait_sum:%d \t iowait_sum:%d \t pageFaultNum: %d\n", aveWait_sum, aveIOWait_sum, aveMaj_flt_sum);
+			//	printk("wait_sum:%d \t iowait_sum:%d \t pageFaultNum: %ld\n", aveWait_sum, aveIOWait_sum, aveMaj_flt_sum);
 
 			if(aveWait_sum >= PROC_MAX_SCHED.wait_sum || aveIOWait_sum >= PROC_MAX_SCHED.iowait_sum || aveMaj_flt_sum >= PROC_MAX_MAJ_FLT)
 			{
