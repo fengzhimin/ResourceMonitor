@@ -29,7 +29,7 @@
  * 1: automatic monitor all user layer app
  * 0: monitor user specify app
  */
-#define MONITOR_TYPE    0
+#define MONITOR_TYPE    1
 
 #define FILE_PATH_MAX_LENGTH   256    //一个文件的路径最大长度
 
