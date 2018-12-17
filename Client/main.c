@@ -284,10 +284,27 @@ void showInfo()
 
 void increaseConfig()
 {
+	bool conflictSymbol = false;
 	while(1)
 	{
-		//increase the value of configuration option
-		AutoIncreaseConf();
+		//lock beginConflictProcess variable
+		pthread_mutex_lock(&conflictProcess_mutex);
+		if(beginConflictProcess != NULL)
+		{
+			conflictSymbol = true;
+		}
+		else
+		{
+			conflictSymbol = false;
+		}
+		//unlock beginConflictProcess variable
+		pthread_mutex_unlock(&conflictProcess_mutex);
+
+		if(!conflictSymbol)
+		{
+			//increase the value of configuration option
+			AutoIncreaseConf();
+		}
 		usleep(INCREASE_CONFIG_RATE);
 	}
 }

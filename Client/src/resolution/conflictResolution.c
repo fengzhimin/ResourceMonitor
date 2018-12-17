@@ -173,7 +173,7 @@ bool RecordTunedConfInfoDebug(char *softwareName, char *confName, char *resource
 
 		//查找文件中是否已经记录了调整的配置信息
 		bool isExist = false;
-		while(ReadLine(fd, lineData) == 0)
+		while(ReadLine(fd, lineData))
 		{
 			if(strcmp(lineData, confInfo) == 0)
 			{
@@ -238,7 +238,7 @@ bool AutoIncreaseConfDebug(const char *file, const char *function, const int lin
 		}
 
 		//查找文件中是否已经记录了调整的配置信息
-		while(ReadLine(fd, lineData) == 0)
+		while(ReadLine(fd, lineData))
 		{
 			cutStrByLabel(lineData, ':', subStr2, 2);
 			strcpy(label, subStr2[0]);
@@ -278,10 +278,15 @@ bool AutoIncreaseConfDebug(const char *file, const char *function, const int lin
 		//重新替换临时文件
 		if(remove(REDUCE_CONFIG_PATH) != 0)
 		{
-			sprintf(warning_info, "remove %s failure!(%s)\n", REDUCE_CONFIG_PATH, strerror(errno));
-			Warning(warning_info);
+			sprintf(error_info, "remove %s failure!(%s)\n", REDUCE_CONFIG_PATH, strerror(errno));
+			Error(error_info);
 		}
-		rename(TMP_REDUCE_CONFIG_PATH, REDUCE_CONFIG_PATH);
+		//重新命名临时文件
+		if(rename(TMP_REDUCE_CONFIG_PATH, REDUCE_CONFIG_PATH) != 0)
+		{
+			sprintf(error_info, "rename %s to %s failure!(%s)\n", TMP_REDUCE_CONFIG_PATH, REDUCE_CONFIG_PATH, strerror(errno));
+			Error(error_info);
+		}
 	}
 
 	return true;
